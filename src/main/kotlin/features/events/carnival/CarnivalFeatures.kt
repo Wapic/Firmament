@@ -8,6 +8,7 @@ object CarnivalFeatures : FirmamentFeature {
     object TConfig : ManagedConfig(identifier, Category.EVENTS) {
         val enableBombSolver by toggle("bombs-solver") { true }
         val displayTutorials by toggle("tutorials") { true }
+		val enableZombieShootoutHelper by toggle("zombie-shootout-helper") { true }
     }
 
     override val config: ManagedConfig?

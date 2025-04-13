@@ -15,6 +15,7 @@ import moe.nea.firmament.events.ProcessChatEvent
 import moe.nea.firmament.gui.config.ManagedConfig
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.MC
+import moe.nea.firmament.util.NetworkUtils
 import moe.nea.firmament.util.TimeMark
 import moe.nea.firmament.util.tr
 import moe.nea.firmament.util.useMatch
@@ -84,9 +85,30 @@ object PartyCommands {
 				0
 			}
 		}
+
+		register("tps") {
+			executes {
+				MC.sendCommand("pc TPS: ${NetworkUtils.averageTPS}")
+				0
+			}
+		}
+
+		register("fps") {
+			executes {
+				MC.sendCommand("pc FPS: ${MC.instance.currentFps}")
+				0
+			}
+		}
+
+		register("ping") {
+			executes {
+				MC.sendCommand("pc Ping: ${NetworkUtils.averagePing}")
+				0
+			}
+		}
+
 		// TODO: downtime tracker (display message again at end of dungeon)
 		// instance ends: kuudra, dungeons, bacte
-		// TODO: at TPS command
 	}
 
 	object TConfig : ManagedConfig("party-commands", Category.CHAT) {

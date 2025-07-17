@@ -23,6 +23,7 @@ import moe.nea.firmament.util.SkyBlockIsland
 import moe.nea.firmament.util.SkyblockId
 import moe.nea.firmament.util.mc.FirmamentDataComponentTypes
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
+import moe.nea.firmament.util.mc.loadItemFromNbt
 import moe.nea.firmament.util.skyblockId
 
 class MiningRepoData : IReloadable {
@@ -118,7 +119,7 @@ class MiningRepoData : IReloadable {
 				putString("id", itemId)
 				putShort("Damage", damage)
 			}) ?: return null
-			val itemStack = ItemStack.fromNbt(MC.defaultRegistries, newCompound).getOrNull() ?: return null
+			val itemStack = loadItemFromNbt(newCompound) ?: return null
 			val blockItem = itemStack.item as? BlockItem ?: return null
 			return blockItem.block
 		}

@@ -60,7 +60,7 @@ object ItemResources {
 						typ,
 						Dynamic(NbtOps.INSTANCE, wrappedNbtSource),
 						source.get().dataVersion,
-						SharedConstants.getGameVersion().saveVersion.id
+						SharedConstants.getGameVersion().dataVersion().id
 					).value
 			} else {
 				wrappedNbtSource

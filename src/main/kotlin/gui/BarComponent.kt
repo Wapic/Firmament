@@ -8,6 +8,7 @@ import io.github.notenoughupdates.moulconfig.gui.GuiImmediateContext
 import io.github.notenoughupdates.moulconfig.observer.GetSetter
 import io.github.notenoughupdates.moulconfig.platform.ModernRenderContext
 import me.shedaniel.math.Color
+import net.minecraft.client.gl.RenderPipelines
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.util.Identifier
@@ -33,7 +34,7 @@ class BarComponent(
 	) {
 		fun draw(context: DrawContext, x: Int, y: Int, width: Int, height: Int, color: Color) {
 			context.drawTexturedQuad(
-				RenderLayer::getGuiTextured,
+				RenderPipelines.GUI_TEXTURED,
 				identifier,
 				x, y, x + width, x + height,
 				u1, u2, v1, v2,
@@ -104,7 +105,6 @@ class BarComponent(
 			(context.width - 4) * total.get() / context.width,
 			total.get()
 		)
-		RenderSystem.setShaderColor(1F, 1F, 1F, 1F)
 
 	}
 

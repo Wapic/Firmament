@@ -1,6 +1,8 @@
 package moe.nea.firmament.features.misc
 
+import com.mojang.blaze3d.buffers.GpuBuffer
 import com.mojang.blaze3d.systems.RenderSystem
+import java.nio.ByteBuffer
 import java.util.OptionalDouble
 import java.util.OptionalInt
 import util.render.CustomRenderPipelines
@@ -63,34 +65,44 @@ object CustomCapes : FirmamentFeature {
 			vertexConsumerProvider: VertexConsumerProvider,
 			model: (VertexConsumer) -> Unit
 		) {
+			// TODO: figure out how exactly the rotation abstraction works
+			val animationValue = (startTime.passedTime() / animationSpeed).mod(1F)
+			val commandEncoder = RenderSystem.getDevice().createCommandEncoder()
+			val animationBufSource = ByteBuffer.allocateDirect(8)
+			animationBufSource.putFloat(animationValue.toFloat())
+			animationBufSource.flip()
 			BufferAllocator(2048).use { allocator ->
 				val bufferBuilder = BufferBuilder(allocator, renderLayer.drawMode, renderLayer.vertexFormat)
 				model(bufferBuilder)
 				bufferBuilder.end().use { buffer ->
-					val commandEncoder = RenderSystem.getDevice().createCommandEncoder()
 					val vertexBuffer = renderLayer.vertexFormat.uploadImmediateVertexBuffer(buffer.buffer)
 					val indexBufferConstructor = RenderSystem.getSequentialBuffer(renderLayer.drawMode)
 					val indexBuffer = indexBufferConstructor.getIndexBuffer(buffer.drawParameters.indexCount)
 					val templateTexture = MC.textureManager.getTexture(template)
 					val backgroundTexture = MC.textureManager.getTexture(background)
 					val foregroundTexture = MC.textureManager.getTexture(overlay)
-					commandEncoder.createRenderPass(
-						MC.instance.framebuffer.colorAttachment,
-						OptionalInt.empty(),
-						MC.instance.framebuffer.depthAttachment,
-						OptionalDouble.empty(),
-					).use { renderPass ->
-						// TODO: account for lighting
-						renderPass.setPipeline(CustomRenderPipelines.PARALLAX_CAPE_SHADER)
-						renderPass.bindSampler("Sampler0", templateTexture.glTexture)
-						renderPass.bindSampler("Sampler1", backgroundTexture.glTexture)
-						renderPass.bindSampler("Sampler3", foregroundTexture.glTexture)
-						val animationValue = (startTime.passedTime() / animationSpeed).mod(1F)
-						renderPass.setUniform("Animation", animationValue.toFloat())
-						renderPass.setIndexBuffer(indexBuffer, indexBufferConstructor.indexType)
-						renderPass.setVertexBuffer(0, vertexBuffer)
-						renderPass.drawIndexed(0, buffer.drawParameters.indexCount)
-					}
+					RenderSystem.getDevice()
+						.createBuffer({ "Firm Cape Animation" }, GpuBuffer.USAGE_UNIFORM, animationBufSource)
+						.use { animationUniformBuf ->
+							commandEncoder.createRenderPass(
+								{ "FirmamentCustomCape" },
+								MC.instance.framebuffer.colorAttachmentView,
+								OptionalInt.empty(),
+								MC.instance.framebuffer.depthAttachmentView,
+								OptionalDouble.empty(),
+							).use { renderPass ->
+								// TODO: account for lighting
+								renderPass.setPipeline(CustomRenderPipelines.PARALLAX_CAPE_SHADER)
+								renderPass.bindSampler("Sampler0", templateTexture.glTextureView)
+								renderPass.bindSampler("Sampler1", backgroundTexture.glTextureView)
+								renderPass.bindSampler("Sampler3", foregroundTexture.glTextureView)
+								renderPass.setUniform("Animation", animationUniformBuf)
+								renderPass.setIndexBuffer(indexBuffer, indexBufferConstructor.indexType)
+								renderPass.setVertexBuffer(0, vertexBuffer)
+								renderPass.drawIndexed(0, 0, buffer.drawParameters.indexCount, 1)
+							}
+
+						}
 				}
 			}
 		}

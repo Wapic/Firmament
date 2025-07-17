@@ -76,10 +76,10 @@ object InventoryButtons {
 		var hoveredComponent: InventoryButton? = null
 		for (button in getValidButtons(it.screen)) {
             val buttonBounds = button.getBounds(bounds)
-            it.context.matrices.push()
-            it.context.matrices.translate(buttonBounds.minX.toFloat(), buttonBounds.minY.toFloat(), 0F)
+            it.context.matrices.pushMatrix()
+            it.context.matrices.translate(buttonBounds.minX.toFloat(), buttonBounds.minY.toFloat())
             button.render(it.context)
-            it.context.matrices.pop()
+            it.context.matrices.popMatrix()
 
 			if (buttonBounds.contains(it.mouseX, it.mouseY) && TConfig.hoverText && hoveredComponent == null) {
 				hoveredComponent = button

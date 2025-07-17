@@ -1,6 +1,7 @@
 package moe.nea.firmament.mixins.custommodels.screenlayouts;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import moe.nea.firmament.features.texturepack.CustomScreenLayouts;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.AbstractFurnaceScreen;
@@ -21,8 +22,8 @@ public abstract class ReplaceFurnaceBackgrounds<T extends AbstractFurnaceScreenH
 		super(handler, recipeBook, inventory, title);
 	}
 
-	@WrapWithCondition(method = "drawBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Ljava/util/function/Function;Lnet/minecraft/util/Identifier;IIFFIIII)V"), allow = 1)
-	private boolean onDrawBackground(DrawContext instance, Function<Identifier, RenderLayer> renderLayers, Identifier sprite, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight) {
+	@WrapWithCondition(method = "drawBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/util/Identifier;IIFFIIII)V"), allow = 1)
+	private boolean onDrawBackground(DrawContext instance, RenderPipeline pipeline, Identifier sprite, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight) {
 		final var override = CustomScreenLayouts.getActiveScreenOverride();
 		if (override == null || override.getBackground() == null) return true;
 		override.getBackground().renderGeneric(instance, this);

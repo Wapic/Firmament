@@ -56,12 +56,11 @@ object ComboProcessor {
 	fun onRender(event: HudRenderEvent) {
 		if (!isInputting) return
 		if (!event.isRenderingHud) return
-		event.context.matrices.push()
+		event.context.matrices.pushMatrix()
 		val width = 120
 		event.context.matrices.translate(
 			(MC.window.scaledWidth - width) / 2F,
-			(MC.window.scaledHeight) / 2F + 8,
-			0F
+			(MC.window.scaledHeight) / 2F + 8
 		)
 		val breadCrumbText = breadCrumbs.joinToString(" > ")
 		event.context.drawText(
@@ -72,7 +71,7 @@ object ComboProcessor {
 			-1,
 			true
 		)
-		event.context.matrices.translate(0F, MC.font.fontHeight + 2F, 0F)
+		event.context.matrices.translate(0F, MC.font.fontHeight + 2F)
 		for ((key, value) in activeTrie.nodes) {
 			event.context.drawText(
 				MC.font,
@@ -82,9 +81,9 @@ object ComboProcessor {
 				-1,
 				true
 			)
-			event.context.matrices.translate(0F, MC.font.fontHeight + 1F, 0F)
+			event.context.matrices.translate(0F, MC.font.fontHeight + 1F)
 		}
-		event.context.matrices.pop()
+		event.context.matrices.popMatrix()
 	}
 
 	@Subscribe

@@ -106,13 +106,11 @@ object AncestralSpadeSolver : SubscriptionOwner {
 			nextGuess?.let {
 				tinyBlock(it, 1f, 0x80FFFFFF.toInt())
 				// TODO: replace this
-				color(1f, 1f, 0f, 1f)
-				tracer(it, lineWidth = 3f)
+				tracer(it, lineWidth = 3f, color = 0x80FFFFFF.toInt())
 			}
 			if (particlePositions.size > 2 && lastDing.passedTime() < 10.seconds && nextGuess != null) {
 				// TODO: replace this // TODO: add toggle
-				color(0f, 1f, 0f, 0.7f)
-				line(particlePositions)
+				line(particlePositions, color = 0x80FFFFFF.toInt())
 			}
 		}
 	}

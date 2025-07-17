@@ -31,10 +31,10 @@ class MoulConfigFragment(
     override fun render(drawContext: DrawContext?, i: Int, j: Int, f: Float) {
         val ctx = createContext(drawContext)
         val m = drawContext!!.matrices
-        m.push()
-        m.translate(position.x.toFloat(), position.y.toFloat(), 0F)
+        m.pushMatrix()
+        m.translate(position.x.toFloat(), position.y.toFloat())
         context.root.render(ctx)
-        m.pop()
+        m.popMatrix()
         ctx.renderContext.renderExtraLayers()
     }
 

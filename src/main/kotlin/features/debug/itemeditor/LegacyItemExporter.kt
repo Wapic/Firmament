@@ -284,7 +284,7 @@ class LegacyItemExporter private constructor(var itemStack: ItemStack) {
 	fun copyLegacySkullNbt() {
 		val profile = itemStack.get(DataComponentTypes.PROFILE) ?: return
 		legacyNbt.put("SkullOwner", NbtCompound().apply {
-			profile.id.ifPresent {
+			profile.uuid.ifPresent {
 				putString("Id", it.toString())
 			}
 			putBoolean("hypixelPopulated", true)

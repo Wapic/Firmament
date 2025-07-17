@@ -4,6 +4,7 @@ package moe.nea.firmament.features.events.anniversity
 import io.github.notenoughupdates.moulconfig.observer.ObservableList
 import io.github.notenoughupdates.moulconfig.xml.Bind
 import moe.nea.jarvis.api.Point
+import org.joml.Vector2i
 import kotlin.time.Duration.Companion.seconds
 import net.minecraft.entity.passive.PigEntity
 import net.minecraft.util.math.BlockPos
@@ -31,7 +32,7 @@ object AnniversaryFeatures : FirmamentFeature {
 
     object TConfig : ManagedConfig(identifier, Category.EVENTS) {
         val enableShinyPigTracker by toggle("shiny-pigs") {true}
-        val trackPigCooldown by position("pig-hud", 200, 300) { Point(0.1, 0.2) }
+        val trackPigCooldown by position("pig-hud", 200, 300) { Vector2i(100, 200) }
     }
 
     override val config: ManagedConfig?

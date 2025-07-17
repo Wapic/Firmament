@@ -27,10 +27,8 @@ plugins {
 	alias(libs.plugins.kotlin.plugin.serialization)
 	alias(libs.plugins.kotlin.plugin.powerassert)
 	alias(libs.plugins.kotlin.plugin.ksp)
-	//	alias(libs.plugins.loom)
+		alias(libs.plugins.loom)
 	alias(libs.plugins.shadow) apply false
-	// TODO: use arch loom once they update to 1.8
-	id("fabric-loom") version "1.10.1"
 	id("firmament.common")
 	id("firmament.license-management")
 	alias(libs.plugins.mcAutoTranslations)
@@ -197,7 +195,7 @@ val explosiveEnhancementSourceSet =
 val wildfireGenderSourceSet = createIsolatedSourceSet("wildfireGender")
 val jadeSourceSet = createIsolatedSourceSet("jade")
 val modmenuSourceSet = createIsolatedSourceSet("modmenu")
-val reiSourceSet = createIsolatedSourceSet("rei")
+val reiSourceSet = createIsolatedSourceSet("rei", isEnabled = false)
 val moulconfigSourceSet = createIsolatedSourceSet("moulconfig")
 val customTexturesSourceSet = createIsolatedSourceSet("texturePacks", "texturePacks")
 

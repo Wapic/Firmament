@@ -5,6 +5,7 @@ import io.github.notenoughupdates.moulconfig.gui.GuiImmediateContext
 import io.github.notenoughupdates.moulconfig.gui.MouseEvent
 import io.github.notenoughupdates.moulconfig.observer.GetSetter
 import io.github.notenoughupdates.moulconfig.platform.ModernRenderContext
+import net.minecraft.client.gl.RenderPipelines
 import net.minecraft.client.render.RenderLayer
 import moe.nea.firmament.Firmament
 
@@ -27,7 +28,7 @@ class CheckboxComponent<T>(
 	override fun render(context: GuiImmediateContext) {
 		val ctx = (context.renderContext as ModernRenderContext).drawContext
 		ctx.drawGuiTexture(
-			RenderLayer::getGuiTextured,
+			RenderPipelines.GUI_TEXTURED,
 			if (isEnabled()) Firmament.identifier("widget/checkbox_checked")
 			else Firmament.identifier("widget/checkbox_unchecked"),
 			0, 0,

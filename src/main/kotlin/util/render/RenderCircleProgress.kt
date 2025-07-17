@@ -4,7 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.VertexFormat
 import io.github.notenoughupdates.moulconfig.platform.next
 import java.util.OptionalInt
-import org.joml.Matrix4f
+import org.joml.Matrix3x2f
 import util.render.CustomRenderLayers
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.BufferBuilder
@@ -19,7 +19,7 @@ object RenderCircleProgress {
 
 	fun renderCircularSlice(
 		drawContext: DrawContext,
-		layer: RenderLayer,
+		layer: RenderLayer.MultiPhase,
 		u1: Float,
 		u2: Float,
 		v1: Float,
@@ -28,13 +28,12 @@ object RenderCircleProgress {
 		color: Int = -1,
 		innerCutoutRadius: Float = 0F
 	) {
-		drawContext.draw()
 		val sections = angleRadians.nonNegligibleSubSectionsAlignedWith((τ / 8f).toFloat())
 			.zipWithNext().toList()
 		BufferAllocator(layer.vertexFormat.vertexSize * sections.size * 3).use { allocator ->
 
 			val bufferBuilder = BufferBuilder(allocator, VertexFormat.DrawMode.TRIANGLES, layer.vertexFormat)
-			val matrix: Matrix4f = drawContext.matrices.peek().positionMatrix
+			val matrix: Matrix3x2f = drawContext.matrices
 
 			for ((sectionStart, sectionEnd) in sections) {
 				val firstPoint = Projections.Two.projectAngleOntoUnitBox(sectionStart.toDouble())
@@ -69,14 +68,15 @@ object RenderCircleProgress {
 				val indexBufferConstructor = RenderSystem.getSequentialBuffer(VertexFormat.DrawMode.TRIANGLES)
 				val indexBuffer = indexBufferConstructor.getIndexBuffer(buffer.drawParameters.indexCount)
 				RenderSystem.getDevice().createCommandEncoder().createRenderPass(
-					MC.instance.framebuffer.colorAttachment,
+					{ "Firmament Circle Renderer" },
+					MC.instance.framebuffer.colorAttachmentView,
 					OptionalInt.empty(),
 				).use { renderPass ->
 					renderPass.setPipeline(layer.pipeline)
-					renderPass.setUniform("InnerCutoutRadius", innerCutoutRadius)
+//					renderPass.setUniform("InnerCutoutRadius", innerCutoutRadius)
 					renderPass.setIndexBuffer(indexBuffer, indexBufferConstructor.indexType)
 					renderPass.setVertexBuffer(0, vertexBuffer)
-					renderPass.drawIndexed(0, buffer.drawParameters.indexCount)
+					renderPass.drawIndexed(0, 0, buffer.drawParameters.indexCount, 1)
 				}
 			}
 		}

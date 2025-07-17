@@ -3,9 +3,12 @@ package moe.nea.firmament.util.render
 
 import io.github.notenoughupdates.moulconfig.platform.next
 import org.joml.Matrix4f
+import util.render.CustomRenderLayers
 import net.minecraft.client.font.TextRenderer
 import net.minecraft.client.render.LightmapTextureManager
 import net.minecraft.client.render.RenderLayer
+import net.minecraft.client.render.RenderLayers
+import net.minecraft.client.render.TexturedRenderLayers
 import net.minecraft.client.render.VertexConsumer
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
@@ -70,7 +73,7 @@ class FacingThePlayerContext(val worldContext: RenderInWorldContext) {
         u1: Float, v1: Float,
         u2: Float, v2: Float,
     ) {
-		val buf = worldContext.vertexConsumers.getBuffer(RenderLayer.getGuiTexturedOverlay(texture))
+		val buf = worldContext.vertexConsumers.getBuffer(CustomRenderLayers.GUI_TEXTURED_NO_DEPTH_TRIS.apply(texture)) // TODO: this is strictly an incorrect render layer
         val hw = width / 2F
         val hh = height / 2F
         val matrix4f: Matrix4f = worldContext.matrixStack.peek().positionMatrix

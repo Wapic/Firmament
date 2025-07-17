@@ -42,7 +42,7 @@ class SkullPredicate(
 		}
 		when {
 			profileId != null
-				&& profileId != profile.id.getOrNull() ->
+				&& profileId != profile.uuid.getOrNull() ->
 				return false
 
 			textureValue != null

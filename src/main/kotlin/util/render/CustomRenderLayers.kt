@@ -31,7 +31,7 @@ object CustomRenderPipelines {
 		.withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
 		.build()
 	val COLORED_OMNIPRESENT_QUADS =
-		RenderPipeline.builder(RenderPipelines.MATRICES_COLOR_SNIPPET)// TODO: split this up to support better transparent ordering.
+		RenderPipeline.builder(RenderPipelines.TRANSFORMS_AND_PROJECTION_SNIPPET)// TODO: split this up to support better transparent ordering.
 			.withLocation(Firmament.identifier("colored_omnipresent_quads"))
 			.withVertexShader("core/position_color")
 			.withFragmentShader("core/position_color")
@@ -46,7 +46,7 @@ object CustomRenderPipelines {
 		RenderPipeline.builder(RenderPipelines.POSITION_TEX_COLOR_SNIPPET)
 			.withVertexFormat(VertexFormats.POSITION_TEXTURE_COLOR, DrawMode.TRIANGLES)
 			.withLocation(Firmament.identifier("gui_textured_overlay_tris_circle"))
-			.withUniform("InnerCutoutRadius", UniformType.FLOAT)
+			.withUniform("InnerCutoutRadius", UniformType.UNIFORM_BUFFER)
 			.withFragmentShader(Firmament.identifier("circle_discard_color"))
 			.withBlend(BlendFunction.TRANSLUCENT)
 			.build()
@@ -57,12 +57,12 @@ object CustomRenderPipelines {
 			.withSampler("Sampler0")
 			.withSampler("Sampler1")
 			.withSampler("Sampler3")
-			.withUniform("Animation", UniformType.FLOAT)
+			.withUniform("Animation", UniformType.UNIFORM_BUFFER)
 			.build()
 }
 
 object CustomRenderLayers {
-	inline fun memoizeTextured(crossinline func: (Identifier) -> RenderLayer) = memoize(func)
+	inline fun memoizeTextured(crossinline func: (Identifier) -> RenderLayer.MultiPhase) = memoize(func)
 	inline fun <T, R> memoize(crossinline func: (T) -> R): Function<T, R> {
 		return Util.memoize { it: T -> func(it) }
 	}
@@ -73,7 +73,7 @@ object CustomRenderLayers {
 			RenderLayer.DEFAULT_BUFFER_SIZE,
 			CustomRenderPipelines.GUI_TEXTURED_NO_DEPTH_TRIS,
 			RenderLayer.MultiPhaseParameters.builder().texture(
-				RenderPhase.Texture(texture, TriState.DEFAULT, false)
+				RenderPhase.Texture(texture, false)
 			)
 				.build(false)
 		)

@@ -29,7 +29,7 @@ public abstract class CustomCapeFeatureRenderer extends FeatureRenderer<PlayerEn
 		method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/client/render/entity/state/PlayerEntityRenderState;FF)V",
 		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/BipedEntityModel;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;II)V")
 	)
-	private void onRender(BipedEntityModel instance, MatrixStack matrixStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original, @Local PlayerEntityRenderState playerEntityRenderState, @Local SkinTextures skinTextures, @Local VertexConsumerProvider vertexConsumerProvider) {
+	private void onRender(BipedEntityModel<PlayerEntityRenderState> instance, MatrixStack matrixStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original, @Local(argsOnly = true) PlayerEntityRenderState playerEntityRenderState, @Local SkinTextures skinTextures, @Local VertexConsumerProvider vertexConsumerProvider) {
 		CustomCapes.render(
 			playerEntityRenderState,
 			vertexConsumer,

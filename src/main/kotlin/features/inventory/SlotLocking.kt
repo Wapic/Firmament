@@ -2,6 +2,7 @@
 
 package moe.nea.firmament.features.inventory
 
+import com.mojang.blaze3d.pipeline.RenderPipeline
 import java.util.UUID
 import org.lwjgl.glfw.GLFW
 import kotlinx.serialization.KSerializer
@@ -16,6 +17,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.int
 import kotlinx.serialization.serializer
+import net.minecraft.client.gl.RenderPipelines
 import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.entity.player.PlayerInventory
@@ -484,7 +486,7 @@ object SlotLocking : FirmamentFeature {
 		val isUUIDLocked = (it.slot.stack?.skyblockUUID) in (lockedUUIDs ?: setOf())
 		if (isSlotLocked || isUUIDLocked) {
 			it.context.drawGuiTexture(
-				RenderLayer::getGuiTexturedOverlay,
+				RenderPipelines.GUI_TEXTURED,
 				when {
 					isSlotLocked ->
 						(Identifier.of("firmament:slot_locked"))

@@ -8,6 +8,7 @@ import java.net.URL
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicInteger
 import moe.nea.jarvis.api.Point
+import org.joml.Vector2i
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -27,6 +28,7 @@ import moe.nea.firmament.events.ModifyChatEvent
 import moe.nea.firmament.events.ScreenRenderPostEvent
 import moe.nea.firmament.features.FirmamentFeature
 import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.jarvis.JarvisIntegration
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.render.drawTexture
 import moe.nea.firmament.util.transformEachRecursively
@@ -42,7 +44,7 @@ object ChatLinks : FirmamentFeature {
 		val allowAllHosts by toggle("allow-all-hosts") { false }
 		val allowedHosts by string("allowed-hosts") { "cdn.discordapp.com,media.discordapp.com,media.discordapp.net,i.imgur.com" }
 		val actualAllowedHosts get() = allowedHosts.split(",").map { it.trim() }
-		val position by position("position", 16 * 20, 9 * 20) { Point(0.0, 0.0) }
+		val position by position("position", 16 * 20, 9 * 20) { Vector2i(0, 0) }
 	}
 
 	private fun isHostAllowed(host: String) =
@@ -110,11 +112,11 @@ object ChatLinks : FirmamentFeature {
 		val imageFuture = imageCache[url] ?: return
 		if (!imageFuture.isCompleted) return
 		val image = imageFuture.getCompleted() ?: return
-		it.drawContext.matrices.push()
+		it.drawContext.matrices.pushMatrix()
 		val pos = TConfig.position
-		pos.applyTransformations(it.drawContext.matrices)
+		pos.applyTransformations(JarvisIntegration.jarvis, it.drawContext.matrices)
 		val scale = min(1F, min((9 * 20F) / image.height, (16 * 20F) / image.width))
-		it.drawContext.matrices.scale(scale, scale, 1F)
+		it.drawContext.matrices.scale(scale, scale)
 		it.drawContext.drawTexture(
 			image.texture,
 			0,
@@ -126,7 +128,7 @@ object ChatLinks : FirmamentFeature {
 			image.width,
 			image.height,
 		)
-		it.drawContext.matrices.pop()
+		it.drawContext.matrices.popMatrix()
 	}
 
 	@Subscribe

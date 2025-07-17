@@ -103,7 +103,6 @@ object FairySouls : FirmamentFeature {
             currentMissingSouls.forEach {
                 block(it.blockPos, Color.ofRGBA(176, 0, 255, 128).color)
             }
-            color(1f, 0f, 1f, 1f)
             currentLocationSouls.forEach {
                 wireframeCube(it.blockPos)
             }

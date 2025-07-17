@@ -2,6 +2,7 @@ package moe.nea.firmament.features.mining
 
 import io.github.notenoughupdates.moulconfig.xml.Bind
 import moe.nea.jarvis.api.Point
+import org.joml.Vector2i
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
 import kotlin.time.Duration.Companion.seconds
@@ -57,7 +58,7 @@ object PristineProfitTracker : FirmamentFeature {
 
 	object TConfig : ManagedConfig(identifier, Category.MINING) {
 		val timeout by duration("timeout", 0.seconds, 120.seconds) { 30.seconds }
-		val gui by position("position", 100, 30) { Point(0.05, 0.2) }
+		val gui by position("position", 100, 30) { Vector2i() }
 		val useFineGemstones by toggle("fine-gemstones") { false }
 	}
 

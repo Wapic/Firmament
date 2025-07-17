@@ -47,6 +47,7 @@ import moe.nea.firmament.util.directLiteralStringContent
 import moe.nea.firmament.util.mc.FirmamentDataComponentTypes
 import moe.nea.firmament.util.mc.appendLore
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
+import moe.nea.firmament.util.mc.loadItemFromNbt
 import moe.nea.firmament.util.mc.loreAccordingToNbt
 import moe.nea.firmament.util.mc.modifyLore
 import moe.nea.firmament.util.mc.setCustomName
@@ -70,7 +71,7 @@ object ItemCache : IReloadable {
 
 	@ExpensiveItemCacheApi
 	private fun NbtCompound.transformFrom10809ToModern() = convert189ToModern(this@transformFrom10809ToModern)
-	val currentSaveVersion = SharedConstants.getGameVersion().saveVersion.id
+	val currentSaveVersion = SharedConstants.getGameVersion().dataVersion().id
 
 	@ExpensiveItemCacheApi
 	fun convert189ToModern(nbtComponent: NbtCompound): NbtCompound? =
@@ -171,7 +172,7 @@ object ItemCache : IReloadable {
 					?: return brokenItemStack(this)
 			}
 			val itemInstance =
-				ItemStack.fromNbt(MC.defaultRegistries, modernItemTag).getOrNull() ?: return brokenItemStack(this)
+				loadItemFromNbt( modernItemTag) ?: return brokenItemStack(this)
 			if (usedOldNbt) {
 				val tag = oldItemTag.getCompound("tag")
 				val extraAttributes = tag.flatMap { it.getCompound("ExtraAttributes") }

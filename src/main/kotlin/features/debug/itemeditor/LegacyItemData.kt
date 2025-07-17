@@ -1,15 +1,13 @@
 package moe.nea.firmament.features.debug.itemeditor
 
 import kotlinx.serialization.Serializable
-import kotlin.jvm.optionals.getOrNull
-import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.util.Identifier
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
 import moe.nea.firmament.repo.ItemCache
-import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.StringUtil.camelWords
+import moe.nea.firmament.util.mc.loadItemFromNbt
 
 /**
  * Load data based on [prismarine.js' 1.8 item data](https://github.com/PrismarineJS/minecraft-data/blob/master/data/pc/1.8/items.json)
@@ -68,8 +66,7 @@ object LegacyItemData {
 				putByte("Count", 1)
 				putShort("Damage", legacyItemType.metadata)
 			})!!
-			val stack = ItemStack.fromNbt(MC.defaultRegistries, nbt).getOrNull()
-				?: error("Could not transform ${legacyItemType}")
+			val stack = loadItemFromNbt(nbt) ?: error("Could not transform $legacyItemType")
 			stack.item to legacyItemType
 		}
 	}.toMap()

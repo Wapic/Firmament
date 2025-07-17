@@ -85,7 +85,9 @@ object CustomGlobalArmorOverrides {
 			false,
 			false,
 			false,
-			false
+			false,
+			false,
+			null
 		)
 	}
 

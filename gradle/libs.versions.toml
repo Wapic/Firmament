@@ -3,42 +3,41 @@
 # SPDX-License-Identifier: CC0-1.0
 
 [versions]
-minecraft = "1.21.5"
+minecraft = "1.21.7"
 
+# Update from https://maven.fabricmc.net/net/fabricmc/fabric-language-kotlin/
+fabric_kotlin = "1.13.2+kotlin.2.1.20"
 # Update from https://kotlinlang.org/
 kotlin = "2.1.20"
 # Update from https://github.com/google/ksp/releases
 kotlin_ksp = "2.1.20-2.0.0"
 
-# Update from https://linkie.shedaniel.me/dependencies?loader=fabric
-fabric_loader = "0.16.13"
-fabric_api = "0.119.9+1.21.5"
-yarn = "1.21.5+build.1"
-modmenu = "14.0.0-rc.2"
-architectury = "16.0.3"
+# Update from https://linkie.shedaniel.dev/dependencies?loader=fabric
+yarn = "1.21.7+build.8"
+fabric_loader = "0.16.14"
+fabric_api = "0.129.0+1.21.7"
+architectury = "17.0.6"
+modmenu = "15.0.0-beta.3"
 # Update from https://maven.architectury.dev/me/shedaniel/RoughlyEnoughItems-fabric/ (but is typically late)
 rei = "19.0.805"
 
-# Update from https://maven.fabricmc.net/net/fabricmc/fabric-language-kotlin/
-fabric_kotlin = "1.13.2+kotlin.2.1.20"
-
 # Update from https://maven.architectury.dev/dev/architectury/loom/dev.architectury.loom.gradle.plugin/
-loom = "1.7.414" # TODO: port back to architectury (and) 1.9.424
+loom = "1.10.433" # TODO: port back to architectury (and) 1.9.424
 
 # Update from https://modrinth.com/mod/qolify/versions?l=fabric
 qolify = "1.6.0-1.21.1"
 
 # Update from https://modrinth.com/mod/sodium/versions?l=fabric
-sodium = "mc1.21.5-0.6.13-fabric"
+sodium = "mc1.21.6-0.6.13-fabric"
 
 # Update from https://modrinth.com/mod/freecam/versions?l=fabric
-freecammod = "1.3.3+mc1.21.5"
+freecammod = "1.3.4+mc1.21.6"
 
 # Update from https://modrinth.com/mod/no-chat-reports/versions?l=fabric
-ncr = "Fabric-1.21.5-v2.12.0"
+ncr = "Fabric-1.21.7-v2.14.0"
 
 # Update from https://modrinth.com/mod/female-gender/versions?l=fabric
-femalegender = "4.3.4+1.21.5"
+femalegender = "4.3.4+1.21.7"
 
 shadow = "8.3.8"
 
@@ -46,18 +45,18 @@ shadow = "8.3.8"
 explosiveenhancement = "1.2.3-1.21.0"
 
 # Update from https://modrinth.com/mod/not-enough-animations/versions?l=fabric
-notenoughanimations = "prj4BdjU"
+notenoughanimations = "JTLkasT1"
 
-# Update from https://modrinth.com/mod/cit-resewn/versions?l=fabric
+# Update from https://modrinth.com/mod/cit-resewn/versions?l=fabric lmao yeah sure
 citresewn = "1.2.0+1.21"
 
 # Update from https://modrinth.com/mod/jade/versions?l=fabric
-jade = "18.1.0+fabric"
+jade = "19.0.4+fabric"
 
 devauth = "1.2.1"
 
 # Update from https://ktor.io/docs/
-ktor = "3.1.2"
+ktor = "3.2.2"
 
 # Update from https://repo.nea.moe/#/releases/moe/nea/neurepoparser
 neurepoparser = "1.8.0"
@@ -69,7 +68,9 @@ hotswap_agent = "1.4.2-SNAPSHOT"
 # Update from https://github.com/LlamaLad7/MixinExtras/tags
 mixinextras = "0.4.1"
 
-jarvis = "1.1.4"
+# Update from https://repo.nea.moe/#/releases/moe/nea/jarvis/
+jarvis = "2.0.0"
+
 nealisp = "1.1.0"
 
 # Update from https://github.com/NotEnoughUpdates/MoulConfig/tags
@@ -90,7 +91,7 @@ manninghamMills = "2.4.1"
 
 # Update from https://docs.isxander.dev/yet-another-config-lib/installing-yacl
 # Nvm, they just don't update docs: https://modrinth.com/mod/yacl/versions?l=fabric
-yacl = "3.6.6+1.21.5-fabric"
+yacl = "3.7.1+1.21.6-fabric"
 
 # Update from https://maven.shedaniel.me/me/shedaniel/cloth/basic-math/
 basicMath = "0.6.1"
@@ -109,7 +110,7 @@ fabric_api_deprecated = { module = "net.fabricmc.fabric-api:fabric-api-deprecate
 fabric_kotlin = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "fabric_kotlin" }
 architectury = { module = "dev.architectury:architectury", version.ref = "architectury" }
 rei_api = { module = "me.shedaniel:RoughlyEnoughItems-api", version.ref = "rei" }
-moulconfig = { module = "org.notenoughupdates.moulconfig:modern-1.21.5", version.ref = "moulconfig" }
+moulconfig = { module = "org.notenoughupdates.moulconfig:modern-1.21.7", version.ref = "moulconfig" }
 repoparser = { module = "moe.nea:neurepoparser", version.ref = "neurepoparser" }
 mixinextras = { module = "io.github.llamalad7:mixinextras-fabric", version.ref = "mixinextras" }
 jarvis_api = { module = "moe.nea.jarvis:jarvis-api", version.ref = "jarvis" }

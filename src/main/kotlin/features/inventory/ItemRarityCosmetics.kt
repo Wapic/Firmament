@@ -1,6 +1,7 @@
 package moe.nea.firmament.features.inventory
 
 import java.awt.Color
+import net.minecraft.client.gl.RenderPipelines
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.item.ItemStack
@@ -38,7 +39,7 @@ object ItemRarityCosmetics : FirmamentFeature {
 		val rarity = Rarity.fromItem(item) ?: return
 		val rgb = rarityToColor[rarity] ?: 0xFF00FF80.toInt()
 		drawContext.drawGuiTexture(
-			RenderLayer::getGuiTextured,
+			RenderPipelines.GUI_TEXTURED,
 			Identifier.of("firmament:item_rarity_background"),
 			x, y,
 			16, 16,

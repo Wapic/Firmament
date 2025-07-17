@@ -63,11 +63,10 @@ object RadialMenuViewer {
 	fun onRender(event: HudRenderEvent) {
 		val menu = activeMenu ?: return
 		val mat = event.context.matrices
-		mat.push()
+		mat.pushMatrix()
 		mat.translate(
 			(MC.window.scaledWidth) / 2F,
 			(MC.window.scaledHeight) / 2F,
-			0F
 		)
 		val sliceWidth = (τ / menu.options.size).toFloat()
 		var selectedAngle = wrapAngle(atan2(delta.y, delta.x))
@@ -75,8 +74,8 @@ object RadialMenuViewer {
 			selectedAngle = Float.NaN
 		for ((idx, option) in menu.options.withIndex()) {
 			val range = (sliceWidth * idx)..(sliceWidth * (idx + 1))
-			mat.push()
-			mat.scale(64F, 64F, 1F)
+			mat.pushMatrix()
+			mat.scale(64F, 64F)
 			val cutout = INNER_CIRCLE_RADIUS / 64F / 2
 			RenderCircleProgress.renderCircularSlice(
 				event.context,
@@ -86,16 +85,16 @@ object RadialMenuViewer {
 				color = if (selectedAngle in range) 0x70A0A0A0 else 0x70FFFFFF,
 				innerCutoutRadius = cutout
 			)
-			mat.pop()
-			mat.push()
+			mat.popMatrix()
+			mat.pushMatrix()
 			val centreAngle = lerpAngle(range.start, range.endInclusive, 0.5F)
 			val vec = Vector2f(cos(centreAngle), sin(centreAngle)).mul(40F)
-			mat.translate(vec.x, vec.y, 0F)
+			mat.translate(vec.x, vec.y)
 			option.renderSlice(event.context)
-			mat.pop()
+			mat.popMatrix()
 		}
 		event.context.drawLine(1, 1, delta.x.toInt(), delta.y.toInt(), me.shedaniel.math.Color.ofOpaque(0x00FF00))
-		mat.pop()
+		mat.popMatrix()
 	}
 
 	@Subscribe

@@ -17,6 +17,7 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourcePack;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.io.InputStreamReader;
@@ -44,6 +45,7 @@ public class SupplyFakeModelPatch {
 		return original.thenCompose(oldModels -> CompletableFuture.supplyAsync(() -> supplyExtraModels(resourceManager, oldModels), executor));
 	}
 
+	@Unique
 	private static ItemAssetsLoader.Result supplyExtraModels(ResourceManager resourceManager, ItemAssetsLoader.Result oldModels) {
 		if (!CustomSkyBlockTextures.TConfig.INSTANCE.getEnableLegacyMinecraftCompat()) return oldModels;
 		Map<Identifier, ItemAsset> newModels = new HashMap<>(oldModels.contents());
@@ -72,13 +74,14 @@ public class SupplyFakeModelPatch {
 			                   .orElse(true)) {
 				newModels.put(itemModelId, new ItemAsset(
 					unbakedModel,
-					new ItemAsset.Properties(true)
+					new ItemAsset.Properties(true, true)
 				));
 			}
 		}
 		return new ItemAssetsLoader.Result(newModels);
 	}
 
+	@Unique
 	private static boolean isResourcePackNewer(
 		ResourceManager manager,
 		ResourcePack null_, ResourcePack proposal) {
@@ -88,6 +91,7 @@ public class SupplyFakeModelPatch {
 		return pack.orElse(null_) != null_;
 	}
 
+	@Unique
 	private static <T> Collector<T, ?, Optional<T>> findLast() {
 		return Collectors.reducing(Optional.empty(), Optional::of,
 		                           (left, right) -> right.isPresent() ? right : left);

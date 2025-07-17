@@ -53,8 +53,7 @@ object Waypoints : FirmamentFeature {
 			} else {
 				orderedIndex %= w.waypoints.size
 				val firstColor = Color.ofRGBA(0, 200, 40, 180)
-				color(firstColor)
-				tracer(w.waypoints[orderedIndex].blockPos.toCenterPos(), lineWidth = 3f)
+				tracer(w.waypoints[orderedIndex].blockPos.toCenterPos(), color = firstColor.color, lineWidth = 3f)
 				w.waypoints.withIndex().toList().wrappingWindow(orderedIndex, 3).zip(listOf(
 					firstColor,
 					Color.ofRGBA(180, 200, 40, 150),

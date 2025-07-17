@@ -1,6 +1,7 @@
 package moe.nea.firmament.features.fixes
 
 import moe.nea.jarvis.api.Point
+import org.joml.Vector2i
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.option.KeyBinding
@@ -22,7 +23,7 @@ object Fixes : FirmamentFeature {
 		var autoSprint by toggle("auto-sprint") { false }
 		val autoSprintKeyBinding by keyBindingWithDefaultUnbound("auto-sprint-keybinding")
 		val autoSprintUnderWater by toggle("auto-sprint-underwater") { true }
-		val autoSprintHud by position("auto-sprint-hud", 80, 10) { Point(0.0, 1.0) }
+		val autoSprintHud by position("auto-sprint-hud", 80, 10) { Vector2i() }
 		val peekChat by keyBindingWithDefaultUnbound("peek-chat")
 		val hidePotionEffects by toggle("hide-mob-effects") { false }
 		val hidePotionEffectsHud by toggle("hide-potion-effects-hud") { false }
@@ -49,7 +50,7 @@ object Fixes : FirmamentFeature {
 	@Subscribe
 	fun onRenderHud(it: HudRenderEvent) {
 		if (!TConfig.autoSprintKeyBinding.isBound) return
-		it.context.matrices.push()
+		it.context.matrices.pushMatrix()
 		TConfig.autoSprintHud.applyTransformations(it.context.matrices)
 		it.context.drawText(
 			MC.font, (
@@ -65,7 +66,7 @@ object Fixes : FirmamentFeature {
 				}
 				), 0, 0, -1, true
 		)
-		it.context.matrices.pop()
+		it.context.matrices.popMatrix()
 	}
 
 	@Subscribe

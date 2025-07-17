@@ -16,11 +16,13 @@ import net.minecraft.client.world.ClientWorld
 import net.minecraft.entity.Entity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NbtOps
 import net.minecraft.network.packet.c2s.play.CommandExecutionC2SPacket
 import net.minecraft.registry.BuiltinRegistries
 import net.minecraft.registry.Registry
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
+import net.minecraft.registry.RegistryOps
 import net.minecraft.registry.RegistryWrapper
 import net.minecraft.resource.ReloadableResourceManagerImpl
 import net.minecraft.text.Text
@@ -74,7 +76,7 @@ object MC {
 	fun sendCommand(command: String) {
 		// TODO: add a queue to this and sendServerChat
 		ErrorUtil.softCheck("Server commands have an implied /", !command.startsWith("/"))
-		player?.networkHandler?.sendCommand(command)
+		player?.networkHandler?.sendChatCommand(command)
 	}
 
 	fun onMainThread(block: () -> Unit) {
@@ -117,6 +119,7 @@ object MC {
 	inline val window get() = instance.window
 	inline val currentRegistries: RegistryWrapper.WrapperLookup? get() = world?.registryManager
 	val defaultRegistries: RegistryWrapper.WrapperLookup by lazy { BuiltinRegistries.createWrapperLookup() }
+	val defaultRegistryNbtOps by lazy { RegistryOps.of(NbtOps.INSTANCE, defaultRegistries) }
 	inline val currentOrDefaultRegistries get() = currentRegistries ?: defaultRegistries
 	val defaultItems: RegistryWrapper.Impl<Item> by lazy { defaultRegistries.getOrThrow(RegistryKeys.ITEM) }
 	var currentTick = 0

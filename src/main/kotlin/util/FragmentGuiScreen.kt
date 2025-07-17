@@ -19,13 +19,9 @@ abstract class FragmentGuiScreen(
         popup = MoulConfigFragment(context, position) { popup = null }
     }
 
-    override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
-        super.render(context, mouseX, mouseY, delta)
-        context.matrices.push()
-        context.matrices.translate(0f, 0f, 1000f)
-        popup?.render(context, mouseX, mouseY, delta)
-        context.matrices.pop()
-    }
+	fun renderPopup(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
+		popup?.render(context, mouseX, mouseY, delta)
+	}
 
     private inline fun ifPopup(ifYes: (MoulConfigFragment) -> Unit): Boolean {
         val p = popup ?: return false

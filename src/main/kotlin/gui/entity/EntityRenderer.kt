@@ -121,7 +121,8 @@ object EntityRenderer {
 		for (modifierJson in modifiers) {
 			val modifier = ErrorUtil.notNullOr(
 				modifierJson["type"]?.asString?.let(entityModifiers::get),
-				"Could not create entity with id $entityId. Failed to apply modifier $modifierJson") { return null }
+				"Could not create entity with id $entityId. Failed to apply modifier $modifierJson"
+			) { return null }
 			entity = modifier.apply(entity, modifierJson)
 		}
 		return entity
@@ -217,8 +218,8 @@ object EntityRenderer {
 		val vector3f = Vector3f(0.0f, (entity.height / 2.0f + bottomOffset).toFloat(), 0.0f)
 		InventoryScreen.drawEntity(
 			context,
-			centerX,
-			centerY,
+			x1, y1,
+			x2, y2,
 			size.toFloat(),
 			vector3f,
 			rotateToFaceTheFront,

@@ -1,6 +1,5 @@
 package moe.nea.firmament.compat.jade
 
-import java.util.Optional
 import java.util.function.UnaryOperator
 import snownee.jade.api.BlockAccessor
 import snownee.jade.api.IBlockComponentProvider
@@ -8,14 +7,13 @@ import snownee.jade.api.ITooltip
 import snownee.jade.api.JadeIds
 import snownee.jade.api.config.IPluginConfig
 import snownee.jade.api.theme.IThemeHelper
-import snownee.jade.api.ui.IElement
-import snownee.jade.api.ui.IElementHelper
+import snownee.jade.api.ui.Element
+import snownee.jade.api.ui.JadeUI
+import snownee.jade.gui.JadeLinearLayout
 import snownee.jade.impl.ui.ItemStackElement
-import snownee.jade.impl.ui.TextElement
-import kotlin.jvm.optionals.getOrDefault
+import snownee.jade.impl.ui.TextElementImpl
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
-import net.minecraft.util.math.Vec2f
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
 import moe.nea.firmament.repo.RepoManager
@@ -38,34 +36,31 @@ class DrillToolProvider : IBlockComponentProvider {
 				if (lastItemIndex < 0) return@map inner
 				val innerMut = inner.toMutableList()
 				val harvestIndicator = innerMut.indexOfLast {
-					it is TextElement && it.cachedSize == Vec2f.ZERO && it.text.visit {
-						if (it.isEmpty()) Optional.empty() else Optional.of(true)
-					}.getOrDefault(false)
+					it is TextElementImpl && it.width == 0 && it.string.isNotEmpty()
 				}
 				val canHarvest = SBItemStack(MC.stackInHand).breakingPower >= customBlock.breakingPower
 				val lastItem = innerMut[lastItemIndex] as ItemStackElement
 				if (harvestIndicator < 0) {
-					innerMut.add(lastItemIndex + 1, canHarvestIndicator(canHarvest, lastItem.alignment))
+					innerMut.add(lastItemIndex + 1, canHarvestIndicator(canHarvest))
 				} else {
-					innerMut.set(harvestIndicator, canHarvestIndicator(canHarvest, lastItem.alignment))
+					innerMut.set(harvestIndicator, canHarvestIndicator(canHarvest))
 				}
-				innerMut.set(lastItemIndex, IElementHelper.get()
-					.item(tool, 0.75f)
-					.translate(lastItem.translation)
-					.size(lastItem.size)
-					.message(null)
-					.align(lastItem.alignment))
+				innerMut.set(
+					lastItemIndex, JadeUI
+						.item(tool, 0.75f)
+				)
 				innerMut.subList(0, lastItemIndex - 1).removeIf { it is ItemStackElement }
 				innerMut
 			}
 		})
 	}
 
-	fun canHarvestIndicator(canHarvest: Boolean, align: IElement.Align): IElement {
+	fun canHarvestIndicator(canHarvest: Boolean): Element {
 		val t = IThemeHelper.get()
 		val text = if (canHarvest) t.success(CHECK) else t.danger(X)
-		return IElementHelper.get().text(text)
-			.scale(0.75F).zOffset(800).size(Vec2f.ZERO).translate(Vec2f(-3F, 3.25F)).align(align)
+		return JadeUI.text(text)
+			.scale(0.75F)
+			.alignSelfCenter()
 	}
 
 	private val CHECK: Text = Text.literal("✔")

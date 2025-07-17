@@ -11,7 +11,6 @@ import net.minecraft.client.render.RenderLayer
 import net.minecraft.client.render.RenderTickCounter
 import net.minecraft.client.render.VertexConsumer
 import net.minecraft.client.render.VertexConsumerProvider
-import net.minecraft.client.render.VertexFormats
 import net.minecraft.client.texture.Sprite
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.text.Text
@@ -30,18 +29,6 @@ class RenderInWorldContext private constructor(
 	private val tickCounter: RenderTickCounter,
 	val vertexConsumers: VertexConsumerProvider.Immediate,
 ) {
-
-
-	@Deprecated("stateful color management is no longer a thing")
-	fun color(color: me.shedaniel.math.Color) {
-		color(color.red / 255F, color.green / 255f, color.blue / 255f, color.alpha / 255f)
-	}
-
-	@Deprecated("stateful color management is no longer a thing")
-	fun color(red: Float, green: Float, blue: Float, alpha: Float) {
-		RenderSystem.setShaderColor(red, green, blue, alpha)
-	}
-
 	fun block(blockPos: BlockPos, color: Int) {
 		matrixStack.push()
 		matrixStack.translate(blockPos.x.toFloat(), blockPos.y.toFloat(), blockPos.z.toFloat())
@@ -126,6 +113,7 @@ class RenderInWorldContext private constructor(
 	fun wireframeCube(blockPos: BlockPos, lineWidth: Float = 10F) {
 		val buf = vertexConsumers.getBuffer(RenderLayer.LINES)
 		matrixStack.push()
+		// TODO: add color arg to this
 		// TODO: this does not render through blocks (or water layers) anymore
 		RenderSystem.lineWidth(lineWidth / pow(camera.pos.squaredDistanceTo(blockPos.toCenterPos()), 0.25).toFloat())
 		matrixStack.translate(blockPos.x.toFloat(), blockPos.y.toFloat(), blockPos.z.toFloat())
@@ -134,16 +122,16 @@ class RenderInWorldContext private constructor(
 		vertexConsumers.draw()
 	}
 
-	fun line(vararg points: Vec3d, lineWidth: Float = 10F) {
-		line(points.toList(), lineWidth)
+	fun line(vararg points: Vec3d, color: Int, lineWidth: Float = 10F) {
+		line(points.toList(), color, lineWidth)
 	}
 
-	fun tracer(toWhere: Vec3d, lineWidth: Float = 3f) {
+	fun tracer(toWhere: Vec3d, color: Int, lineWidth: Float = 3f) {
 		val cameraForward = Vector3f(0f, 0f, -1f).rotate(camera.rotation)
-		line(camera.pos.add(Vec3d(cameraForward)), toWhere, lineWidth = lineWidth)
+		line(camera.pos.add(Vec3d(cameraForward)), toWhere, color = color, lineWidth = lineWidth)
 	}
 
-	fun line(points: List<Vec3d>, lineWidth: Float = 10F) {
+	fun line(points: List<Vec3d>, color: Int, lineWidth: Float = 10F) {
 		RenderSystem.lineWidth(lineWidth)
 		val buffer = vertexConsumers.getBuffer(CustomRenderLayers.LINES)
 
@@ -263,7 +251,6 @@ class RenderInWorldContext private constructor(
 
 			event.matrices.pop()
 			event.vertexConsumers.draw()
-			RenderSystem.setShaderColor(1F, 1F, 1F, 1F)
 		}
 	}
 }

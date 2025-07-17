@@ -2,6 +2,7 @@ package moe.nea.firmament.features.items
 
 import me.shedaniel.math.Color
 import moe.nea.jarvis.api.Point
+import org.joml.Vector2i
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.decoration.ArmorStandEntity
 import net.minecraft.entity.player.PlayerEntity
@@ -25,7 +26,7 @@ object BonemerangOverlay : FirmamentFeature {
 
 	object TConfig : ManagedConfig(identifier, Category.ITEMS) {
 		var bonemerangOverlay by toggle("bonemerang-overlay") { false }
-		val bonemerangOverlayHud by position("bonemerang-overlay-hud", 80, 10) { Point(0.1, 1.0) }
+		val bonemerangOverlayHud by position("bonemerang-overlay-hud", 80, 10) { Vector2i() }
 		var highlightHitEntities by toggle("highlight-hit-entities") { false }
 	}
 
@@ -87,7 +88,7 @@ object BonemerangOverlay : FirmamentFeature {
 
 		val entities = getEntities()
 
-		it.context.matrices.push()
+		it.context.matrices.pushMatrix()
 		TConfig.bonemerangOverlayHud.applyTransformations(it.context.matrices)
 		it.context.drawText(
 			MC.font, String.format(
@@ -96,6 +97,6 @@ object BonemerangOverlay : FirmamentFeature {
 				).string, entities.size
 			), 0, 0, -1, true
 		)
-		it.context.matrices.pop()
+		it.context.matrices.popMatrix()
 	}
 }

@@ -9,6 +9,7 @@ import net.minecraft.resource.SynchronousResourceReloader
 import moe.nea.firmament.events.FinalizeResourceManagerEvent
 import moe.nea.firmament.events.HudRenderEvent
 import moe.nea.firmament.gui.config.HudMeta
+import moe.nea.firmament.jarvis.JarvisIntegration
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.MoulConfigUtils
 
@@ -42,13 +43,14 @@ abstract class MoulConfigHud(
             val renderContext = componentWrapper.createContext(it.context)
             if (fragment == null)
                 loadFragment()
-            it.context.matrices.push()
+            it.context.matrices.pushMatrix()
             hudMeta.applyTransformations(it.context.matrices)
-            val renderContextTranslated =
-                renderContext.translated(hudMeta.absoluteX, hudMeta.absoluteY, hudMeta.width, hudMeta.height)
+            val pos = hudMeta.getEffectivePosition(JarvisIntegration.jarvis)
+			val renderContextTranslated =
+                renderContext.translated(pos.x(), pos.y(), hudMeta.effectiveWidth, hudMeta.effectiveHeight)
                     .scaled(hudMeta.scale)
             fragment!!.root.render(renderContextTranslated)
-            it.context.matrices.pop()
+            it.context.matrices.popMatrix()
         }
         FinalizeResourceManagerEvent.subscribe("MoulConfigHud:finalizeResourceManager") {
             MC.resourceManager.registerReloader(object : SynchronousResourceReloader {

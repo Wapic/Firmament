@@ -42,11 +42,11 @@ public abstract class ReplaceAnvilScreen extends ForgingScreen<AnvilScreenHandle
 	}
 
 	@WrapOperation(method = "drawForeground",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)I"),
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V"),
 		allow = 1)
-	private int onDrawRepairCost(DrawContext instance, TextRenderer textRenderer, Text text, int x, int y, int color, Operation<Integer> original) {
+	private void onDrawRepairCost(DrawContext instance, TextRenderer textRenderer, Text text, int x, int y, int color, Operation<Void> original) {
 		var textOverride = CustomScreenLayouts.getTextMover(CustomScreenLayouts.CustomScreenLayout::getRepairCostTitle);
-		return original.call(instance, textRenderer,
+		original.call(instance, textRenderer,
 			textOverride.replaceText(text),
 			textOverride.replaceX(textRenderer, text, x),
 			textOverride.replaceY(y),

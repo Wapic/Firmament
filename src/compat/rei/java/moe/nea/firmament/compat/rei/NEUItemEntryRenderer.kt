@@ -52,9 +52,9 @@ object NEUItemEntryRenderer : EntryRenderer<SBItemStack> {
 			entry.value.asImmutableItemStack()
 		}
 
-		context.matrices.push()
-		context.matrices.translate(bounds.centerX.toFloat(), bounds.centerY.toFloat(), 0F)
-		context.matrices.scale(bounds.width.toFloat() / 16F, bounds.height.toFloat() / 16F, 1f)
+		context.matrices.pushMatrix()
+		context.matrices.translate(bounds.centerX.toFloat(), bounds.centerY.toFloat(), )
+		context.matrices.scale(bounds.width.toFloat() / 16F, bounds.height.toFloat() / 16F, )
 		context.drawItemWithoutEntity(itemToRender, -8, -8)
 		context.drawStackOverlay(
 			minecraft.textRenderer, itemToRender, -8, -8,
@@ -64,7 +64,7 @@ object NEUItemEntryRenderer : EntryRenderer<SBItemStack> {
 			)
 			else null
 		)
-		context.matrices.pop()
+		context.matrices.popMatrix()
 	}
 
 	val minecraft = MinecraftClient.getInstance()

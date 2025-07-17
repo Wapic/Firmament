@@ -7,6 +7,7 @@ import moe.nea.firmament.gui.config.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.tr
 import moe.nea.jarvis.api.Point
+import org.joml.Vector2i
 import net.minecraft.client.network.PlayerListEntry
 import net.minecraft.text.Text
 
@@ -16,11 +17,11 @@ object Hud : FirmamentFeature {
 
 	object TConfig : ManagedConfig(identifier, Category.MISC) {
 		var dayCount by toggle("day-count") { false }
-		val dayCountHud by position("day-count-hud", 80, 10) { Point(0.5, 0.8) }
+		val dayCountHud by position("day-count-hud", 80, 10) { Vector2i() }
 		var fpsCount by toggle("fps-count") { false }
-		val fpsCountHud by position("fps-count-hud", 80, 10) { Point(0.5, 0.9) }
+		val fpsCountHud by position("fps-count-hud", 80, 10) { Vector2i() }
 		var pingCount by toggle("ping-count") { false }
-		val pingCountHud by position("ping-count-hud", 80, 10) { Point(0.5, 1.0) }
+		val pingCountHud by position("ping-count-hud", 80, 10) { Vector2i() }
 	}
 
 	override val config: ManagedConfig
@@ -29,7 +30,7 @@ object Hud : FirmamentFeature {
 	@Subscribe
 	fun onRenderHud(it: HudRenderEvent) {
 		if (TConfig.dayCount) {
-			it.context.matrices.push()
+			it.context.matrices.pushMatrix()
 			TConfig.dayCountHud.applyTransformations(it.context.matrices)
 			val day = (MC.world?.timeOfDay ?: 0L) / 24000
 			it.context.drawText(
@@ -40,11 +41,11 @@ object Hud : FirmamentFeature {
 				-1,
 				true
 			)
-			it.context.matrices.pop()
+			it.context.matrices.popMatrix()
 		}
 
 		if (TConfig.fpsCount) {
-			it.context.matrices.push()
+			it.context.matrices.pushMatrix()
 			TConfig.fpsCountHud.applyTransformations(it.context.matrices)
 			it.context.drawText(
 				MC.font, Text.literal(
@@ -53,11 +54,11 @@ object Hud : FirmamentFeature {
 					)
 				), 36, MC.font.fontHeight, -1, true
 			)
-			it.context.matrices.pop()
+			it.context.matrices.popMatrix()
 		}
 
 		if (TConfig.pingCount) {
-			it.context.matrices.push()
+			it.context.matrices.pushMatrix()
 			TConfig.pingCountHud.applyTransformations(it.context.matrices)
 			val ping = MC.player?.let {
 				val entry: PlayerListEntry? = MC.networkHandler?.getPlayerListEntry(it.uuid)
@@ -71,7 +72,7 @@ object Hud : FirmamentFeature {
 				), 36, MC.font.fontHeight, -1, true
 			)
 
-			it.context.matrices.pop()
+			it.context.matrices.popMatrix()
 		}
 	}
 }

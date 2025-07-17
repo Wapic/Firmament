@@ -12,6 +12,7 @@ import io.github.notenoughupdates.moulconfig.gui.component.RowComponent
 import io.github.notenoughupdates.moulconfig.gui.component.ScrollPanelComponent
 import io.github.notenoughupdates.moulconfig.gui.component.TextComponent
 import moe.nea.jarvis.api.Point
+import org.joml.Vector2i
 import org.lwjgl.glfw.GLFW
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonElement
@@ -172,13 +173,13 @@ abstract class ManagedConfig(
 		propertyName: String,
 		width: Int,
 		height: Int,
-		default: () -> Point,
+		default: () -> Vector2i,
 	): ManagedOption<HudMeta> {
 		val label = Text.translatable("firmament.config.${name}.${propertyName}")
 		return option(propertyName, {
 			val p = default()
-			HudMeta(HudPosition(p.x, p.y, 1F), label, width, height)
-		}, HudMetaHandler(this, label, width, height))
+			HudMeta(HudPosition(p.x(), p.y(), 1F), Firmament.identifier(propertyName), label, width, height)
+		}, HudMetaHandler(this, propertyName, label, width, height))
 	}
 
 	protected fun keyBinding(

@@ -316,10 +316,10 @@ object MoulConfigUtils {
 		mouseY: Int
 	) {
 		val immContext = createInPlaceFullContext(this, mouseX, mouseY)
-		matrices.push()
-		matrices.translate(x.toFloat(), y.toFloat(), 0F)
+		matrices.pushMatrix()
+		matrices.translate(x.toFloat(), y.toFloat())
 		component.render(immContext.translated(x, y, w, h))
-		matrices.pop()
+		matrices.popMatrix()
 	}
 
 

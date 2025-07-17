@@ -17,7 +17,6 @@ import me.shedaniel.rei.api.client.gui.widgets.WidgetWithBounds
 import me.shedaniel.rei.api.client.gui.widgets.Widgets
 import me.shedaniel.rei.api.client.registry.display.DisplayCategory
 import me.shedaniel.rei.api.common.category.CategoryIdentifier
-import me.shedaniel.rei.api.common.util.EntryStacks
 import kotlin.time.Duration.Companion.seconds
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.Element
@@ -55,11 +54,13 @@ class SBKatRecipe(override val neuRecipe: NEUKatUpgradeRecipe) : SBRecipe() {
 				val inputLevelLabelCenter = Point(bounds.minX + 30 - 18 + 5 + 8, bounds.minY + 25)
 				val inputLevelLabel = Widgets.createLabel(
 					inputLevelLabelCenter,
-					Text.literal("")).centered()
+					Text.literal("")
+				).centered()
 				val outputLevelLabelCenter = Point(bounds.maxX - 30 + 8, bounds.minY + 25)
 				val outputLevelLabel = Widgets.createLabel(
 					outputLevelLabelCenter,
-					Text.literal("")).centered()
+					Text.literal("")
+				).centered()
 				val coinStack = SBItemStack(SkyblockId.COINS, recipe.coins.toInt())
 				levelValue.whenChanged { oldValue, newValue ->
 					if (oldValue.toInt() == newValue.toInt()) return@whenChanged
@@ -72,40 +73,60 @@ class SBKatRecipe(override val neuRecipe: NEUKatUpgradeRecipe) : SBRecipe() {
 					inputLevelLabel.message = Text.literal(newInput.levelData.currentLevel.toString())
 					inputLevelLabel.bounds.location = Point(
 						inputLevelLabelCenter.x - MC.font.getWidth(inputLevelLabel.message) / 2,
-						inputLevelLabelCenter.y)
+						inputLevelLabelCenter.y
+					)
 					outputLevelLabel.message = Text.literal(newOutput.levelData.currentLevel.toString())
 					outputLevelLabel.bounds.location = Point(
 						outputLevelLabelCenter.x - MC.font.getWidth(outputLevelLabel.message) / 2,
-						outputLevelLabelCenter.y)
+						outputLevelLabelCenter.y
+					)
 					coinStack.setStackSize((recipe.coins * (1 - 0.3 * newValue / 100)).toInt())
 				}
 				levelValue.set(1F)
 				add(Widgets.createRecipeBase(bounds))
-				add(wrapWidget(Rectangle(bounds.centerX - slider.width / 2,
-				                         bounds.maxY - 30,
-				                         slider.width,
-				                         slider.height),
-				               slider))
-				add(Widgets.withTooltip(
-					Widgets.createArrow(Point(bounds.centerX - arrowWidth / 2, bounds.minY + 40)),
-					Text.literal("Upgrade time: " + FirmFormatters.formatTimespan(recipe.seconds.seconds))))
+				add(
+					wrapWidget(
+						Rectangle(
+							bounds.centerX - slider.width / 2,
+							bounds.maxY - 30,
+							slider.width,
+							slider.height
+						),
+						slider
+					)
+				)
+				add(
+					Widgets.withTooltip(
+						Widgets.createArrow(Point(bounds.centerX - arrowWidth / 2, bounds.minY + 40)),
+						Text.literal("Upgrade time: " + FirmFormatters.formatTimespan(recipe.seconds.seconds))
+					)
+				)
 
 				add(Widgets.createResultSlotBackground(Point(bounds.maxX - 30, bounds.minY + 40)))
 				add(inputLevelLabel)
 				add(outputLevelLabel)
-				add(Widgets.createSlot(Point(bounds.maxX - 30, bounds.minY + 40)).markOutput().disableBackground()
-					    .entry(SBItemEntryDefinition.getEntry(outputStack)))
-				add(Widgets.createSlot(Point(bounds.minX + 30 - 18 + 5, bounds.minY + 40)).markInput()
-					    .entry(SBItemEntryDefinition.getEntry(inputStack)))
+				add(
+					Widgets.createSlot(Point(bounds.maxX - 30, bounds.minY + 40)).markOutput().disableBackground()
+						.entry(SBItemEntryDefinition.getEntry(outputStack))
+				)
+				add(
+					Widgets.createSlot(Point(bounds.minX + 30 - 18 + 5, bounds.minY + 40)).markInput()
+						.entry(SBItemEntryDefinition.getEntry(inputStack))
+				)
 
 				val allInputs = recipe.items.map { SBItemEntryDefinition.getEntry(it) } +
 					listOf(SBItemEntryDefinition.getEntry(coinStack))
 				for ((index, item) in allInputs.withIndex()) {
-					add(Widgets.createSlot(
-						Point(bounds.centerX + index * 20 - allInputs.size * 18 / 2 - (allInputs.size - 1) * 2 / 2,
-						      bounds.minY + 20))
-						    .markInput()
-						    .entry(item))
+					add(
+						Widgets.createSlot(
+							Point(
+								bounds.centerX + index * 20 - allInputs.size * 18 / 2 - (allInputs.size - 1) * 2 / 2,
+								bounds.minY + 20
+							)
+						)
+							.markInput()
+							.entry(item)
+					)
 				}
 			}
 		}
@@ -123,8 +144,8 @@ fun wrapWidget(bounds: Rectangle, component: GuiComponent): Widget {
 		}
 
 		override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
-			context.matrices.push()
-			context.matrices.translate(bounds.minX.toFloat(), bounds.minY.toFloat(), 0F)
+			context.matrices.pushMatrix()
+			context.matrices.translate(bounds.minX.toFloat(), bounds.minY.toFloat())
 			component.render(
 				GuiImmediateContext(
 					ModernRenderContext(context),
@@ -133,50 +154,57 @@ fun wrapWidget(bounds: Rectangle, component: GuiComponent): Widget {
 					mouseX - bounds.minX, mouseY - bounds.minY,
 					mouseX, mouseY,
 					mouseX.toFloat(), mouseY.toFloat()
-				))
-			context.matrices.pop()
+				)
+			)
+			context.matrices.popMatrix()
 		}
 
 		override fun mouseMoved(mouseX: Double, mouseY: Double) {
 			val mouseXInt = mouseX.toInt()
 			val mouseYInt = mouseY.toInt()
-			component.mouseEvent(MouseEvent.Move(0F, 0F),
-			                     GuiImmediateContext(
-				                     IMinecraft.instance.provideTopLevelRenderContext(),
-				                     bounds.minX, bounds.minY,
-				                     bounds.width, bounds.height,
-				                     mouseXInt - bounds.minX, mouseYInt - bounds.minY,
-				                     mouseXInt, mouseYInt,
-				                     mouseX.toFloat(), mouseY.toFloat()
-			                     ))
+			component.mouseEvent(
+				MouseEvent.Move(0F, 0F),
+				GuiImmediateContext(
+					IMinecraft.instance.provideTopLevelRenderContext(),
+					bounds.minX, bounds.minY,
+					bounds.width, bounds.height,
+					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
+					mouseXInt, mouseYInt,
+					mouseX.toFloat(), mouseY.toFloat()
+				)
+			)
 		}
 
 		override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
 			val mouseXInt = mouseX.toInt()
 			val mouseYInt = mouseY.toInt()
-			return component.mouseEvent(MouseEvent.Click(button, true),
-			                            GuiImmediateContext(
-				                            IMinecraft.instance.provideTopLevelRenderContext(),
-				                            bounds.minX, bounds.minY,
-				                            bounds.width, bounds.height,
-				                            mouseXInt - bounds.minX, mouseYInt - bounds.minY,
-				                            mouseXInt, mouseYInt,
-				                            mouseX.toFloat(), mouseY.toFloat()
-			                            ))
+			return component.mouseEvent(
+				MouseEvent.Click(button, true),
+				GuiImmediateContext(
+					IMinecraft.instance.provideTopLevelRenderContext(),
+					bounds.minX, bounds.minY,
+					bounds.width, bounds.height,
+					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
+					mouseXInt, mouseYInt,
+					mouseX.toFloat(), mouseY.toFloat()
+				)
+			)
 		}
 
 		override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
 			val mouseXInt = mouseX.toInt()
 			val mouseYInt = mouseY.toInt()
-			return component.mouseEvent(MouseEvent.Click(button, false),
-			                            GuiImmediateContext(
-				                            IMinecraft.instance.provideTopLevelRenderContext(),
-				                            bounds.minX, bounds.minY,
-				                            bounds.width, bounds.height,
-				                            mouseXInt - bounds.minX, mouseYInt - bounds.minY,
-				                            mouseXInt, mouseYInt,
-				                            mouseX.toFloat(), mouseY.toFloat()
-			                            ))
+			return component.mouseEvent(
+				MouseEvent.Click(button, false),
+				GuiImmediateContext(
+					IMinecraft.instance.provideTopLevelRenderContext(),
+					bounds.minX, bounds.minY,
+					bounds.width, bounds.height,
+					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
+					mouseXInt, mouseYInt,
+					mouseX.toFloat(), mouseY.toFloat()
+				)
+			)
 		}
 
 		override fun mouseDragged(
@@ -188,15 +216,17 @@ fun wrapWidget(bounds: Rectangle, component: GuiComponent): Widget {
 		): Boolean {
 			val mouseXInt = mouseX.toInt()
 			val mouseYInt = mouseY.toInt()
-			return component.mouseEvent(MouseEvent.Move(deltaX.toFloat(), deltaY.toFloat()),
-			                            GuiImmediateContext(
-				                            IMinecraft.instance.provideTopLevelRenderContext(),
-				                            bounds.minX, bounds.minY,
-				                            bounds.width, bounds.height,
-				                            mouseXInt - bounds.minX, mouseYInt - bounds.minY,
-				                            mouseXInt, mouseYInt,
-				                            mouseX.toFloat(), mouseY.toFloat()
-			                            ))
+			return component.mouseEvent(
+				MouseEvent.Move(deltaX.toFloat(), deltaY.toFloat()),
+				GuiImmediateContext(
+					IMinecraft.instance.provideTopLevelRenderContext(),
+					bounds.minX, bounds.minY,
+					bounds.width, bounds.height,
+					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
+					mouseXInt, mouseYInt,
+					mouseX.toFloat(), mouseY.toFloat()
+				)
+			)
 
 		}
 
@@ -208,15 +238,17 @@ fun wrapWidget(bounds: Rectangle, component: GuiComponent): Widget {
 		): Boolean {
 			val mouseXInt = mouseX.toInt()
 			val mouseYInt = mouseY.toInt()
-			return component.mouseEvent(MouseEvent.Scroll(verticalAmount.toFloat()),
-			                            GuiImmediateContext(
-				                            IMinecraft.instance.provideTopLevelRenderContext(),
-				                            bounds.minX, bounds.minY,
-				                            bounds.width, bounds.height,
-				                            mouseXInt - bounds.minX, mouseYInt - bounds.minY,
-				                            mouseXInt, mouseYInt,
-				                            mouseX.toFloat(), mouseY.toFloat()
-			                            ))
+			return component.mouseEvent(
+				MouseEvent.Scroll(verticalAmount.toFloat()),
+				GuiImmediateContext(
+					IMinecraft.instance.provideTopLevelRenderContext(),
+					bounds.minX, bounds.minY,
+					bounds.width, bounds.height,
+					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
+					mouseXInt, mouseYInt,
+					mouseX.toFloat(), mouseY.toFloat()
+				)
+			)
 		}
 	}
 }

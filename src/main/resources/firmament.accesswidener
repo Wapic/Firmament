@@ -14,7 +14,7 @@ accessible method net/minecraft/client/render/model/ModelBaker$BakerImpl <init> 
 accessible field net/minecraft/entity/mob/CreeperEntity CHARGED Lnet/minecraft/entity/data/TrackedData;
 accessible method net/minecraft/entity/decoration/ArmorStandEntity setSmall (Z)V
 accessible method net/minecraft/resource/NamespaceResourceManager loadMetadata (Lnet/minecraft/resource/InputSupplier;)Lnet/minecraft/resource/metadata/ResourceMetadata;
-accessible method net/minecraft/client/gui/DrawContext drawTexturedQuad (Ljava/util/function/Function;Lnet/minecraft/util/Identifier;IIIIFFFFI)V
+accessible method net/minecraft/client/gui/DrawContext drawTexturedQuad (Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/util/Identifier;IIIIFFFFI)V
 
 accessible class net/minecraft/client/render/model/BlockStatesLoader$LoadedBlockStateDefinition
 accessible field net/minecraft/client/render/model/BlockStatesLoader FINDER Lnet/minecraft/resource/ResourceFinder;
@@ -32,5 +32,6 @@ accessible method net/minecraft/client/render/RenderPhase$Texture getId ()Ljava/
 accessible field net/minecraft/client/render/RenderLayer$MultiPhase phases Lnet/minecraft/client/render/RenderLayer$MultiPhaseParameters;
 accessible field net/minecraft/client/render/RenderLayer$MultiPhaseParameters texture Lnet/minecraft/client/render/RenderPhase$TextureBase;
 accessible field net/minecraft/client/network/ClientPlayerInteractionManager currentBreakingPos Lnet/minecraft/util/math/BlockPos;
+accessible field net/minecraft/client/render/RenderLayer$MultiPhase pipeline Lcom/mojang/blaze3d/pipeline/RenderPipeline;
 
 mutable field net/minecraft/client/render/entity/state/LivingEntityRenderState headItemRenderState Lnet/minecraft/client/render/item/ItemRenderState;

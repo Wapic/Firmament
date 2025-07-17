@@ -44,10 +44,10 @@ class StorageOverviewScreen() : Screen(Text.empty()) {
         super.render(context, mouseX, mouseY, delta)
         context.fill(0, 0, width, height, 0x90000000.toInt())
         layoutedForEach { (key, value), offsetX, offsetY ->
-            context.matrices.push()
-            context.matrices.translate(offsetX.toFloat(), offsetY.toFloat(), 0F)
+            context.matrices.pushMatrix()
+            context.matrices.translate(offsetX.toFloat(), offsetY.toFloat())
             renderStoragePage(context, value, mouseX - offsetX, mouseY - offsetY)
-            context.matrices.pop()
+            context.matrices.popMatrix()
         }
     }
 

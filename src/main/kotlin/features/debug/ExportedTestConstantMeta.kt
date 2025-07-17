@@ -12,7 +12,7 @@ data class ExportedTestConstantMeta(
 ) {
 	companion object {
 		val current = ExportedTestConstantMeta(
-			SharedConstants.getGameVersion().saveVersion.id,
+			SharedConstants.getGameVersion().dataVersion().id,
 			Optional.of("Firmament ${Firmament.version.friendlyString}")
 		)
 

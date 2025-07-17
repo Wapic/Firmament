@@ -31,7 +31,7 @@ object REIDependencyWarner {
 	var sentWarning = false
 
 	fun modrinthLink(slug: String) =
-		"https://modrinth.com/mod/$slug/versions?g=${SharedConstants.getGameVersion().name}&l=fabric"
+		"https://modrinth.com/mod/$slug/versions?g=${SharedConstants.getGameVersion().name()}&l=fabric"
 
 	fun downloadButton(modName: String, modId: String, slug: String): Text {
 		val alreadyDownloaded = FabricLoader.getInstance().isModLoaded(modId)

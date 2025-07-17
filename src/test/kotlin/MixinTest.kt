@@ -9,18 +9,7 @@ import moe.nea.firmament.init.MixinPlugin
 class MixinTest {
 	@Test
 	fun mixinAudit() {
-		FirmTestBootstrap.bootstrapMinecraft()
-		MixinEnvironment.getCurrentEnvironment().audit()
-		val mp = MixinPlugin.instances.single()
-		Assertions.assertEquals(
-			mp.expectedFullPathMixins,
-			mp.appliedFullPathMixins,
-		)
-		Assertions.assertNotEquals(
-			0,
-			mp.mixins.size
-		)
-
+		// Moved to GameTest
 	}
 
 	@Test

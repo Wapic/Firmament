@@ -17,6 +17,7 @@ import net.fabricmc.loom.LoomGradleExtension
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.utils.extendsFrom
 import java.nio.charset.StandardCharsets
 import java.util.*
 
@@ -27,7 +28,7 @@ plugins {
 	alias(libs.plugins.kotlin.plugin.serialization)
 	alias(libs.plugins.kotlin.plugin.powerassert)
 	alias(libs.plugins.kotlin.plugin.ksp)
-		alias(libs.plugins.loom)
+	alias(libs.plugins.loom)
 	alias(libs.plugins.shadow) apply false
 	id("firmament.common")
 	id("firmament.license-management")
@@ -182,6 +183,17 @@ val testAgent by configurations.creating {
 	isVisible = false
 }
 
+fabricApi.configureTests {
+	createSourceSet.set(true)
+	enableClientGameTests.set(true)
+	modId.set("firmament-gametest")
+	eula.set(true)
+	username.set("CoolGuy123")
+}
+val gameTestSourceSet by sourceSets.named("gametest") {
+	configurations.named(compileClasspathConfigurationName).extendsFrom(configurations.testCompileClasspath)
+	configurations.named(runtimeClasspathConfigurationName).extendsFrom(configurations.testRuntimeClasspath)
+}
 
 val configuredSourceSet = createIsolatedSourceSet(
 	"configured",
@@ -278,6 +290,8 @@ dependencies {
 
 	testImplementation("net.fabricmc:fabric-loader-junit:${libs.versions.fabric.loader.get()}")
 	testAgent(files(tasks.getByPath(":testagent:jar")))
+
+	"gametestImplementation"(sourceSets.test.map { it.output })
 
 	implementation(projects.symbols)
 	ksp(projects.symbols)
@@ -513,6 +527,9 @@ fun patchRenderDoc(
 }
 tasks.runClient {
 	javaLauncher.set(javaToolchains.launcherFor(java.toolchain).map { patchRenderDoc(it) })
+}
+tasks.named("runClientGameTest") {
+	enabled = true
 }
 
 tasks.withType<AbstractArchiveTask>().configureEach {

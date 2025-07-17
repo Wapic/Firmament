@@ -74,37 +74,6 @@ class SBReforgeRecipe(
 			val inputSlot = Widgets.createSlot(Point(bounds.minX + 10, bounds.centerY - 9))
 				.markInput().entries(display.inputItems)
 			list.add(inputSlot)
-			if (display.reforgeStone != null) {
-				list.add(Widgets.createSlot(Point(bounds.minX + 10 + 24, bounds.centerY - 9 - 10))
-					         .markInput().entry(display.reforgeStone))
-				list.add(Widgets.withTooltip(
-					Widgets.withTranslate(Widgets.wrapRenderer(
-						Rectangle(Point(bounds.minX + 10 + 24, bounds.centerY - 9 + 10), Dimension(16, 16)),
-						SBItemEntryDefinition.getEntry(SkyBlockItems.REFORGE_ANVIL)), 0.0, 0.0, 150.0),
-					Rarity.entries.mapNotNull { rarity ->
-						display.reforge.reforgeCosts?.get(rarity)?.let { rarity to it }
-					}.map { (rarity, cost) ->
-						Text.literal("")
-							.append(rarity.text)
-							.append(": ")
-							.append(Text.literal("${FirmFormatters.formatCommas(cost, 0)} Coins").gold())
-					}
-				))
-			} else {
-				val size = if (AprilFoolsUtil.isAprilFoolsDay) 1.2 else 0.6
-				val dimension =
-					FloatingDimension(EntityWidget.defaultSize.width * size, EntityWidget.defaultSize.height * size)
-				list.add(Widgets.withTooltip(
-					EntityWidget(
-						EntityType.VILLAGER.create(EntityRenderer.fakeWorld, SpawnReason.COMMAND)
-							?.also { it.villagerData = it.villagerData.withProfession(MC.currentOrDefaultRegistries.getEntryOrThrow(VillagerProfession.WEAPONSMITH)) },
-						Point(bounds.minX + 10 + 24 + 8 - dimension.width / 2, bounds.centerY - dimension.height / 2),
-						dimension
-					),
-					tr("firmament.recipecategory.reforge.basic",
-					   "This is a basic reforge, available at the Blacksmith.").grey()
-				))
-			}
 			list.add(Widgets.createSlot(Point(bounds.minX + 10 + 24 + 24, bounds.centerY - 9))
 				         .markInput().entries(display.outputItems))
 			val statToLineMappings = mutableListOf<Pair<String, Label>>()
@@ -129,6 +98,37 @@ class SBReforgeRecipe(
 			}
 			updateStatLines()
 			inputSlot.withEntriesListener { updateStatLines() }
+			if (display.reforgeStone != null) {
+				list.add(Widgets.createSlot(Point(bounds.minX + 10 + 24, bounds.centerY - 9 - 10))
+					.markInput().entry(display.reforgeStone))
+				list.add(Widgets.withTooltip(
+					Widgets.wrapRenderer(
+						Rectangle(Point(bounds.minX + 10 + 24, bounds.centerY - 9 + 10), Dimension(16, 16)),
+						SBItemEntryDefinition.getEntry(SkyBlockItems.REFORGE_ANVIL)),
+					Rarity.entries.mapNotNull { rarity ->
+						display.reforge.reforgeCosts?.get(rarity)?.let { rarity to it }
+					}.map { (rarity, cost) ->
+						Text.literal("")
+							.append(rarity.text)
+							.append(": ")
+							.append(Text.literal("${FirmFormatters.formatCommas(cost, 0)} Coins").gold())
+					}
+				))
+			} else {
+				val size = if (AprilFoolsUtil.isAprilFoolsDay) 1.2 else 0.6
+				val dimension =
+					FloatingDimension(EntityWidget.defaultSize.width * size, EntityWidget.defaultSize.height * size)
+				list.add(Widgets.withTooltip(
+					EntityWidget(
+						EntityType.VILLAGER.create(EntityRenderer.fakeWorld, SpawnReason.COMMAND)
+							?.also { it.villagerData = it.villagerData.withProfession(MC.currentOrDefaultRegistries.getEntryOrThrow(VillagerProfession.WEAPONSMITH)) },
+						Point(bounds.minX + 10 + 24 + 8 - dimension.width / 2, bounds.centerY - dimension.height / 2),
+						dimension
+					),
+					tr("firmament.recipecategory.reforge.basic",
+						"This is a basic reforge, available at the Blacksmith.").grey()
+				))
+			}
 			return list
 		}
 	}

@@ -20,6 +20,7 @@ architectury = "17.0.6"
 modmenu = "15.0.0-beta.3"
 # Update from https://maven.architectury.dev/me/shedaniel/RoughlyEnoughItems-fabric/ (but is typically late)
 rei = "19.0.805"
+reidev = "33d8900cd6621816680634fcbae2dd07f1cffbd3"
 
 # Update from https://maven.architectury.dev/dev/architectury/loom/dev.architectury.loom.gradle.plugin/
 loom = "1.10.433" # TODO: port back to architectury (and) 1.9.424
@@ -109,7 +110,13 @@ fabric_api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fab
 fabric_api_deprecated = { module = "net.fabricmc.fabric-api:fabric-api-deprecated", version.ref = "fabric_api" }
 fabric_kotlin = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "fabric_kotlin" }
 architectury = { module = "dev.architectury:architectury", version.ref = "architectury" }
+
 rei_api = { module = "me.shedaniel:RoughlyEnoughItems-api", version.ref = "rei" }
+rei_fabric = { module = "me.shedaniel:RoughlyEnoughItems-fabric", version.ref = "rei" }
+
+rei_dev_api = { module = "com.github.shedaniel.roughlyenoughitems:RoughlyEnoughItems-api", version.ref = "reidev" }
+rei_dev_fabric = { module = "com.github.shedaniel.roughlyenoughitems:RoughlyEnoughItems-fabric", version.ref = "reidev" }
+
 moulconfig = { module = "org.notenoughupdates.moulconfig:modern-1.21.7", version.ref = "moulconfig" }
 repoparser = { module = "moe.nea:neurepoparser", version.ref = "neurepoparser" }
 mixinextras = { module = "io.github.llamalad7:mixinextras-fabric", version.ref = "mixinextras" }
@@ -126,7 +133,6 @@ configured = { module = "curse.maven:configured-457570", version.ref = "configur
 notenoughanimations = { module = "maven.modrinth:not-enough-animations", version.ref = "notenoughanimations" }
 hotswap = { module = "virtual.github.hotswapagent:hotswap-agent", version.ref = "hotswap_agent" }
 architectury_fabric = { module = "dev.architectury:architectury-fabric", version.ref = "architectury" }
-rei_fabric = { module = "me.shedaniel:RoughlyEnoughItems-fabric", version.ref = "rei" }
 devauth = { module = "me.djtheredstoner:DevAuth-fabric", version.ref = "devauth" }
 modmenu = { module = "maven.modrinth:modmenu", version.ref = "modmenu" }
 qolify = { module = "maven.modrinth:qolify", version.ref = "qolify" }

@@ -195,7 +195,7 @@ val explosiveEnhancementSourceSet =
 val wildfireGenderSourceSet = createIsolatedSourceSet("wildfireGender")
 val jadeSourceSet = createIsolatedSourceSet("jade")
 val modmenuSourceSet = createIsolatedSourceSet("modmenu")
-val reiSourceSet = createIsolatedSourceSet("rei", isEnabled = false)
+val reiSourceSet = createIsolatedSourceSet("rei")
 val moulconfigSourceSet = createIsolatedSourceSet("moulconfig")
 val customTexturesSourceSet = createIsolatedSourceSet("texturePacks", "texturePacks")
 
@@ -250,8 +250,10 @@ dependencies {
 	(yaclSourceSet.modImplementationConfigurationName)(libs.yacl)
 
 	// Actual dependencies
-	(reiSourceSet.modImplementationConfigurationName)(libs.rei.api)
-	(reiSourceSet.modRuntimeOnlyConfigurationName)(libs.rei.fabric)
+
+	val reiDeps = libs.rei.dev
+	(reiSourceSet.modImplementationConfigurationName)(reiDeps.api)
+	(reiSourceSet.modRuntimeOnlyConfigurationName)(reiDeps.fabric)
 	nonModImplentation(libs.repoparser)
 	shadowMe(libs.repoparser)
 	fun ktor(mod: String) = "io.ktor:ktor-$mod-jvm:${libs.versions.ktor.get()}"

@@ -244,6 +244,8 @@
 	"firmament.config.pickaxe-info.block-on-dynamic.choice.never": "Never Block",
 	"firmament.config.pickaxe-info.block-on-dynamic.choice.only_destructive": "Only with dangerous",
 	"firmament.config.pickaxe-info.block-on-dynamic.description": "Block pickaxe abilities on private islands by preventing you from right clicking.",
+	"firmament.config.pickaxe-info.disable-in-dungeons": "Disable cross-hair cooldown in Dungeons",
+	"firmament.config.pickaxe-info.disable-in-dungeons.description": "Disables the cooldown around your cross-hair while in Dungeons.",
 	"firmament.config.pickaxe-info.fuel-bar": "Drill Fuel Durability Bar",
 	"firmament.config.pickaxe-info.fuel-bar.description": "Replace the item durability bar of your drills with one that shows the remaining fuel.",
 	"firmament.config.power-user": "Power Users",

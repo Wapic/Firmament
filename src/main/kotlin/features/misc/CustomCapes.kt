@@ -26,6 +26,7 @@ import moe.nea.firmament.features.FirmamentFeature
 import moe.nea.firmament.gui.config.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.TimeMark
+import moe.nea.firmament.util.mc.CustomRenderPassHelper
 
 object CustomCapes : FirmamentFeature {
 	override val identifier: String
@@ -72,63 +73,24 @@ object CustomCapes : FirmamentFeature {
 			matrixStack: MatrixStack,
 			model: (VertexConsumer) -> Unit
 		) {
-			// TODO: figure out how exactly the rotation abstraction works
 			val animationValue = (startTime.passedTime() / animationSpeed).mod(1F)
-			val commandEncoder = RenderSystem.getDevice().createCommandEncoder()
-			val animationBufSource = Std140Builder.intoBuffer(ByteBuffer.allocateDirect(16).order(ByteOrder.nativeOrder()))
-				.putFloat(animationValue.toFloat())
-				.align(16)
-				.get()
-			BufferAllocator(2048).use { allocator ->
-				val bufferBuilder = BufferBuilder(allocator, renderLayer.drawMode, renderLayer.vertexFormat)
-				model(bufferBuilder)
-				bufferBuilder.end().use { buffer ->
-					val vertexBuffer = renderLayer.vertexFormat.uploadImmediateVertexBuffer(buffer.buffer)
-					val indexBufferConstructor = RenderSystem.getSequentialBuffer(renderLayer.drawMode)
-					val indexBuffer = indexBufferConstructor.getIndexBuffer(buffer.drawParameters.indexCount)
-					val templateTexture = MC.textureManager.getTexture(template)
-					val backgroundTexture = MC.textureManager.getTexture(background)
-					val foregroundTexture = MC.textureManager.getTexture(overlay)
-					val dynamicTransforms = RenderSystem.getDynamicUniforms()
-						.write(
-							RenderSystem.getModelViewMatrix(),
-							Vector4f(1.0F, 1.0F, 1.0F, 1.0F),
-							RenderSystem.getModelOffset(),
-							RenderSystem.getTextureMatrix(),
-							RenderSystem.getShaderLineWidth()
-						)
-					val framebuffer = MC.instance.framebuffer
-					val colorAttachment =
-						RenderSystem.outputColorTextureOverride ?: framebuffer.getColorAttachmentView()
-					val depthAttachment =
-						(RenderSystem.outputDepthTextureOverride
-							?: framebuffer.getDepthAttachmentView()).takeIf { framebuffer.useDepthAttachment }
-
-					RenderSystem.getDevice()
-						.createBuffer({ "Firm Cape Animation" }, GpuBuffer.USAGE_UNIFORM or GpuBuffer.USAGE_MAP_READ, animationBufSource)
-						.use { animationUniformBuf ->
-							commandEncoder.createRenderPass(
-								{ "FirmamentCustomCape" },
-								colorAttachment,
-								OptionalInt.empty(),
-								depthAttachment,
-								OptionalDouble.empty(),
-							).use { renderPass ->
-								// TODO: account for lighting
-								renderPass.setPipeline(CustomRenderPipelines.PARALLAX_CAPE_SHADER)
-								renderPass.bindSampler("Sampler0", templateTexture.glTextureView)
-								renderPass.bindSampler("Sampler1", backgroundTexture.glTextureView)
-								renderPass.bindSampler("Sampler3", foregroundTexture.glTextureView)
-								RenderSystem.bindDefaultUniforms(renderPass)
-								renderPass.setUniform("DynamicTransforms", dynamicTransforms)
-								renderPass.setUniform("Animation", animationUniformBuf)
-								renderPass.setIndexBuffer(indexBuffer, indexBufferConstructor.indexType)
-								renderPass.setVertexBuffer(0, vertexBuffer)
-								renderPass.drawIndexed(0, 0, buffer.drawParameters.indexCount, 1)
-							}
-
-						}
+			CustomRenderPassHelper(
+				{ "Firmament Cape Renderer" },
+				renderLayer.drawMode,
+				renderLayer.vertexFormat,
+				MC.instance.framebuffer,
+				true,
+			).use { renderPass ->
+				renderPass.setPipeline(CustomRenderPipelines.PARALLAX_CAPE_SHADER)
+				renderPass.setAllDefaultUniforms()
+				renderPass.setUniform("Animation", 4) {
+					it.putFloat(animationValue.toFloat())
 				}
+				renderPass.bindSampler("Sampler0", template)
+				renderPass.bindSampler("Sampler1", background)
+				renderPass.bindSampler("Sampler3", overlay)
+				renderPass.uploadVertices(2048, model)
+				renderPass.draw()
 			}
 		}
 	}

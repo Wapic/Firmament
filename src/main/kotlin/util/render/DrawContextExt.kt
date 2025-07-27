@@ -11,7 +11,7 @@ import net.minecraft.util.Identifier
 import moe.nea.firmament.util.MC
 
 fun DrawContext.isUntranslatedGuiDrawContext(): Boolean {
-	return matrices.m00 == 1F && matrices.m11 == 1f && matrices.m01 == 0F && matrices.m10 == 0F && matrices.m20 == 1f && matrices.m21 == 1F
+	return matrices.m00 == 1F && matrices.m11 == 1f && matrices.m01 == 0F && matrices.m10 == 0F && matrices.m20 == 0f && matrices.m21 == 0F
 }
 
 @Deprecated("Use the other drawGuiTexture")

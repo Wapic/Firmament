@@ -292,7 +292,10 @@ object MoulConfigUtils {
 	}
 
 	fun createInPlaceFullContext(drawContext: DrawContext?, mouseX: Int, mouseY: Int): GuiImmediateContext {
-		assert(drawContext?.isUntranslatedGuiDrawContext() != false)
+		ErrorUtil.softCheck(
+			"created moulconfig context with pre-existing translations.",
+			drawContext?.isUntranslatedGuiDrawContext() != false
+		)
 		val context = drawContext?.let(::ModernRenderContext)
 			?: IMinecraft.instance.provideTopLevelRenderContext()
 		val immContext = GuiImmediateContext(

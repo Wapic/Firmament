@@ -28,6 +28,11 @@ SPDX-License-Identifier = "CC0-1.0"
 SPDX-FileCopyrightText = ["Linnea Gräf <nea@nea.moe>", "Firmament Contributors"]
 
 [[annotations]]
+path = "**/fabric.mod.json"
+SPDX-License-Identifier = "CC0-1.0"
+SPDX-FileCopyrightText = ["Linnea Gräf <nea@nea.moe>", "Firmament Contributors"]
+
+[[annotations]]
 path = ["src/main/resources/assets/firmament/gui/**/*.xml"]
 SPDX-License-Identifier = "CC0-1.0"
 SPDX-FileCopyrightText = ["Linnea Gräf <nea@nea.moe>", "Firmament Contributors"]

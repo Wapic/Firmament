@@ -1,10 +1,13 @@
 package moe.nea.firmament.features.misc
 
 import com.mojang.blaze3d.buffers.GpuBuffer
+import com.mojang.blaze3d.buffers.Std140Builder
 import com.mojang.blaze3d.systems.RenderSystem
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.OptionalDouble
 import java.util.OptionalInt
+import org.joml.Vector4f
 import util.render.CustomRenderPipelines
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -16,6 +19,7 @@ import net.minecraft.client.render.VertexConsumerProvider
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState
 import net.minecraft.client.util.BufferAllocator
 import net.minecraft.client.util.SkinTextures
+import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.Identifier
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.features.FirmamentFeature
@@ -38,6 +42,7 @@ object CustomCapes : FirmamentFeature {
 		fun replaceRender(
 			renderLayer: RenderLayer,
 			vertexConsumerProvider: VertexConsumerProvider,
+			matrixStack: MatrixStack,
 			model: (VertexConsumer) -> Unit
 		)
 	}
@@ -48,6 +53,7 @@ object CustomCapes : FirmamentFeature {
 		override fun replaceRender(
 			renderLayer: RenderLayer,
 			vertexConsumerProvider: VertexConsumerProvider,
+			matrixStack: MatrixStack,
 			model: (VertexConsumer) -> Unit
 		) {
 			model(vertexConsumerProvider.getBuffer(RenderLayer.getEntitySolid(location)))
@@ -63,14 +69,16 @@ object CustomCapes : FirmamentFeature {
 		override fun replaceRender(
 			renderLayer: RenderLayer,
 			vertexConsumerProvider: VertexConsumerProvider,
+			matrixStack: MatrixStack,
 			model: (VertexConsumer) -> Unit
 		) {
 			// TODO: figure out how exactly the rotation abstraction works
 			val animationValue = (startTime.passedTime() / animationSpeed).mod(1F)
 			val commandEncoder = RenderSystem.getDevice().createCommandEncoder()
-			val animationBufSource = ByteBuffer.allocateDirect(8)
-			animationBufSource.putFloat(animationValue.toFloat())
-			animationBufSource.flip()
+			val animationBufSource = Std140Builder.intoBuffer(ByteBuffer.allocateDirect(16).order(ByteOrder.nativeOrder()))
+				.putFloat(animationValue.toFloat())
+				.align(16)
+				.get()
 			BufferAllocator(2048).use { allocator ->
 				val bufferBuilder = BufferBuilder(allocator, renderLayer.drawMode, renderLayer.vertexFormat)
 				model(bufferBuilder)
@@ -81,14 +89,29 @@ object CustomCapes : FirmamentFeature {
 					val templateTexture = MC.textureManager.getTexture(template)
 					val backgroundTexture = MC.textureManager.getTexture(background)
 					val foregroundTexture = MC.textureManager.getTexture(overlay)
+					val dynamicTransforms = RenderSystem.getDynamicUniforms()
+						.write(
+							RenderSystem.getModelViewMatrix(),
+							Vector4f(1.0F, 1.0F, 1.0F, 1.0F),
+							RenderSystem.getModelOffset(),
+							RenderSystem.getTextureMatrix(),
+							RenderSystem.getShaderLineWidth()
+						)
+					val framebuffer = MC.instance.framebuffer
+					val colorAttachment =
+						RenderSystem.outputColorTextureOverride ?: framebuffer.getColorAttachmentView()
+					val depthAttachment =
+						(RenderSystem.outputDepthTextureOverride
+							?: framebuffer.getDepthAttachmentView()).takeIf { framebuffer.useDepthAttachment }
+
 					RenderSystem.getDevice()
-						.createBuffer({ "Firm Cape Animation" }, GpuBuffer.USAGE_UNIFORM, animationBufSource)
+						.createBuffer({ "Firm Cape Animation" }, GpuBuffer.USAGE_UNIFORM or GpuBuffer.USAGE_MAP_READ, animationBufSource)
 						.use { animationUniformBuf ->
 							commandEncoder.createRenderPass(
 								{ "FirmamentCustomCape" },
-								MC.instance.framebuffer.colorAttachmentView,
+								colorAttachment,
 								OptionalInt.empty(),
-								MC.instance.framebuffer.depthAttachmentView,
+								depthAttachment,
 								OptionalDouble.empty(),
 							).use { renderPass ->
 								// TODO: account for lighting
@@ -96,6 +119,8 @@ object CustomCapes : FirmamentFeature {
 								renderPass.bindSampler("Sampler0", templateTexture.glTextureView)
 								renderPass.bindSampler("Sampler1", backgroundTexture.glTextureView)
 								renderPass.bindSampler("Sampler3", foregroundTexture.glTextureView)
+								RenderSystem.bindDefaultUniforms(renderPass)
+								renderPass.setUniform("DynamicTransforms", dynamicTransforms)
 								renderPass.setUniform("Animation", animationUniformBuf)
 								renderPass.setIndexBuffer(indexBuffer, indexBufferConstructor.indexType)
 								renderPass.setVertexBuffer(0, vertexBuffer)
@@ -166,12 +191,13 @@ object CustomCapes : FirmamentFeature {
 		vertexConsumer: VertexConsumer,
 		renderLayer: RenderLayer,
 		vertexConsumerProvider: VertexConsumerProvider,
+		matrixStack: MatrixStack,
 		model: (VertexConsumer) -> Unit
 	) {
 		val capeStorage = CapeStorage.cast(playerEntityRenderState)
 		val firmCape = capeStorage.cape_firmament
 		if (firmCape != null) {
-			firmCape.render.replaceRender(renderLayer, vertexConsumerProvider, model)
+			firmCape.render.replaceRender(renderLayer, vertexConsumerProvider, matrixStack, model)
 		} else {
 			model(vertexConsumer)
 		}

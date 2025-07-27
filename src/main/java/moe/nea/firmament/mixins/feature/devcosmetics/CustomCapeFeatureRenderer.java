@@ -35,6 +35,7 @@ public abstract class CustomCapeFeatureRenderer extends FeatureRenderer<PlayerEn
 			vertexConsumer,
 			RenderLayer.getEntitySolid(skinTextures.capeTexture()),
 			vertexConsumerProvider,
+			matrixStack,
 			updatedConsumer -> {
 				original.call(instance, matrixStack, updatedConsumer, light, overlay);
 				return Unit.INSTANCE;

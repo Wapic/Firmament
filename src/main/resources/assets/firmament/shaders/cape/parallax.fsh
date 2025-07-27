@@ -1,19 +1,20 @@
 #version 150
 
 #moj_import <minecraft:fog.glsl>
+#moj_import <minecraft:dynamictransforms.glsl>
+
 #define M_PI 3.1415926535897932384626433832795
 #define M_TAU (2.0 * M_PI)
 uniform sampler2D Sampler0;
 uniform sampler2D Sampler1;
 uniform sampler2D Sampler3;
 
-uniform vec4 ColorModulator;
-uniform float FogStart;
-uniform float FogEnd;
-uniform vec4 FogColor;
-uniform float Animation;
+layout(std140) uniform Animation {
+	float AnimationPosition;
+};
 
-in float vertexDistance;
+in float sphericalVertexDistance;
+in float cylindricalVertexDistance;
 in vec4 vertexColor;
 in vec4 lightMapColor;
 in vec4 overlayColor;
@@ -35,13 +36,13 @@ void main() {
 	vec4 color = texture(Sampler0, texCoord0);
 	if (color.g > 0.99) {
 		// TODO: maybe this speed in each direction should be a uniform
-		color = texture(Sampler1, texCoord0 + Animation * vec2(3.0, -2.0));
+		color = texture(Sampler1, texCoord0 + AnimationPosition * vec2(3.0, -2.0));
 	}
 
 	vec4 highlightColor = texture(Sampler3, texCoord0);
 	if (highlightColor.a > 0.5) {
 		color = highlightColor;
-		float animationHighlight = highlightDistance(texCoord0, vec2(-12.0, 2.0), Animation);
+		float animationHighlight = highlightDistance(texCoord0, vec2(-12.0, 2.0), AnimationPosition);
 		color.rgb += (animationHighlight);
 	}
 	#ifdef ALPHA_CUTOUT
@@ -49,5 +50,5 @@ void main() {
 		discard;
 	}
 	#endif
-	fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
+	fragColor = apply_fog(color, sphericalVertexDistance, cylindricalVertexDistance, FogEnvironmentalStart, FogEnvironmentalEnd, FogRenderDistanceStart, FogRenderDistanceEnd, FogColor);
 }

@@ -230,12 +230,6 @@ class RenderInWorldContext private constructor(
 
 
 		fun renderInWorld(event: WorldRenderLastEvent, block: RenderInWorldContext. () -> Unit) {
-			// TODO: there should be *no more global state*. the only thing we should be doing is render layers. that includes settings like culling, blending, shader color, and depth testing
-			// For now i will let these functions remain, but this needs to go before i do a full (non-beta) release
-//			RenderSystem.disableDepthTest()
-//			RenderSystem.enableBlend()
-//			RenderSystem.defaultBlendFunc()
-//			RenderSystem.disableCull()
 
 			event.matrices.push()
 			event.matrices.translate(-event.camera.pos.x, -event.camera.pos.y, -event.camera.pos.z)

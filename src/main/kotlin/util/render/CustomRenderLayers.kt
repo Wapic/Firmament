@@ -11,7 +11,6 @@ import net.minecraft.client.render.RenderLayer
 import net.minecraft.client.render.RenderPhase
 import net.minecraft.client.render.VertexFormats
 import net.minecraft.util.Identifier
-import net.minecraft.util.TriState
 import net.minecraft.util.Util
 import moe.nea.firmament.Firmament
 
@@ -88,6 +87,8 @@ object CustomRenderLayers {
 	val COLORED_QUADS = RenderLayer.of(
 		"firmament_quads",
 		RenderLayer.DEFAULT_BUFFER_SIZE,
+		false,
+		true,
 		CustomRenderPipelines.COLORED_OMNIPRESENT_QUADS,
 		RenderLayer.MultiPhaseParameters.builder()
 			.lightmap(RenderPhase.DISABLE_LIGHTMAP)

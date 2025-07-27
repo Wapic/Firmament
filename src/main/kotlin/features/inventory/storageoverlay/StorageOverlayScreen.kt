@@ -20,7 +20,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.screen.slot.Slot
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
-import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.SlotRenderEvents
 import moe.nea.firmament.gui.EmptyComponent
 import moe.nea.firmament.gui.FirmButtonComponent
@@ -498,7 +497,7 @@ class StorageOverlayScreen : Screen(Text.literal("")) {
 			return 18
 		}
 		assertTrueOr(slots == null || slots.size == inv.stacks.size) { return 0 }
-		val name = page.defaultName()
+		val name = inventory.title
 		val pageHeight = inv.rows * SLOT_SIZE + 8 + textRenderer.fontHeight
 		if (slots != null && StorageOverlay.TConfig.outlineActiveStoragePage)
 			context.drawBorder(
@@ -522,8 +521,8 @@ class StorageOverlayScreen : Screen(Text.literal("")) {
 		inv.stacks.forEachIndexed { index, stack ->
 			val slotX = (index % 9) * SLOT_SIZE + x + 3
 			val slotY = (index / 9) * SLOT_SIZE + y + 5 + textRenderer.fontHeight + 1
-			val fakeSlot = FakeSlot(stack, slotX, slotY)
 			if (slots == null) {
+				val fakeSlot = FakeSlot(stack, slotX, slotY)
 				SlotRenderEvents.Before.publish(SlotRenderEvents.Before(context, fakeSlot))
 				context.drawItem(stack, slotX, slotY)
 				context.drawStackOverlay(textRenderer, stack, slotX, slotY)

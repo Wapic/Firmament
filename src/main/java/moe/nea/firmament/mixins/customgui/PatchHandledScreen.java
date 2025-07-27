@@ -134,7 +134,7 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 		}
 	}
 
-	@Inject(method = "render", at = @At("HEAD"))
+	@Inject(method = "renderBackground", at = @At("HEAD"))
 	public void moveSlots(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
 		if (override != null) {
 			for (Slot slot : handler.slots) {

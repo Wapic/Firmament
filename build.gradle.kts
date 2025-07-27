@@ -14,6 +14,7 @@ import com.google.gson.JsonObject
 import moe.nea.licenseextractificator.LicenseDiscoveryTask
 import moe.nea.mcautotranslations.gradle.CollectTranslations
 import net.fabricmc.loom.LoomGradleExtension
+import net.fabricmc.loom.task.RunGameTask
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -301,7 +302,7 @@ loom {
 	clientOnlyMinecraftJar()
 	accessWidenerPath.set(project.file("src/main/resources/firmament.accesswidener"))
 	runs {
-		removeIf { it.name != "client" }
+		removeIf { it.name == "server" }
 		configureEach {
 			property("fabric.log.level", "info")
 			property("firmament.debug", "true")
@@ -527,9 +528,6 @@ fun patchRenderDoc(
 }
 tasks.runClient {
 	javaLauncher.set(javaToolchains.launcherFor(java.toolchain).map { patchRenderDoc(it) })
-}
-tasks.named("runClientGameTest") {
-	enabled = true
 }
 
 tasks.withType<AbstractArchiveTask>().configureEach {

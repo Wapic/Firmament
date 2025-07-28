@@ -2,8 +2,8 @@ package moe.nea.firmament.features.inventory.buttons
 
 import io.github.notenoughupdates.moulconfig.common.IItemStack
 import io.github.notenoughupdates.moulconfig.gui.component.PanelComponent
-import io.github.notenoughupdates.moulconfig.platform.ModernItemStack
-import io.github.notenoughupdates.moulconfig.platform.ModernRenderContext
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigRenderContext
 import io.github.notenoughupdates.moulconfig.xml.Bind
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
@@ -35,7 +35,7 @@ class InventoryButtonEditor(
 		@Bind
 		fun getItemIcon(): IItemStack {
 			save()
-			return ModernItemStack.of(InventoryButton.getItemForName(icon))
+			return MoulConfigPlatform.wrap(InventoryButton.getItemForName(icon))
 		}
 
 		@Bind
@@ -197,7 +197,7 @@ class InventoryButtonEditor(
 		context.matrices.pushMatrix()
 		PanelComponent.DefaultBackgroundRenderer.VANILLA
 			.render(
-				ModernRenderContext(context),
+				MoulConfigRenderContext(context),
 				lastGuiRect.minX, lastGuiRect.minY,
 				lastGuiRect.width, lastGuiRect.height,
 			)

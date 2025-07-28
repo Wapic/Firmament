@@ -6,6 +6,7 @@ import io.github.notenoughupdates.moulconfig.deps.libninepatch.NinePatch
 import io.github.notenoughupdates.moulconfig.gui.GuiImmediateContext
 import io.github.notenoughupdates.moulconfig.gui.KeyboardEvent
 import io.github.notenoughupdates.moulconfig.gui.component.TextComponent
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
 import org.lwjgl.glfw.GLFW
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
@@ -116,8 +117,8 @@ class KeyBindingStateManager(
 	fun createButton(): FirmButtonComponent {
 		return object : FirmButtonComponent(
 			TextComponent(
-				IMinecraft.instance.defaultFontRenderer,
-				{ this@KeyBindingStateManager.label.string },
+				IMinecraft.INSTANCE.defaultFontRenderer,
+				{ MoulConfigPlatform.wrap(this@KeyBindingStateManager.label) },
 				130,
 				TextComponent.TextAlignment.LEFT,
 				false,

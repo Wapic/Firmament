@@ -1,7 +1,7 @@
 package moe.nea.firmament.util
 
 import io.github.moulberry.repo.data.Coordinate
-import io.github.notenoughupdates.moulconfig.gui.GuiComponentWrapper
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigScreenComponent
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.jvm.optionals.getOrNull
 import net.minecraft.client.MinecraftClient
@@ -131,7 +131,7 @@ object MC {
 		private set
 
 	val currentMoulConfigContext
-		get() = (screen as? GuiComponentWrapper)?.context
+		get() = (screen as? MoulConfigScreenComponent)?.guiContext
 
 	fun openUrl(uri: String) {
 		Util.getOperatingSystem().open(uri)

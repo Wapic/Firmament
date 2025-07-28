@@ -181,7 +181,7 @@ class StorageOverlayScreen : Screen(Text.literal("")) {
 	val searchField = TextFieldComponent(
 		searchText, 100, GetSetter.constant(true),
 		tr("firmament.storage-overlay.search.suggestion", "Search...").string,
-		IMinecraft.instance.defaultFontRenderer
+		IMinecraft.INSTANCE.defaultFontRenderer
 	)
 	val controlComponent = PanelComponent(
 		ColumnComponent(
@@ -383,7 +383,7 @@ class StorageOverlayScreen : Screen(Text.literal("")) {
 				controlComponent,
 				measurements.controlX, measurements.controlY,
 				CONTROL_WIDTH, CONTROL_HEIGHT,
-				KeyboardEvent.KeyPressed(keyCode, false)
+				KeyboardEvent.KeyPressed(keyCode, scanCode, false)
 			)
 		) {
 			return true
@@ -400,7 +400,7 @@ class StorageOverlayScreen : Screen(Text.literal("")) {
 				controlComponent,
 				measurements.controlX, measurements.controlY,
 				CONTROL_WIDTH, CONTROL_HEIGHT,
-				KeyboardEvent.KeyPressed(keyCode, true)
+				KeyboardEvent.KeyPressed(keyCode, scanCode, true)
 			)
 		) {
 			return true

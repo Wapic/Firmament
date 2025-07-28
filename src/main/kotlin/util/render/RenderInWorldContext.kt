@@ -1,7 +1,6 @@
 package moe.nea.firmament.util.render
 
 import com.mojang.blaze3d.systems.RenderSystem
-import io.github.notenoughupdates.moulconfig.platform.next
 import java.lang.Math.pow
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -146,11 +145,11 @@ class RenderInWorldContext private constructor(
 			buffer.vertex(matrix.positionMatrix, a.x.toFloat(), a.y.toFloat(), a.z.toFloat())
 				.color(-1)
 				.normal(matrix, lastNormal0.x, lastNormal0.y, lastNormal0.z)
-				.next()
+				
 			buffer.vertex(matrix.positionMatrix, b.x.toFloat(), b.y.toFloat(), b.z.toFloat())
 				.color(-1)
 				.normal(matrix, normal.x, normal.y, normal.z)
-				.next()
+				
 		}
 
 	}
@@ -173,11 +172,11 @@ class RenderInWorldContext private constructor(
 			buf.vertex(matrix.positionMatrix, i, j, k)
 				.normal(matrix, normal.x, normal.y, normal.z)
 				.color(-1)
-				.next()
+				
 			buf.vertex(matrix.positionMatrix, x, y, z)
 				.normal(matrix, normal.x, normal.y, normal.z)
 				.color(-1)
-				.next()
+				
 		}
 
 

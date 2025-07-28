@@ -8,7 +8,7 @@ import io.github.notenoughupdates.moulconfig.gui.MouseEvent
 import io.github.notenoughupdates.moulconfig.gui.component.SliderComponent
 import io.github.notenoughupdates.moulconfig.observer.GetSetter
 import io.github.notenoughupdates.moulconfig.observer.Property
-import io.github.notenoughupdates.moulconfig.platform.ModernRenderContext
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigRenderContext
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
 import me.shedaniel.rei.api.client.gui.Renderer
@@ -148,7 +148,7 @@ fun wrapWidget(bounds: Rectangle, component: GuiComponent): Widget {
 			context.matrices.translate(bounds.minX.toFloat(), bounds.minY.toFloat())
 			component.render(
 				GuiImmediateContext(
-					ModernRenderContext(context),
+					MoulConfigRenderContext(context),
 					bounds.minX, bounds.minY,
 					bounds.width, bounds.height,
 					mouseX - bounds.minX, mouseY - bounds.minY,
@@ -165,7 +165,7 @@ fun wrapWidget(bounds: Rectangle, component: GuiComponent): Widget {
 			component.mouseEvent(
 				MouseEvent.Move(0F, 0F),
 				GuiImmediateContext(
-					IMinecraft.instance.provideTopLevelRenderContext(),
+					IMinecraft.INSTANCE.provideTopLevelRenderContext(),
 					bounds.minX, bounds.minY,
 					bounds.width, bounds.height,
 					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
@@ -181,7 +181,7 @@ fun wrapWidget(bounds: Rectangle, component: GuiComponent): Widget {
 			return component.mouseEvent(
 				MouseEvent.Click(button, true),
 				GuiImmediateContext(
-					IMinecraft.instance.provideTopLevelRenderContext(),
+					IMinecraft.INSTANCE.provideTopLevelRenderContext(),
 					bounds.minX, bounds.minY,
 					bounds.width, bounds.height,
 					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
@@ -197,7 +197,7 @@ fun wrapWidget(bounds: Rectangle, component: GuiComponent): Widget {
 			return component.mouseEvent(
 				MouseEvent.Click(button, false),
 				GuiImmediateContext(
-					IMinecraft.instance.provideTopLevelRenderContext(),
+					IMinecraft.INSTANCE.provideTopLevelRenderContext(),
 					bounds.minX, bounds.minY,
 					bounds.width, bounds.height,
 					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
@@ -219,7 +219,7 @@ fun wrapWidget(bounds: Rectangle, component: GuiComponent): Widget {
 			return component.mouseEvent(
 				MouseEvent.Move(deltaX.toFloat(), deltaY.toFloat()),
 				GuiImmediateContext(
-					IMinecraft.instance.provideTopLevelRenderContext(),
+					IMinecraft.INSTANCE.provideTopLevelRenderContext(),
 					bounds.minX, bounds.minY,
 					bounds.width, bounds.height,
 					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
@@ -241,7 +241,7 @@ fun wrapWidget(bounds: Rectangle, component: GuiComponent): Widget {
 			return component.mouseEvent(
 				MouseEvent.Scroll(verticalAmount.toFloat()),
 				GuiImmediateContext(
-					IMinecraft.instance.provideTopLevelRenderContext(),
+					IMinecraft.INSTANCE.provideTopLevelRenderContext(),
 					bounds.minX, bounds.minY,
 					bounds.width, bounds.height,
 					mouseXInt - bounds.minX, mouseYInt - bounds.minY,

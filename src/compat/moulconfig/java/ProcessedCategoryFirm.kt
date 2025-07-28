@@ -1,6 +1,8 @@
 package moe.nea.firmament.compat.moulconfig
 
+import io.github.notenoughupdates.moulconfig.common.text.StructuredText
 import io.github.notenoughupdates.moulconfig.gui.editors.GuiOptionEditorAccordion
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
 import io.github.notenoughupdates.moulconfig.processor.ProcessedCategory
 import io.github.notenoughupdates.moulconfig.processor.ProcessedOption
 import moe.nea.firmament.gui.config.ManagedConfig
@@ -21,12 +23,12 @@ class ProcessedCategoryFirm(
 		return "FirmamentCategory.${category.name}"
 	}
 
-	override fun getDisplayName(): String {
-		return category.labelText.string
+	override fun getDisplayName(): StructuredText {
+		return MoulConfigPlatform.wrap(category.labelText)
 	}
 
-	override fun getDescription(): String {
-		return category.description.string
+	override fun getDescription(): StructuredText {
+		return MoulConfigPlatform.wrap(category.description)
 	}
 
 	override fun getIdentifier(): String {

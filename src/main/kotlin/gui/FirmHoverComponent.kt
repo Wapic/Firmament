@@ -1,5 +1,6 @@
 package moe.nea.firmament.gui
 
+import io.github.notenoughupdates.moulconfig.common.text.StructuredText
 import io.github.notenoughupdates.moulconfig.gui.GuiComponent
 import io.github.notenoughupdates.moulconfig.gui.GuiImmediateContext
 import io.github.notenoughupdates.moulconfig.gui.KeyboardEvent
@@ -31,7 +32,8 @@ class FirmHoverComponent(
 
 	override fun render(context: GuiImmediateContext) {
 		if (context.isHovered && (permaHover || lastMouseMove.passedTime() > hoverDelay)) {
-			context.renderContext.scheduleDrawTooltip(context.mouseX, context.mouseY, hoverLines.get())
+			context.renderContext.scheduleDrawTooltip(context.mouseX, context.mouseY, hoverLines.get()
+				.map { it -> StructuredText.of(it) })
 			permaHover = true
 		} else {
 			permaHover = false

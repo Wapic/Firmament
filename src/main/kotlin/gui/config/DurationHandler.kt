@@ -3,6 +3,7 @@
 package moe.nea.firmament.gui.config
 
 import io.github.notenoughupdates.moulconfig.common.IMinecraft
+import io.github.notenoughupdates.moulconfig.common.text.StructuredText
 import io.github.notenoughupdates.moulconfig.gui.component.RowComponent
 import io.github.notenoughupdates.moulconfig.gui.component.SliderComponent
 import io.github.notenoughupdates.moulconfig.gui.component.TextComponent
@@ -31,8 +32,8 @@ class DurationHandler(val config: ManagedConfig, val min: Duration, val max: Dur
         guiAppender.appendLabeledRow(
             opt.labelText,
             RowComponent(
-                TextComponent(IMinecraft.instance.defaultFontRenderer,
-                              { FirmFormatters.formatTimespan(opt.value) },
+                TextComponent(IMinecraft.INSTANCE.defaultFontRenderer,
+                              { StructuredText.of(FirmFormatters.formatTimespan(opt.value)) },
                               40,
                               TextComponent.TextAlignment.CENTER,
                               true,

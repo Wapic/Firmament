@@ -6,7 +6,8 @@ import io.github.notenoughupdates.moulconfig.common.RenderContext
 import io.github.notenoughupdates.moulconfig.gui.GuiComponent
 import io.github.notenoughupdates.moulconfig.gui.GuiImmediateContext
 import io.github.notenoughupdates.moulconfig.observer.GetSetter
-import io.github.notenoughupdates.moulconfig.platform.ModernRenderContext
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigRenderContext
 import me.shedaniel.math.Color
 import net.minecraft.client.gl.RenderPipelines
 import net.minecraft.client.gui.DrawContext
@@ -82,7 +83,7 @@ class BarComponent(
 	}
 
 	override fun render(context: GuiImmediateContext) {
-		val renderContext = (context.renderContext as ModernRenderContext).drawContext
+		val renderContext = (context.renderContext as MoulConfigRenderContext).drawContext
 		var i = 0
 		val x = 0
 		val y = 0

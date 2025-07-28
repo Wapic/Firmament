@@ -2,7 +2,7 @@
 package moe.nea.firmament.features.events.carnival
 
 import io.github.notenoughupdates.moulconfig.observer.ObservableList
-import io.github.notenoughupdates.moulconfig.platform.ModernItemStack
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
 import io.github.notenoughupdates.moulconfig.xml.Bind
 import java.util.UUID
 import net.minecraft.block.Blocks
@@ -120,7 +120,7 @@ object MinesweeperHelper {
             .setSkyBlockFirmamentUiId("MINESWEEPER_$name")
 
         @Bind
-        fun getIcon() = ModernItemStack.of(itemStack)
+        fun getIcon() = MoulConfigPlatform.wrap(itemStack)
 
         @Bind
         fun pieceLabel() = fruitColor.formattingCode + fruitName
@@ -158,7 +158,7 @@ object MinesweeperHelper {
         ;
 
         @Bind("itemType")
-        fun getItemStack() = ModernItemStack.of(ItemStack(itemType))
+        fun getItemStack() = MoulConfigPlatform.wrap(ItemStack(itemType))
 
         companion object {
             val id = SkyblockId("CARNIVAL_SHOVEL")

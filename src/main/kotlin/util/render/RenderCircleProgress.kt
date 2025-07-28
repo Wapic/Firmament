@@ -1,9 +1,6 @@
 package moe.nea.firmament.util.render
 
-import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.VertexFormat
-import io.github.notenoughupdates.moulconfig.platform.next
-import java.util.OptionalInt
 import org.joml.Matrix3x2f
 import util.render.CustomRenderLayers
 import net.minecraft.client.gui.DrawContext
@@ -14,6 +11,7 @@ import net.minecraft.util.Identifier
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.collections.nonNegligibleSubSectionsAlignedWith
 import moe.nea.firmament.util.math.Projections
+import moe.nea.firmament.util.mc.CustomRenderPassHelper
 
 object RenderCircleProgress {
 
@@ -27,7 +25,7 @@ object RenderCircleProgress {
 		angleRadians: ClosedFloatingPointRange<Float>,
 		color: Int = -1,
 		innerCutoutRadius: Float = 0F
-	) {
+	) { // TODO: this is fixed by adding a special gui element renderer
 		val sections = angleRadians.nonNegligibleSubSectionsAlignedWith((τ / 8f).toFloat())
 			.zipWithNext().toList()
 		BufferAllocator(layer.vertexFormat.vertexSize * sections.size * 3).use { allocator ->
@@ -45,38 +43,37 @@ object RenderCircleProgress {
 					.vertex(matrix, secondPoint.x, secondPoint.y, 0F)
 					.texture(lerp(u1, u2, ilerp(secondPoint.x)), lerp(v1, v2, ilerp(secondPoint.y)))
 					.color(color)
-					.next()
+					
 				bufferBuilder
 					.vertex(matrix, firstPoint.x, firstPoint.y, 0F)
 					.texture(lerp(u1, u2, ilerp(firstPoint.x)), lerp(v1, v2, ilerp(firstPoint.y)))
 					.color(color)
-					.next()
+					
 				bufferBuilder
 					.vertex(matrix, 0F, 0F, 0F)
 					.texture(lerp(u1, u2, ilerp(0F)), lerp(v1, v2, ilerp(0F)))
 					.color(color)
-					.next()
+					
 			}
 
 			bufferBuilder.end().use { buffer ->
-				// TODO: write a better utility to pass uniforms :sob: ill even take a mixin at this point
 				if (innerCutoutRadius <= 0) {
 					layer.draw(buffer)
 					return
 				}
-				val vertexBuffer = layer.vertexFormat.uploadImmediateVertexBuffer(buffer.buffer)
-				val indexBufferConstructor = RenderSystem.getSequentialBuffer(VertexFormat.DrawMode.TRIANGLES)
-				val indexBuffer = indexBufferConstructor.getIndexBuffer(buffer.drawParameters.indexCount)
-				RenderSystem.getDevice().createCommandEncoder().createRenderPass(
-					{ "Firmament Circle Renderer" },
-					MC.instance.framebuffer.colorAttachmentView,
-					OptionalInt.empty(),
+				CustomRenderPassHelper(
+					{ "RenderCircleProgress" },
+					VertexFormat.DrawMode.TRIANGLES,
+					layer.vertexFormat,
+					MC.instance.framebuffer,
+					false,
 				).use { renderPass ->
+					renderPass.uploadVertices(buffer)
 					renderPass.setPipeline(layer.pipeline)
-//					renderPass.setUniform("InnerCutoutRadius", innerCutoutRadius)
-					renderPass.setIndexBuffer(indexBuffer, indexBufferConstructor.indexType)
-					renderPass.setVertexBuffer(0, vertexBuffer)
-					renderPass.drawIndexed(0, 0, buffer.drawParameters.indexCount, 1)
+					renderPass.setUniform("InnerCutoutRadius", 4) {
+						it.putFloat(innerCutoutRadius)
+					}
+					renderPass.draw()
 				}
 			}
 		}

@@ -3,7 +3,6 @@ package moe.nea.firmament.gui.config
 import com.mojang.serialization.Codec
 import io.github.notenoughupdates.moulconfig.ChromaColour
 import io.github.notenoughupdates.moulconfig.gui.CloseEventListener
-import io.github.notenoughupdates.moulconfig.gui.GuiComponentWrapper
 import io.github.notenoughupdates.moulconfig.gui.GuiContext
 import io.github.notenoughupdates.moulconfig.gui.component.CenterComponent
 import io.github.notenoughupdates.moulconfig.gui.component.ColumnComponent
@@ -11,6 +10,7 @@ import io.github.notenoughupdates.moulconfig.gui.component.PanelComponent
 import io.github.notenoughupdates.moulconfig.gui.component.RowComponent
 import io.github.notenoughupdates.moulconfig.gui.component.ScrollPanelComponent
 import io.github.notenoughupdates.moulconfig.gui.component.TextComponent
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigScreenComponent
 import moe.nea.jarvis.api.Point
 import org.joml.Vector2i
 import org.lwjgl.glfw.GLFW
@@ -120,7 +120,7 @@ abstract class ManagedConfig(
 		return option(propertyName, default, BooleanHandler(this))
 	}
 
-	protected fun colour(propertyName: String, default: ()-> ChromaColour) : ManagedOption<ChromaColour> {
+	protected fun colour(propertyName: String, default: () -> ChromaColour): ManagedOption<ChromaColour> {
 		return option(propertyName, default, ColourHandler(this))
 	}
 
@@ -229,7 +229,8 @@ abstract class ManagedConfig(
 		var screen: Screen? = null
 		val guiapp = GuiAppender(400) { requireNotNull(screen) { "Screen Accessor called too early" } }
 		latestGuiAppender = guiapp
-		guiapp.appendFullRow(RowComponent(
+		guiapp.appendFullRow(
+			RowComponent(
 			FirmButtonComponent(TextComponent("←")) {
 				if (parent != null) {
 					save()
@@ -241,12 +242,16 @@ abstract class ManagedConfig(
 		))
 		sortedOptions.forEach { it.appendToGui(guiapp) }
 		guiapp.reloadables.forEach { it() }
-		val component = CenterComponent(PanelComponent(ScrollPanelComponent(400, 300, ColumnComponent(guiapp.panel)),
-		                                               10,
-		                                               PanelComponent.DefaultBackgroundRenderer.VANILLA))
-		screen = object : GuiComponentWrapper(GuiContext(component)) {
+		val component = CenterComponent(
+			PanelComponent(
+				ScrollPanelComponent(400, 300, ColumnComponent(guiapp.panel)),
+				10,
+				PanelComponent.DefaultBackgroundRenderer.VANILLA
+			)
+		)
+		screen = object : MoulConfigScreenComponent(Text.empty(), GuiContext(component), parent) {
 			override fun close() {
-				if (context.onBeforeClose() == CloseEventListener.CloseAction.NO_OBJECTIONS_TO_CLOSE) {
+				if (guiContext.onBeforeClose() == CloseEventListener.CloseAction.NO_OBJECTIONS_TO_CLOSE) {
 					client!!.setScreen(parent)
 				}
 			}

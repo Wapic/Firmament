@@ -3,6 +3,7 @@
 package moe.nea.firmament.gui.config
 
 import io.github.notenoughupdates.moulconfig.common.IMinecraft
+import io.github.notenoughupdates.moulconfig.common.text.StructuredText
 import io.github.notenoughupdates.moulconfig.gui.component.RowComponent
 import io.github.notenoughupdates.moulconfig.gui.component.SliderComponent
 import io.github.notenoughupdates.moulconfig.gui.component.TextComponent
@@ -26,8 +27,8 @@ class IntegerHandler(val config: ManagedConfig, val min: Int, val max: Int) : Ma
         guiAppender.appendLabeledRow(
             opt.labelText,
             RowComponent(
-                TextComponent(IMinecraft.instance.defaultFontRenderer,
-                              { FirmFormatters.formatCommas(opt.value, 0) },
+                TextComponent(IMinecraft.INSTANCE.defaultFontRenderer,
+                              { StructuredText.of(FirmFormatters.formatCommas(opt.value, 0)) },
                               40,
                               TextComponent.TextAlignment.CENTER,
                               true,

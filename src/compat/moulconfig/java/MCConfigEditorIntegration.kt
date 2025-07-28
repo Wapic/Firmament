@@ -7,8 +7,10 @@ import io.github.notenoughupdates.moulconfig.DescriptionRendereringBehaviour
 import io.github.notenoughupdates.moulconfig.Social
 import io.github.notenoughupdates.moulconfig.common.IMinecraft
 import io.github.notenoughupdates.moulconfig.common.MyResourceLocation
+import io.github.notenoughupdates.moulconfig.common.text.StructuredText
 import io.github.notenoughupdates.moulconfig.gui.GuiComponent
-import io.github.notenoughupdates.moulconfig.gui.GuiElementWrapper
+import io.github.notenoughupdates.moulconfig.gui.GuiContext
+import io.github.notenoughupdates.moulconfig.gui.GuiElementComponent
 import io.github.notenoughupdates.moulconfig.gui.GuiOptionEditor
 import io.github.notenoughupdates.moulconfig.gui.HorizontalAlign
 import io.github.notenoughupdates.moulconfig.gui.MoulConfigEditor
@@ -25,6 +27,8 @@ import io.github.notenoughupdates.moulconfig.gui.editors.GuiOptionEditorColour
 import io.github.notenoughupdates.moulconfig.gui.editors.GuiOptionEditorDropdown
 import io.github.notenoughupdates.moulconfig.gui.editors.GuiOptionEditorText
 import io.github.notenoughupdates.moulconfig.observer.GetSetter
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigScreenComponent
 import io.github.notenoughupdates.moulconfig.processor.ProcessedCategory
 import io.github.notenoughupdates.moulconfig.processor.ProcessedOption
 import java.lang.reflect.Type
@@ -33,6 +37,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import net.minecraft.client.gui.screen.Screen
+import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.StringIdentifiable
 import net.minecraft.util.Util
@@ -104,8 +109,8 @@ class MCConfigEditorIntegration : FirmamentConfigScreenProvider {
 				RowComponent(
 					AlignComponent(
 						TextComponent(
-							IMinecraft.instance.defaultFontRenderer,
-							{ formatter(setter.get()) },
+							IMinecraft.INSTANCE.defaultFontRenderer,
+							{ StructuredText.of(formatter(setter.get())) },
 							25,
 							TextComponent.TextAlignment.CENTER, false, false
 						),
@@ -212,7 +217,7 @@ class MCConfigEditorIntegration : FirmamentConfigScreenProvider {
 		register(ClickHandler::class.java) { handler, option, categoryAccordionId, configObject ->
 			object : ProcessedEditableOptionFirm<Unit>(option, categoryAccordionId, configObject) {
 				override fun createEditor(): GuiOptionEditor {
-					return GuiOptionEditorButton(this, -1, "Click", configObject)
+					return GuiOptionEditorButton(this, -1, StructuredText.of("Click"), configObject)
 				}
 
 				override fun toT(any: Any?): Unit? {
@@ -231,7 +236,7 @@ class MCConfigEditorIntegration : FirmamentConfigScreenProvider {
 		register(HudMetaHandler::class.java) { handler, option, categoryAccordionId, configObject ->
 			object : ProcessedEditableOptionFirm<HudMeta>(option, categoryAccordionId, configObject) {
 				override fun createEditor(): GuiOptionEditor {
-					return GuiOptionEditorButton(this, -1, "Edit HUD", configObject)
+					return GuiOptionEditorButton(this, -1, StructuredText.of("Edit HUD"), configObject)
 				}
 
 				override fun fromT(t: HudMeta): Any {
@@ -337,8 +342,8 @@ class MCConfigEditorIntegration : FirmamentConfigScreenProvider {
 			return true
 		}
 
-		override fun getTitle(): String {
-			return "Firmament ${Firmament.version.friendlyString}"
+		override fun getTitle(): StructuredText {
+			return StructuredText.of("Firmament ${Firmament.version.friendlyString}")
 		}
 
 		@Deprecated("Deprecated in java")
@@ -356,8 +361,8 @@ class MCConfigEditorIntegration : FirmamentConfigScreenProvider {
 				Util.getOperatingSystem().open(URI(link))
 			}
 
-			override fun getTooltip(): List<String> {
-				return listOf(name)
+			override fun getTooltip(): List<StructuredText> {
+				return listOf(StructuredText.of(name))
 			}
 
 			override fun getIcon(): MyResourceLocation {
@@ -394,12 +399,12 @@ class MCConfigEditorIntegration : FirmamentConfigScreenProvider {
 					return "FirmamentConfig:${config.name}"
 				}
 
-				override fun getName(): String {
-					return config.labelText.string
+				override fun getName(): StructuredText {
+					return MoulConfigPlatform.wrap(config.labelText)
 				}
 
-				override fun getDescription(): String {
-					return "Missing description"
+				override fun getDescription(): StructuredText {
+					return StructuredText.of("Missing description")
 				}
 
 				override fun get(): Any {
@@ -432,7 +437,7 @@ class MCConfigEditorIntegration : FirmamentConfigScreenProvider {
 		if (search != null)
 			editor.search(search)
 		editor.setWide(AllConfigsGui.ConfigConfig.enableWideMC)
-		return GuiElementWrapper(editor) // TODO : add parent support
+		return MoulConfigScreenComponent(Text.empty(), GuiContext(GuiElementComponent(editor)), parent) // TODO : add parent support
 	}
 
 }

@@ -1,6 +1,8 @@
 package moe.nea.firmament.compat.moulconfig
 
 import io.github.notenoughupdates.moulconfig.Config
+import io.github.notenoughupdates.moulconfig.common.text.StructuredText
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
 import moe.nea.firmament.gui.config.ManagedOption
 import moe.nea.firmament.util.ErrorUtil
 
@@ -14,12 +16,12 @@ abstract class ProcessedEditableOptionFirm<T : Any>(
 		return "FirmamentOption:${managedConfig.name}:${managedOption.propertyName}"
 	}
 
-	override fun getName(): String {
-		return managedOption.labelText.string
+	override fun getName(): StructuredText {
+		return MoulConfigPlatform.wrap(managedOption.labelText)
 	}
 
-	override fun getDescription(): String {
-		return managedOption.labelDescription.string
+	override fun getDescription(): StructuredText {
+		return MoulConfigPlatform.wrap(managedOption.labelDescription)
 	}
 
 	abstract fun fromT(t: T): Any

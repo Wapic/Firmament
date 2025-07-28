@@ -1,7 +1,6 @@
 
 package moe.nea.firmament.util.render
 
-import io.github.notenoughupdates.moulconfig.platform.next
 import org.joml.Matrix4f
 import util.render.CustomRenderLayers
 import net.minecraft.client.font.TextRenderer
@@ -41,14 +40,14 @@ class FacingThePlayerContext(val worldContext: RenderInWorldContext) {
                 worldContext.vertexConsumers.getBuffer(RenderLayer.getTextBackgroundSeeThrough())
             val matrix4f = worldContext.matrixStack.peek().positionMatrix
             vertexConsumer.vertex(matrix4f, -1.0f, -1.0f, 0.0f).color(background)
-                .light(LightmapTextureManager.MAX_BLOCK_LIGHT_COORDINATE).next()
+                .light(LightmapTextureManager.MAX_BLOCK_LIGHT_COORDINATE)
             vertexConsumer.vertex(matrix4f, -1.0f, MC.font.fontHeight.toFloat(), 0.0f).color(background)
-                .light(LightmapTextureManager.MAX_BLOCK_LIGHT_COORDINATE).next()
+                .light(LightmapTextureManager.MAX_BLOCK_LIGHT_COORDINATE)
             vertexConsumer.vertex(matrix4f, width.toFloat(), MC.font.fontHeight.toFloat(), 0.0f)
                 .color(background)
-                .light(LightmapTextureManager.MAX_BLOCK_LIGHT_COORDINATE).next()
+                .light(LightmapTextureManager.MAX_BLOCK_LIGHT_COORDINATE)
             vertexConsumer.vertex(matrix4f, width.toFloat(), -1.0f, 0.0f).color(background)
-                .light(LightmapTextureManager.MAX_BLOCK_LIGHT_COORDINATE).next()
+                .light(LightmapTextureManager.MAX_BLOCK_LIGHT_COORDINATE)
             worldContext.matrixStack.translate(0F, 0F, 0.01F)
 
             MC.font.draw(
@@ -79,16 +78,16 @@ class FacingThePlayerContext(val worldContext: RenderInWorldContext) {
         val matrix4f: Matrix4f = worldContext.matrixStack.peek().positionMatrix
         buf.vertex(matrix4f, -hw, -hh, 0F)
             .color(-1)
-            .texture(u1, v1).next()
+            .texture(u1, v1)
         buf.vertex(matrix4f, -hw, +hh, 0F)
             .color(-1)
-            .texture(u1, v2).next()
+            .texture(u1, v2)
         buf.vertex(matrix4f, +hw, +hh, 0F)
             .color(-1)
-            .texture(u2, v2).next()
+            .texture(u2, v2)
         buf.vertex(matrix4f, +hw, -hh, 0F)
             .color(-1)
-            .texture(u2, v1).next()
+            .texture(u2, v1)
 	    worldContext.vertexConsumers.draw()
     }
 

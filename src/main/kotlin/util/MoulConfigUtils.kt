@@ -4,13 +4,14 @@ import io.github.notenoughupdates.moulconfig.common.IMinecraft
 import io.github.notenoughupdates.moulconfig.common.MyResourceLocation
 import io.github.notenoughupdates.moulconfig.gui.CloseEventListener
 import io.github.notenoughupdates.moulconfig.gui.GuiComponent
-import io.github.notenoughupdates.moulconfig.gui.GuiComponentWrapper
 import io.github.notenoughupdates.moulconfig.gui.GuiContext
 import io.github.notenoughupdates.moulconfig.gui.GuiImmediateContext
 import io.github.notenoughupdates.moulconfig.gui.KeyboardEvent
 import io.github.notenoughupdates.moulconfig.gui.MouseEvent
 import io.github.notenoughupdates.moulconfig.observer.GetSetter
-import io.github.notenoughupdates.moulconfig.platform.ModernRenderContext
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigRenderContext
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigScreenComponent
 import io.github.notenoughupdates.moulconfig.xml.ChildCount
 import io.github.notenoughupdates.moulconfig.xml.XMLContext
 import io.github.notenoughupdates.moulconfig.xml.XMLGuiLoader
@@ -26,6 +27,7 @@ import kotlin.time.Duration.Companion.seconds
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.util.InputUtil
+import net.minecraft.text.Text
 import moe.nea.firmament.gui.BarComponent
 import moe.nea.firmament.gui.FirmButtonComponent
 import moe.nea.firmament.gui.FirmHoverComponent
@@ -226,9 +228,9 @@ object MoulConfigUtils {
 	}
 
 	fun wrapScreen(guiContext: GuiContext, parent: Screen?, onClose: () -> Unit = {}): Screen {
-		return object : GuiComponentWrapper(guiContext) {
+		return object : MoulConfigScreenComponent(Text.empty(), guiContext, null) {
 			override fun close() {
-				if (context.onBeforeClose() == CloseEventListener.CloseAction.NO_OBJECTIONS_TO_CLOSE) {
+				if (guiContext.onBeforeClose() == CloseEventListener.CloseAction.NO_OBJECTIONS_TO_CLOSE) {
 					client!!.setScreen(parent)
 					onClose()
 				}
@@ -264,7 +266,7 @@ object MoulConfigUtils {
 		h: Int,
 		keyboardEvent: KeyboardEvent
 	): Boolean {
-		val immContext = createInPlaceFullContext(null, IMinecraft.instance.mouseX, IMinecraft.instance.mouseY)
+		val immContext = createInPlaceFullContext(null, IMinecraft.INSTANCE.mouseX, IMinecraft.INSTANCE.mouseY)
 		if (component.keyboardEvent(keyboardEvent, immContext.translated(x, y, w, h)))
 			return true
 		if (component.context.getFocusedElement() != null) {
@@ -296,8 +298,8 @@ object MoulConfigUtils {
 			"created moulconfig context with pre-existing translations.",
 			drawContext?.isUntranslatedGuiDrawContext() != false
 		)
-		val context = drawContext?.let(::ModernRenderContext)
-			?: IMinecraft.instance.provideTopLevelRenderContext()
+		val context = drawContext?.let(::MoulConfigRenderContext)
+			?: IMinecraft.INSTANCE.provideTopLevelRenderContext()
 		val immContext = GuiImmediateContext(
 			context,
 			0, 0, 0, 0,

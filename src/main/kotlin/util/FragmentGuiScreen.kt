@@ -61,7 +61,7 @@ abstract class FragmentGuiScreen(
         return ifPopup {
             if (!Rectangle(
                     it.position,
-                    Dimension(it.context.root.width, it.context.root.height)
+                    Dimension(it.guiContext.root.width, it.guiContext.root.height)
                 ).contains(Point(mouseX, mouseY))
                 && dismissOnOutOfBounds
             ) {

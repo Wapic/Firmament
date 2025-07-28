@@ -2,7 +2,7 @@ package moe.nea.firmament.features.mining
 
 import io.github.notenoughupdates.moulconfig.observer.ObservableList
 import io.github.notenoughupdates.moulconfig.observer.Property
-import io.github.notenoughupdates.moulconfig.platform.ModernItemStack
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
 import io.github.notenoughupdates.moulconfig.xml.Bind
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.item.ItemStack
@@ -31,7 +31,7 @@ object MiningBlockInfoUi {
 
 	class BlockInfo(val block: MiningRepoData.Block189, val info: MiningInfo) {
 		@get:Bind("item")
-		val item = ModernItemStack.of(block.block?.let { ItemStack(it) } ?: ItemStack.EMPTY)
+		val item = MoulConfigPlatform.wrap(block.block?.let { ItemStack(it) } ?: ItemStack.EMPTY)
 
 		@get:Bind("isSelected")
 		val isSelected get() = info.search.let { block.isActiveIn(SkyBlockIsland.forMode(it)) }

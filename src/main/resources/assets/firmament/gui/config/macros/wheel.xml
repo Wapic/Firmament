@@ -24,7 +24,7 @@
 										</Align>
 									</Row>
 									<Array data="@commands">
-										<Text text="@text" width="280"/>
+										<Text text="@textR" width="280"/>
 									</Array>
 								</Column>
 							</Panel>

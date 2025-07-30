@@ -121,7 +121,10 @@ object CustomCapes : FirmamentFeature {
 				110.seconds
 			)
 		),
-
+		UNPLEASANT_GRADIENT(
+			"unpleasant_gradient",
+			TexturedCapeRenderer(Firmament.identifier("textures/cape/unpleasant_gradient.png"))
+		),
 		FURFSKY_STATIC(
 			"FurfSky",
 			TexturedCapeRenderer(Firmament.identifier("textures/cape/fsr_static.png"))
@@ -140,7 +143,7 @@ object CustomCapes : FirmamentFeature {
 	val byUuid =
 		listOf(
 			listOf(
-				Devs.nea to AllCapes.FIRMAMENT_ANIMATED,
+				Devs.nea to AllCapes.UNPLEASANT_GRADIENT,
 				Devs.kath to AllCapes.FIRMAMENT_STATIC,
 				Devs.jani to AllCapes.FIRMAMENT_ANIMATED,
 			),

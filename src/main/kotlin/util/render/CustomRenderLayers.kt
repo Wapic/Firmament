@@ -45,7 +45,7 @@ object CustomRenderPipelines {
 		RenderPipeline.builder(RenderPipelines.POSITION_TEX_COLOR_SNIPPET)
 			.withVertexFormat(VertexFormats.POSITION_TEXTURE_COLOR, DrawMode.TRIANGLES)
 			.withLocation(Firmament.identifier("gui_textured_overlay_tris_circle"))
-			.withUniform("InnerCutoutRadius", UniformType.UNIFORM_BUFFER)
+			.withUniform("CutoutRadius", UniformType.UNIFORM_BUFFER)
 			.withFragmentShader(Firmament.identifier("circle_discard_color"))
 			.withBlend(BlendFunction.TRANSLUCENT)
 			.build()

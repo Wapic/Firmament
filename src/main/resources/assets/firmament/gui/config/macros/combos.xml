@@ -11,7 +11,7 @@
 							<Panel background="VANILLA" insets="6">
 								<Column>
 									<Row>
-										<Text text="@command" width="280"/>
+										<Text text="@commandR" width="280"/>
 									</Row>
 									<Row>
 										<Text text="@formattedCombo" width="250"/>

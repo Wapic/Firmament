@@ -1,7 +1,9 @@
 package moe.nea.firmament.features.macros
 
+import io.github.notenoughupdates.moulconfig.common.text.StructuredText
 import io.github.notenoughupdates.moulconfig.gui.CloseEventListener
 import io.github.notenoughupdates.moulconfig.observer.ObservableList
+import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
 import io.github.notenoughupdates.moulconfig.xml.Bind
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.thenExecute
@@ -62,6 +64,9 @@ class MacroUI {
 		val parent: Wheel,
 	) {
 		@Bind
+		fun textR() = StructuredText.of(text)
+
+		@Bind
 		fun delete() {
 			parent.editableCommands.removeIf { it === this }
 			parent.editableCommands.update()
@@ -82,7 +87,7 @@ class MacroUI {
 		}
 
 		@Bind("keyCombo")
-		fun text() = binding.format().string
+		fun text() = MoulConfigPlatform.wrap(binding.format())
 
 		@field:Bind("commands")
 		val commands = commands.mapTo(ObservableList(mutableListOf())) { Command(it.command, this) }
@@ -246,12 +251,15 @@ class MacroUI {
 		@field:Bind("command")
 		var command: String = (action.action as CommandAction).command
 
+		@Bind
+		fun commandR() = StructuredText.of(command)
+
 		@field:Bind("combo")
 		val combo = action.keys.map { KeyBindingEditor(it, this) }.toObservableList()
 
 		@Bind
 		fun formattedCombo() =
-			combo.joinToString(" > ") { it.binding.toString() }
+			StructuredText.of(combo.joinToString(" > ") { it.binding.toString() }) // TODO: this can be joined without .toString()
 
 		@Bind
 		fun addStep() {

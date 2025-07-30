@@ -109,7 +109,7 @@ class CustomRenderPassHelper(
 	}
 
 	fun allocateByteBuf(size: Int, init: (Std140Builder) -> Unit): ByteBuffer {
-		return Std140Builder.intoBuffer(
+		return Std140Builder.intoBuffer( // TODO: i really dont know about this 16 align? but it seems to be generally correct.
 			ByteBuffer
 				.allocateDirect(MathHelper.roundUpToMultiple(size, 16))
 				.order(ByteOrder.nativeOrder())

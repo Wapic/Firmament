@@ -431,7 +431,7 @@ object SlotLocking : FirmamentFeature {
 		return if (isHotbar()) {
 			x + 9 to y
 		} else {
-			x + 9 to y + 17
+			x + 9 to y + 16
 		}
 	}
 

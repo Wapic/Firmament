@@ -62,12 +62,9 @@ public abstract class MixinHandledScreen<T extends ScreenHandler> {
 		}
 	}
 
-	@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;renderMain(Lnet/minecraft/client/gui/DrawContext;IIF)V", shift = At.Shift.AFTER))
+	@Inject(method = "renderMain", at = @At("HEAD"))
 	public void onAfterRenderForeground(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-		context.getMatrices().pushMatrix();
-		context.getMatrices().translate(-x, -y);
 		HandledScreenForegroundEvent.Companion.publish(new HandledScreenForegroundEvent((HandledScreen<?>) (Object) this, context, mouseX, mouseY, delta));
-		context.getMatrices().popMatrix();
 	}
 
 	@Inject(method = "onMouseClick(Lnet/minecraft/screen/slot/Slot;IILnet/minecraft/screen/slot/SlotActionType;)V", at = @At("HEAD"), cancellable = true)

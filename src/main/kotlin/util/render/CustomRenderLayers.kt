@@ -47,7 +47,7 @@ object CustomRenderPipelines {
 			.withLocation(Firmament.identifier("gui_textured_overlay_tris_circle"))
 			.withUniform("CutoutRadius", UniformType.UNIFORM_BUFFER)
 			.withFragmentShader(Firmament.identifier("circle_discard_color"))
-			.withBlend(BlendFunction.TRANSLUCENT)
+//			.withBlend(BlendFunction.TRANSLUCENT)
 			.build()
 	val PARALLAX_CAPE_SHADER =
 		RenderPipeline.builder(RenderPipelines.ENTITY_SNIPPET)

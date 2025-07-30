@@ -34,6 +34,7 @@ class CustomRenderPassHelper(
 	private val preparations = mutableListOf<(RenderPass) -> Unit>()
 	val device = RenderSystem.getDevice()
 	private var hasPipelineAction = false
+	private var hasSetDefaultUniforms = false
 	val commandEncoder = device.createCommandEncoder()
 	fun setPipeline(pipeline: RenderPipeline) {
 		ErrorUtil.softCheck("Already has a pipeline", !hasPipelineAction)
@@ -51,7 +52,13 @@ class CustomRenderPassHelper(
 		queueAction { it.bindSampler(name, texture.glTextureView) }
 	}
 
+
+	fun dontSetDefaultUniforms() {
+		hasSetDefaultUniforms = true
+	}
+
 	fun setAllDefaultUniforms() {
+		hasSetDefaultUniforms = true
 		queueAction {
 			RenderSystem.bindDefaultUniforms(it)
 		}
@@ -129,6 +136,7 @@ class CustomRenderPassHelper(
 
 	fun draw(): DrawToken {
 		val vertexData = (ErrorUtil.notNullOr(vertices, "No vertex data uploaded") { return DrawToken })
+		ErrorUtil.softCheck("Missing default uniforms", hasSetDefaultUniforms)
 		ErrorUtil.softCheck("Missing a pipeline", hasPipelineAction)
 		val renderPass = queueClose(
 			commandEncoder.createRenderPass(

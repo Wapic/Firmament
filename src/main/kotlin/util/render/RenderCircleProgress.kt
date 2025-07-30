@@ -97,6 +97,7 @@ object RenderCircleProgress {
 						false,
 					).use { renderPass ->
 						renderPass.uploadVertices(buffer)
+						renderPass.setAllDefaultUniforms()
 						renderPass.setPipeline(state.layer.pipeline)
 						renderPass.setUniform("CutoutRadius", 4) {
 							it.putFloat(state.innerCutoutRadius)

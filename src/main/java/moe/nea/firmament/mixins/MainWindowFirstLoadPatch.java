@@ -17,7 +17,7 @@ public class MainWindowFirstLoadPatch {
 
 	@Inject(method = "<init>(ZLnet/minecraft/client/gui/LogoDrawer;)V", at = @At("RETURN"))
 	private void onCreate(boolean doBackgroundFade, LogoDrawer logoDrawer, CallbackInfo ci) {
-		if (!hasInited) {
+		if (!hasInited && Firmament.INSTANCE.getDEBUG()) {
 			try {
 				DebugInstantiateEvent.Companion.publish(new DebugInstantiateEvent());
 			} catch (Throwable t) {

@@ -33,6 +33,7 @@ import moe.nea.firmament.util.json.toJsonArray
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.mc.loreAccordingToNbt
 import moe.nea.firmament.util.mc.toNbtList
+import moe.nea.firmament.util.modifyExtraAttributes
 import moe.nea.firmament.util.skyBlockId
 import moe.nea.firmament.util.skyblock.Rarity
 import moe.nea.firmament.util.transformEachRecursively
@@ -45,6 +46,7 @@ class LegacyItemExporter private constructor(var itemStack: ItemStack) {
 	}
 
 	var lore = itemStack.loreAccordingToNbt
+	val originalId = itemStack.extraAttributes.getString("id")
 	var name = itemStack.displayNameAccordingToNbt
 	val extraAttribs = itemStack.extraAttributes.copy()
 	val legacyNbt = NbtCompound()
@@ -195,8 +197,12 @@ class LegacyItemExporter private constructor(var itemStack: ItemStack) {
 	}
 
 	fun exportModernSnbt(): NbtElement {
-		val overlay = ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, itemStack)
-			.orThrow
+		val overlay = ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, itemStack.copy().also {
+			it.modifyExtraAttributes { attribs ->
+				originalId.ifPresent { attribs.putString("id", it) }
+				attribs
+			}
+		}).orThrow
 		val overlayWithVersion =
 			ExportedTestConstantMeta.SOURCE_CODEC.encode(ExportedTestConstantMeta.current, NbtOps.INSTANCE, overlay)
 				.orThrow

@@ -14,7 +14,9 @@ interface HoveredItemStackProvider : Comparable<HoveredItemStackProvider> {
 
 	val prio: Int get() = 0
 
-	companion object : CompatLoader<HoveredItemStackProvider>(HoveredItemStackProvider::class)
+	companion object : CompatLoader<HoveredItemStackProvider>(HoveredItemStackProvider::class) {
+		val sorted = HoveredItemStackProvider.allValidInstances.sorted()
+	}
 }
 
 @AutoService(HoveredItemStackProvider::class)
@@ -32,5 +34,5 @@ class VanillaScreenProvider : HoveredItemStackProvider {
 
 val HandledScreen<*>.focusedItemStack: ItemStack?
 	get() =
-		HoveredItemStackProvider.allValidInstances
+		HoveredItemStackProvider.sorted
 			.firstNotNullOfOrNull { it.provideHoveredItemStack(this)?.takeIf { !it.isEmpty } }

@@ -51,7 +51,10 @@ object ItemExporter {
 		nonOverlayCache.clear()
 		val exporter = LegacyItemExporter.createExporter(itemStack)
 		var json = exporter.exportJson()
-		val fileName = json.jsonObject["internalname"]!!.jsonPrimitive.content
+		val fileName = json.jsonObject["internalname"]?.jsonPrimitive?.takeIf { it.isString }?.content
+		if (fileName == null) {
+			return tr("firmament.repoexport.nointernalname", "Could not find internal name to export for this item (null.json)")
+		}
 		val itemFile = RepoDownloadManager.repoSavedLocation.resolve("items").resolve("${fileName}.json")
 		itemFile.createParentDirectories()
 		if (itemFile.exists()) {

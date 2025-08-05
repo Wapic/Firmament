@@ -66,7 +66,8 @@ object LegacyItemData {
 				putByte("Count", 1)
 				putShort("Damage", legacyItemType.metadata)
 			})!!
-			val stack = loadItemFromNbt(nbt) ?: error("Could not transform $legacyItemType")
+			nbt.remove("components")
+			val stack = loadItemFromNbt(nbt) ?: error("Could not transform $legacyItemType: $nbt")
 			stack.item to legacyItemType
 		}
 	}.toMap()

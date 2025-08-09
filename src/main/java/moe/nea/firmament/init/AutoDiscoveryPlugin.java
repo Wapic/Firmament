@@ -27,6 +27,8 @@ public class AutoDiscoveryPlugin {
 		return mixins.stream().map(it -> defaultName + "." + it).toList();
 	}
 
+	// TODO: remove println
+
 	private static final List<AutoDiscoveryPlugin> mixinPlugins = new ArrayList<>();
 
 	public static List<AutoDiscoveryPlugin> getMixinPlugins() {

@@ -23,6 +23,10 @@ interface StringMatcher {
 		return matches(text.string)
 	}
 
+	val asRegex: java.util.regex.Pattern
+
+	fun matchWithGroups(string: String): MatchNamedGroupCollection?
+
 	fun matches(nbt: NbtString): Boolean {
 		val string = nbt.value
 		val jsonStart = string.indexOf('{')
@@ -36,9 +40,43 @@ interface StringMatcher {
 	}
 
 	class Equals(input: String, val stripColorCodes: Boolean) : StringMatcher {
+		override val asRegex by lazy(LazyThreadSafetyMode.PUBLICATION) { input.toPattern(java.util.regex.Pattern.LITERAL) }
 		private val expected = if (stripColorCodes) input.removeColorCodes() else input
 		override fun matches(string: String): Boolean {
 			return expected == (if (stripColorCodes) string.removeColorCodes() else string)
+		}
+
+		override fun matchWithGroups(string: String): MatchNamedGroupCollection? {
+			if (matches(string))
+				return object : MatchNamedGroupCollection {
+					override fun get(name: String): MatchGroup? {
+						return null
+					}
+
+					override fun get(index: Int): MatchGroup? {
+						return null
+					}
+
+					override val size: Int
+						get() = 0
+
+					override fun isEmpty(): Boolean {
+						return true
+					}
+
+					override fun contains(element: MatchGroup?): Boolean {
+						return false
+					}
+
+					override fun iterator(): Iterator<MatchGroup?> {
+						return emptyList<MatchGroup>().iterator()
+					}
+
+					override fun containsAll(elements: Collection<MatchGroup?>): Boolean {
+						return elements.isEmpty()
+					}
+				}
+			return null
 		}
 
 		override fun toString(): String {
@@ -47,9 +85,14 @@ interface StringMatcher {
 	}
 
 	class Pattern(val patternWithColorCodes: String, val stripColorCodes: Boolean) : StringMatcher {
-		private val regex: Predicate<String> = patternWithColorCodes.toPattern().asMatchPredicate()
+		private val pattern = patternWithColorCodes.toRegex()
+		override val asRegex = pattern.toPattern()
 		override fun matches(string: String): Boolean {
-			return regex.test(if (stripColorCodes) string.removeColorCodes() else string)
+			return pattern.matches(if (stripColorCodes) string.removeColorCodes() else string)
+		}
+
+		override fun matchWithGroups(string: String): MatchNamedGroupCollection? {
+			return pattern.matchEntire(if (stripColorCodes) string.removeColorCodes() else string)?.groups as MatchNamedGroupCollection?
 		}
 
 		override fun toString(): String {

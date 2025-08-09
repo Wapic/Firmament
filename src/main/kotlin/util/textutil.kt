@@ -179,10 +179,11 @@ fun Text.transformEachRecursively(function: (Text) -> Text): Text {
 	val c = this.content
 	if (c is TranslatableTextContent) {
 		return Text.translatableWithFallback(c.key, c.fallback, *c.args.map {
-			(if (it is Text) it else Text.literal(it.toString())).transformEachRecursively(function)
+			(it as? Text ?: Text.literal(it.toString())).transformEachRecursively(function)
 		}.toTypedArray()).also { new ->
 			new.style = this.style
 			new.siblings.clear()
+			val new = function(new)
 			this.siblings.forEach { child ->
 				new.siblings.add(child.transformEachRecursively(function))
 			}

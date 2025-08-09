@@ -74,6 +74,7 @@ object Firmament {
 		prettyPrint = DEBUG
 		isLenient = true
 		allowTrailingComma = true
+		allowComments = true
 		ignoreUnknownKeys = true
 		encodeDefaults = true
 		prettyPrintIndent = if (prettyPrint) "\t" else DEFAULT_JSON_INDENT

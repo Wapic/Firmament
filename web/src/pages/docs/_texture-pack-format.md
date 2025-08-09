@@ -719,6 +719,93 @@ Available options
 | `<extraComponent>.width`  | false    | The new width of the component                                                                                           |
 | `<extraComponent>.height` | false    | The new height of the component                                                                                          |
 
+## Text Replacements
+
+> [!WARNING]
+> This syntax is _experimental_ and may be reworked with no backwards compatibility guarantees. If you have a use case for this syntax, please contact me so that I can figure out what kind of features are needed for the final version of this API.
+
+Firmament allows you to replace arbitrary texts with other texts during rendering. This only affects rendering, not what other mods see.
+
+To do this, place a text override in `firmskyblock:overrides/texts/<my-override>.json`:
+
+```json
+{
+    "match": {
+        "regex": ".*Strength.*"
+    },
+    "replacements": [
+        {
+            "match": "❁",
+            "replace": {
+                "text": "<newIcon>",
+                "color": "#ff0000"
+            }
+        }
+    ]
+}
+```
+
+There are notably two separate "match" sections. This is important. The first (top-level) match checks against the entire text element, while the replacement match operates on each individual subcomponent. Let's look at an example:
+
+```json
+{
+	"italic": false,
+	"text": "",
+	"extra": [
+		" ",
+		{
+			"color": "red",
+			"text": "❁ Strength "
+		},
+		{
+			"color": "white",
+			"text": "510.45"
+		}
+	]
+}
+```
+
+In this the entire text rendered out looks like `" ❁ Strength 510.45"` and the top-level match (`".*Strength.*"`) needs to match that line.
+
+Then each replacement (in the `replacements` array) is matched against each subcomponent. 
+First, it tries to find `"❁"` in the empty root element `""`. Then it tries the first child (`" "`) and fails again. Then it tries the `"❁ Strength "` component and finds one match. It then splits the `"❁ Strength "` component into multiple subsubcomponents and replaces just the `❁` part with the one specified in the replacements array. Afterwards, it fails to match the `"510.45"` component and returns.
+
+Our finalized text looks like this:
+
+```json
+{
+	"italic": false,
+	"text": "",
+	"extra": [
+		" ",
+		{
+			"color": "red",
+			"text": "",
+			"extra": [
+				{
+					"text": "<newIcon>",
+					"color": "#ff0000"
+				},
+				" Strength "
+			]
+		},
+		{
+			"color": "white",
+			"text": "510.45"
+		}
+	]
+}
+```
+
+Which rendered out looks like ` <newIcon> Strength 510.45`, with all colours original, except the `<newIcon>` which not only has new text but also a new colour.
+
+| Field                    | Required | Description                                                                                                                                                                                                                                                                                         |
+|--------------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `match`                  | yes      | A top level [string matcher](#string-matcher). Allows for testing parts of the text unrelated to the replacement and improves performance.                                                                                                                                                          |
+| `replacements`           | yes      | A list of replacements to apply to each part of the text                                                                                                                                                                                                                                            |
+| `replacements.*.match`   | yes      | A [string matcher](#string-matcher) substring to replace in each component of the text. Notabene: Unlike most string matchers, this one is not anchored to the beginning and end of the element, so if the entire component needs to be matched a regex with `^$` needs to be used.                 |
+| `replacements.*.replace` | yes      | A vanilla [text](https://minecraft.wiki/w/Text_component_format#Java_Edition) that is inserted to replace the substring matched in the match. If literal texts (not translated texts) are used, then `${name}` can be used to access named groups in the match regex (if a regex matcher was used). |
+
 
 
 ## Global Item Texture Replacement

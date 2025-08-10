@@ -17,7 +17,7 @@ data class TreeishTextReplacer(
 	@Serializable
 	data class SubPartReplacement(
 		val match: StringMatcher,
-		val style: @Serializable(StyleSerializer::class) Style?,
+		val style: @Serializable(StyleSerializer::class) Style? = null,
 		val replace: @Serializable(TextSerializer::class) Text,
 	)
 

@@ -1,17 +1,12 @@
 package moe.nea.firmament.features.texturepack
 
-import java.lang.StringBuilder
 import java.util.regex.Matcher
-import kotlinx.serialization.KSerializer
+import util.json.CodecSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.JsonElement
+import net.minecraft.text.Style
 import net.minecraft.text.Text
 import net.minecraft.text.TextCodecs
 import moe.nea.firmament.util.directLiteralStringContent
-import moe.nea.firmament.util.json.KJsonOps
 import moe.nea.firmament.util.transformEachRecursively
 
 @Serializable
@@ -22,26 +17,12 @@ data class TreeishTextReplacer(
 	@Serializable
 	data class SubPartReplacement(
 		val match: StringMatcher,
+		val style: @Serializable(StyleSerializer::class) Style?,
 		val replace: @Serializable(TextSerializer::class) Text,
 	)
 
-	object TextSerializer : KSerializer<Text> {
-		override val descriptor: SerialDescriptor
-			get() = JsonElement.serializer().descriptor
-
-		override fun serialize(encoder: Encoder, value: Text) {
-			encoder.encodeSerializableValue(
-				JsonElement.serializer(),
-				TextCodecs.CODEC.encodeStart(KJsonOps.INSTANCE, value).orThrow
-			)
-		}
-
-		override fun deserialize(decoder: Decoder): Text {
-			return TextCodecs.CODEC.decode(KJsonOps.INSTANCE, decoder.decodeSerializableValue(JsonElement.serializer()))
-				.orThrow.first
-		}
-	}
-
+	object TextSerializer : CodecSerializer<Text>(TextCodecs.CODEC)
+	object StyleSerializer : CodecSerializer<Style>(Style.Codecs.CODEC)
 	companion object {
 		val pattern = "(?!<\\$([$]{2})*)[$]\\{(?<name>[^}])\\}".toPattern()
 		fun injectMatchResults(text: Text, matches: Matcher): Text {
@@ -67,6 +48,17 @@ data class TreeishTextReplacer(
 			var part: Text = part
 			for (replacement in replacements) {
 				val rawPartText = part.string
+				replacement.style?.let { expectedStyle ->
+					val parentStyle = part.style
+					val parented = expectedStyle.withParent(parentStyle)
+					if (parented.isStrikethrough != parentStyle.isStrikethrough
+						|| parented.isObfuscated != parentStyle.isObfuscated
+						|| parented.isBold != parentStyle.isBold
+						|| parented.isUnderlined != parentStyle.isUnderlined
+						|| parented.isItalic != parentStyle.isItalic
+						|| parented.color?.rgb != parentStyle.color?.rgb)
+						continue
+				}
 				val matcher = replacement.match.asRegex.matcher(rawPartText)
 				if (!matcher.find()) continue
 				val p = Text.literal("")

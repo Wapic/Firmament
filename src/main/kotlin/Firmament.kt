@@ -92,7 +92,6 @@ object Firmament {
 		prettyPrint = false
 		// Reset pretty print indent back to default to prevent getting yelled at by json
 		prettyPrintIndent = DEFAULT_JSON_INDENT
-		encodeDefaults = false
 		explicitNulls = false
 	}
 

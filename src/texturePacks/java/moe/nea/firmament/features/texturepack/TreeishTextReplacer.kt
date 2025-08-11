@@ -24,7 +24,7 @@ data class TreeishTextReplacer(
 	object TextSerializer : CodecSerializer<Text>(TextCodecs.CODEC)
 	object StyleSerializer : CodecSerializer<Style>(Style.Codecs.CODEC)
 	companion object {
-		val pattern = "(?!<\\$([$]{2})*)[$]\\{(?<name>[^}])\\}".toPattern()
+		val pattern = "[$]\\{(?<name>[^}]+)}".toPattern()
 		fun injectMatchResults(text: Text, matches: Matcher): Text {
 			return text.transformEachRecursively { it ->
 				val content = it.directLiteralStringContent ?: return@transformEachRecursively it

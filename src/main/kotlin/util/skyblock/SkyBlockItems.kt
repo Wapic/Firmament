@@ -19,5 +19,6 @@ object SkyBlockItems {
 	val BONE_BOOMERANG = SkyblockId("BONE_BOOMERANG")
 	val STARRED_BONE_BOOMERANG = SkyblockId("STARRED_BONE_BOOMERANG")
 	val TRIBAL_SPEAR = SkyblockId("TRIBAL_SPEAR")
+	val BLOCK_ZAPPER = SkyblockId("BLOCK_ZAPPER")
 	val HUNTING_TOOLKIT = SkyblockId("HUNTING_TOOLKIT")
 }

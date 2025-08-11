@@ -18,7 +18,6 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
 import moe.nea.firmament.events.WorldRenderLastEvent
 import moe.nea.firmament.util.FirmFormatters
-import moe.nea.firmament.util.IntUtil.toRGBA
 import moe.nea.firmament.util.MC
 
 @RenderContextDSL
@@ -33,6 +32,38 @@ class RenderInWorldContext private constructor(
 		matrixStack.translate(blockPos.x.toFloat(), blockPos.y.toFloat(), blockPos.z.toFloat())
 		buildCube(matrixStack.peek().positionMatrix, vertexConsumers.getBuffer(CustomRenderLayers.COLORED_QUADS), color)
 		matrixStack.pop()
+	}
+
+	fun sharedVoxelSurface(blocks: Set<BlockPos>, color: Int) {
+		val m = BlockPos.Mutable()
+		val l = vertexConsumers.getBuffer(CustomRenderLayers.COLORED_QUADS)
+		blocks.forEach {
+			matrixStack.push()
+			matrixStack.translate(it.x.toFloat(), it.y.toFloat(), it.z.toFloat())
+			val p = matrixStack.peek().positionMatrix
+			m.set(it)
+			if (m.setX(it.x + 1) !in blocks) {
+				buildFaceXP(p, l, color)
+			}
+			if (m.setX(it.x - 1) !in blocks) {
+				buildFaceXN(p, l, color)
+			}
+			m.set(it)
+			if (m.setY(it.y + 1) !in blocks) {
+				buildFaceYP(p, l, color)
+			}
+			if (m.setY(it.y - 1) !in blocks) {
+				buildFaceYN(p, l, color)
+			}
+			m.set(it)
+			if (m.setZ(it.z + 1) !in blocks) {
+				buildFaceZP(p, l, color)
+			}
+			if (m.setZ(it.z - 1) !in blocks) {
+				buildFaceZN(p, l, color)
+			}
+			matrixStack.pop()
+		}
 	}
 
 	enum class VerticalAlign {
@@ -192,41 +223,56 @@ class RenderInWorldContext private constructor(
 			}
 		}
 
-		private fun buildCube(matrix: Matrix4f, buf: VertexConsumer, colorInt: Int) {
-			val (r, g, b, a) = colorInt.toRGBA()
-
-			// Y-
-			buf.vertex(matrix, 0F, 0F, 0F).color(r, g, b, a)
-			buf.vertex(matrix, 0F, 0F, 1F).color(r, g, b, a)
-			buf.vertex(matrix, 1F, 0F, 1F).color(r, g, b, a)
-			buf.vertex(matrix, 1F, 0F, 0F).color(r, g, b, a)
-			// Y+
-			buf.vertex(matrix, 0F, 1F, 0F).color(r, g, b, a)
-			buf.vertex(matrix, 1F, 1F, 0F).color(r, g, b, a)
-			buf.vertex(matrix, 1F, 1F, 1F).color(r, g, b, a)
-			buf.vertex(matrix, 0F, 1F, 1F).color(r, g, b, a)
-			// X-
-			buf.vertex(matrix, 0F, 0F, 0F).color(r, g, b, a)
-			buf.vertex(matrix, 0F, 0F, 1F).color(r, g, b, a)
-			buf.vertex(matrix, 0F, 1F, 1F).color(r, g, b, a)
-			buf.vertex(matrix, 0F, 1F, 0F).color(r, g, b, a)
-			// X+
-			buf.vertex(matrix, 1F, 0F, 0F).color(r, g, b, a)
-			buf.vertex(matrix, 1F, 1F, 0F).color(r, g, b, a)
-			buf.vertex(matrix, 1F, 1F, 1F).color(r, g, b, a)
-			buf.vertex(matrix, 1F, 0F, 1F).color(r, g, b, a)
-			// Z-
-			buf.vertex(matrix, 0F, 0F, 0F).color(r, g, b, a)
-			buf.vertex(matrix, 1F, 0F, 0F).color(r, g, b, a)
-			buf.vertex(matrix, 1F, 1F, 0F).color(r, g, b, a)
-			buf.vertex(matrix, 0F, 1F, 0F).color(r, g, b, a)
-			// Z+
-			buf.vertex(matrix, 0F, 0F, 1F).color(r, g, b, a)
-			buf.vertex(matrix, 0F, 1F, 1F).color(r, g, b, a)
-			buf.vertex(matrix, 1F, 1F, 1F).color(r, g, b, a)
-			buf.vertex(matrix, 1F, 0F, 1F).color(r, g, b, a)
+		private fun buildFaceZP(matrix: Matrix4f, buf: VertexConsumer, rgba: Int) {
+			buf.vertex(matrix, 0F, 0F, 1F).color(rgba)
+			buf.vertex(matrix, 0F, 1F, 1F).color(rgba)
+			buf.vertex(matrix, 1F, 1F, 1F).color(rgba)
+			buf.vertex(matrix, 1F, 0F, 1F).color(rgba)
 		}
 
+		private fun buildFaceZN(matrix: Matrix4f, buf: VertexConsumer, rgba: Int) {
+			buf.vertex(matrix, 0F, 0F, 0F).color(rgba)
+			buf.vertex(matrix, 1F, 0F, 0F).color(rgba)
+			buf.vertex(matrix, 1F, 1F, 0F).color(rgba)
+			buf.vertex(matrix, 0F, 1F, 0F).color(rgba)
+		}
+
+		private fun buildFaceXP(matrix: Matrix4f, buf: VertexConsumer, rgba: Int) {
+			buf.vertex(matrix, 1F, 0F, 0F).color(rgba)
+			buf.vertex(matrix, 1F, 1F, 0F).color(rgba)
+			buf.vertex(matrix, 1F, 1F, 1F).color(rgba)
+			buf.vertex(matrix, 1F, 0F, 1F).color(rgba)
+		}
+
+		private fun buildFaceXN(matrix: Matrix4f, buf: VertexConsumer, rgba: Int) {
+			buf.vertex(matrix, 0F, 0F, 0F).color(rgba)
+			buf.vertex(matrix, 0F, 0F, 1F).color(rgba)
+			buf.vertex(matrix, 0F, 1F, 1F).color(rgba)
+			buf.vertex(matrix, 0F, 1F, 0F).color(rgba)
+		}
+
+		private fun buildFaceYN(matrix: Matrix4f, buf: VertexConsumer, rgba: Int) {
+			buf.vertex(matrix, 0F, 0F, 0F).color(rgba)
+			buf.vertex(matrix, 0F, 0F, 1F).color(rgba)
+			buf.vertex(matrix, 1F, 0F, 1F).color(rgba)
+			buf.vertex(matrix, 1F, 0F, 0F).color(rgba)
+		}
+
+		private fun buildFaceYP(matrix: Matrix4f, buf: VertexConsumer, rgba: Int) {
+			buf.vertex(matrix, 0F, 1F, 0F).color(rgba)
+			buf.vertex(matrix, 1F, 1F, 0F).color(rgba)
+			buf.vertex(matrix, 1F, 1F, 1F).color(rgba)
+			buf.vertex(matrix, 0F, 1F, 1F).color(rgba)
+		}
+
+		private fun buildCube(matrix4f: Matrix4f, buf: VertexConsumer, rgba: Int) {
+			buildFaceXP(matrix4f, buf, rgba)
+			buildFaceXN(matrix4f, buf, rgba)
+			buildFaceYP(matrix4f, buf, rgba)
+			buildFaceYN(matrix4f, buf, rgba)
+			buildFaceZP(matrix4f, buf, rgba)
+			buildFaceZN(matrix4f, buf, rgba)
+		}
 
 		fun renderInWorld(event: WorldRenderLastEvent, block: RenderInWorldContext. () -> Unit) {
 

@@ -87,8 +87,7 @@ object CustomRenderLayers {
 	val COLORED_QUADS = RenderLayer.of(
 		"firmament_quads",
 		RenderLayer.DEFAULT_BUFFER_SIZE,
-		false,
-		true,
+		false, true,
 		CustomRenderPipelines.COLORED_OMNIPRESENT_QUADS,
 		RenderLayer.MultiPhaseParameters.builder()
 			.lightmap(RenderPhase.DISABLE_LIGHTMAP)

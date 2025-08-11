@@ -7,7 +7,6 @@ import kotlin.time.Duration.Companion.seconds
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.toast.SystemToast
 import net.minecraft.item.ItemStack
-import net.minecraft.text.Text
 import net.minecraft.util.DyeColor
 import net.minecraft.util.Hand
 import net.minecraft.util.Identifier
@@ -37,6 +36,7 @@ import moe.nea.firmament.util.red
 import moe.nea.firmament.util.render.RenderCircleProgress
 import moe.nea.firmament.util.render.lerp
 import moe.nea.firmament.util.skyblock.AbilityUtils
+import moe.nea.firmament.util.skyblock.DungeonUtil
 import moe.nea.firmament.util.skyblock.ItemType
 import moe.nea.firmament.util.toShedaniel
 import moe.nea.firmament.util.tr
@@ -50,6 +50,7 @@ object PickaxeAbility : FirmamentFeature {
 
 	object TConfig : ManagedConfig(identifier, Category.MINING) {
 		val cooldownEnabled by toggle("ability-cooldown") { false }
+		val disableInDungeons by toggle("disable-in-dungeons") { true }
 		val cooldownScale by integer("ability-scale", 16, 64) { 16 }
 		val cooldownReadyToast by toggle("ability-cooldown-toast") { false }
 		val drillFuelBar by toggle("fuel-bar") { true }
@@ -222,6 +223,7 @@ object PickaxeAbility : FirmamentFeature {
 	@Subscribe
 	fun renderHud(event: HudRenderEvent) {
 		if (!TConfig.cooldownEnabled) return
+		if (TConfig.disableInDungeons && DungeonUtil.isInDungeonIsland) return
 		if (!event.isRenderingCursor) return
 		var ability = getCooldownFromLore(MC.player?.getStackInHand(Hand.MAIN_HAND) ?: return) ?: return
 		defaultAbilityDurations[ability.name] = ability.cooldown

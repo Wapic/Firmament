@@ -161,7 +161,12 @@ fun MutableText.red() = withColor(Formatting.RED)
 fun MutableText.white() = withColor(Formatting.WHITE)
 fun MutableText.bold(): MutableText = styled { it.withBold(true) }
 fun MutableText.hover(text: Text): MutableText = styled { it.withHoverEvent(HoverEvent.ShowText(text)) }
-
+fun MutableText.boolColour(
+	bool: Boolean,
+	ifTrue: Formatting = Formatting.GREEN,
+	ifFalse: Formatting = Formatting.DARK_RED
+) =
+	if (bool) withColor(ifTrue) else withColor(ifFalse)
 
 fun MutableText.clickCommand(command: String): MutableText {
 	require(command.startsWith("/"))

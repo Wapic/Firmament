@@ -1,6 +1,7 @@
 package moe.nea.firmament.events.registration
 
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.fabricmc.fabric.api.event.player.UseItemCallback
@@ -8,6 +9,7 @@ import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
 import moe.nea.firmament.events.AllowChatEvent
 import moe.nea.firmament.events.AttackBlockEvent
+import moe.nea.firmament.events.JoinServerEvent
 import moe.nea.firmament.events.ModifyChatEvent
 import moe.nea.firmament.events.ProcessChatEvent
 import moe.nea.firmament.events.UseBlockEvent
@@ -60,4 +62,7 @@ fun registerFirmamentEvents() {
 		if (UseItemEvent.publish(UseItemEvent(playerEntity, world, hand)).cancelled) ActionResult.CONSUME
 		else ActionResult.PASS
 	})
+	ClientPlayConnectionEvents.JOIN.register { networkHandler, packetSender, _ ->
+		JoinServerEvent.publish(JoinServerEvent(networkHandler, packetSender))
+	}
 }

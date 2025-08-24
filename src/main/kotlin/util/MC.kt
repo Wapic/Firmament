@@ -110,7 +110,7 @@ object MC {
 	inline val stackInHand: ItemStack get() = player?.mainHandStack ?: ItemStack.EMPTY
 	inline val guiAtlasManager get() = instance.guiAtlasManager
 	inline val world: ClientWorld? get() = TestUtil.unlessTesting { instance.world }
-	inline val playerName: String? get() = player?.name?.unformattedString
+	inline val playerName: String get() = player?.name?.unformattedString ?: MC.instance.session.username
 	inline var screen: Screen?
 		get() = TestUtil.unlessTesting { instance.currentScreen }
 		set(value) = instance.setScreen(value)

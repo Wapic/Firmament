@@ -70,6 +70,7 @@
             "dependencies": [
                 "roughlyenoughitems(recommended){modrinth:rei}"
             ]
-        }
+        },
+		"firmament:hide_from_modlist": true
     }
 }

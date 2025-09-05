@@ -45,21 +45,21 @@ fun registerFirmamentEvents() {
 
 	AttackBlockCallback.EVENT.register(AttackBlockCallback { player, world, hand, pos, direction ->
 		if (AttackBlockEvent.publish(AttackBlockEvent(player, world, hand, pos, direction)).cancelled)
-			ActionResult.CONSUME
+			ActionResult.FAIL
 		else ActionResult.PASS
 	})
 	UseBlockCallback.EVENT.register(UseBlockCallback { player, world, hand, hitResult ->
 		if (UseBlockEvent.publish(UseBlockEvent(player, world, hand, hitResult)).cancelled)
-			ActionResult.CONSUME
+			ActionResult.FAIL
 		else ActionResult.PASS
 	})
 	UseBlockCallback.EVENT.register(UseBlockCallback { player, world, hand, hitResult ->
 		if (UseItemEvent.publish(UseItemEvent(player, world, hand)).cancelled)
-			ActionResult.CONSUME
+			ActionResult.FAIL
 		else ActionResult.PASS
 	})
 	UseItemCallback.EVENT.register(UseItemCallback { playerEntity, world, hand ->
-		if (UseItemEvent.publish(UseItemEvent(playerEntity, world, hand)).cancelled) ActionResult.CONSUME
+		if (UseItemEvent.publish(UseItemEvent(playerEntity, world, hand)).cancelled) ActionResult.FAIL
 		else ActionResult.PASS
 	})
 	ClientPlayConnectionEvents.JOIN.register { networkHandler, packetSender, _ ->

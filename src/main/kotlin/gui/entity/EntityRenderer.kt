@@ -203,7 +203,7 @@ object EntityRenderer {
 		val hw = (x2 - x1) / 2
 		val hh = (y2 - y1) / 2
 		val targetYaw = atan(((centerX - mouseX) / hw)).toFloat()
-		val targetPitch = atan(((centerY - mouseY) / hh)).toFloat()
+		val targetPitch = atan(((centerY - mouseY) / hh - entity.standingEyeHeight * hh / 40)).toFloat()
 		val rotateToFaceTheFront = Quaternionf().rotateZ(Math.PI.toFloat())
 		val rotateToFaceTheCamera = Quaternionf().rotateX(targetPitch * 20.0f * (Math.PI.toFloat() / 180))
 		rotateToFaceTheFront.mul(rotateToFaceTheCamera)
@@ -218,7 +218,7 @@ object EntityRenderer {
 		entity.headYaw = entity.yaw
 		entity.lastHeadYaw = entity.yaw
 		val vector3f = Vector3f(0.0f, (entity.height / 2.0f + bottomOffset).toFloat(), 0.0f)
-		InventoryScreen.drawEntity(
+		InventoryScreen.drawEntity( // TODO: fix multiple entities rendering the same entity
 			context,
 			x1, y1,
 			x2, y2,

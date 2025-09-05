@@ -137,6 +137,7 @@ object SlotLocking : FirmamentFeature {
 		val slotBind by keyBinding("bind") { GLFW.GLFW_KEY_L }
 		val slotBindRequireShift by toggle("require-quick-move") { true }
 		val slotRenderLines by choice("bind-render") { SlotRenderLinesMode.ONLY_BOXES }
+		val slotBindOnlyInInv by toggle("bind-only-in-inv") { false }
 		val allowMultiBinding by toggle("multi-bind") { true } // TODO: filter based on this option
 		val protectAllHuntingBoxes by toggle("hunting-box") { false }
 		val allowDroppingInDungeons by toggle("drop-in-dungeons") { true }
@@ -269,6 +270,8 @@ object SlotLocking : FirmamentFeature {
 			it.actionType == SlotActionType.QUICK_MOVE || (it.actionType == SlotActionType.PICKUP && !TConfig.slotBindRequireShift)
 		if (!isValidAction) return
 		val handler = MC.handledScreen?.screenHandler ?: return
+		if (TConfig.slotBindOnlyInInv && handler.slots.any { it.inventory !is PlayerInventory })
+			return
 		val slot = it.slot
 		if (slot != null && it.slot.inventory is PlayerInventory) {
 			val matchingSlots = boundSlots.findMatchingSlots(slot.index)

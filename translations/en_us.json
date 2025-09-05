@@ -363,6 +363,8 @@
 	"firmament.config.save-cursor-position.tolerance.description": "Select how long your cursor position last between GUIs before resetting back to the middle of the screen.",
 	"firmament.config.slot-locking": "Slot Locking",
 	"firmament.config.slot-locking.bind": "Bind Slot",
+	"firmament.config.slot-locking.bind-only-in-inv": "Bind Only in Inventory",
+	"firmament.config.slot-locking.bind-only-in-inv.description": "Only allow using slot binds in the player inventory, not in chests, etc.",
 	"firmament.config.slot-locking.bind-render": "Show Slot Bindings",
 	"firmament.config.slot-locking.bind-render.choice.everything": "Always",
 	"firmament.config.slot-locking.bind-render.choice.nothing": "Only when hovered",

@@ -53,7 +53,10 @@ object ItemExporter {
 		var json = exporter.exportJson()
 		val fileName = json.jsonObject["internalname"]?.jsonPrimitive?.takeIf { it.isString }?.content
 		if (fileName == null) {
-			return tr("firmament.repoexport.nointernalname", "Could not find internal name to export for this item (null.json)")
+			return tr(
+				"firmament.repoexport.nointernalname",
+				"Could not find internal name to export for this item (null.json)"
+			)
 		}
 		val itemFile = RepoDownloadManager.repoSavedLocation.resolve("items").resolve("${fileName}.json")
 		itemFile.createParentDirectories()
@@ -220,11 +223,13 @@ object ItemExporter {
 		val stack = event.slot.stack ?: return
 		val id = event.slot.stack.skyBlockId?.neuItem
 		if (PowerUserTools.TConfig.dontHighlightSemicolonItems && id != null && id.contains(";")) return
-		val isExported = nonOverlayCache.getOrPut(stack.skyBlockId ?: return) {
-			RepoDownloadManager.repoSavedLocation.resolve("itemsOverlay")
-				.resolve(ExportedTestConstantMeta.current.dataVersion.toString())
-				.resolve("${stack.skyBlockId}.snbt")
-				.exists()
+		val sbId = stack.skyBlockId ?: return
+		val isExported = nonOverlayCache.getOrPut(sbId) {
+			RepoManager.overlayData.getOverlayFiles(sbId).isNotEmpty() || // This extra case is here so that an export works immediately, without repo reload
+				RepoDownloadManager.repoSavedLocation.resolve("itemsOverlay")
+					.resolve(ExportedTestConstantMeta.current.dataVersion.toString())
+					.resolve("${stack.skyBlockId}.snbt")
+					.exists()
 		}
 		if (!isExported)
 			event.context.drawGuiTexture(

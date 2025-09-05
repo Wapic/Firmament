@@ -6,8 +6,7 @@ import moe.nea.firmament.util.mc.loreAccordingToNbt
 import moe.nea.firmament.util.petData
 
 
-@JvmInline
-value class ItemType private constructor(val name: String) {
+data class ItemType private constructor(val name: String) {
 	companion object {
 		fun ofName(name: String): ItemType {
 			return ItemType(name)
@@ -41,6 +40,7 @@ value class ItemType private constructor(val name: String) {
 		val SWORD = ofName("SWORD")
 		val DRILL = ofName("DRILL")
 		val PICKAXE = ofName("PICKAXE")
+		val AXE = ofName("AXE")
 		val GAUNTLET = ofName("GAUNTLET")
 		val LONGSWORD = ofName("LONG SWORD")
 		val EQUIPMENT = ofName("EQUIPMENT")
@@ -57,6 +57,8 @@ value class ItemType private constructor(val name: String) {
 		val LEGGINGS = ofName("LEGGINGS")
 		val HELMET = ofName("HELMET")
 		val BOOTS = ofName("BOOTS")
+		val SHOVEL = ofName("SHOVEL")
+
 		val NIL = ofName("__NIL")
 
 		/**

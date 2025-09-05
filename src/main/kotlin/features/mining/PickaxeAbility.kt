@@ -47,10 +47,25 @@ object PickaxeAbility : FirmamentFeature {
 	override val identifier: String
 		get() = "pickaxe-info"
 
+	enum class ShowOnTools(val label: String, val items: Set<ItemType>) : StringIdentifiable {
+		ALL("all", ItemType.DRILL, ItemType.PICKAXE, ItemType.SHOVEL, ItemType.AXE),
+		PICKAXES_AND_DRILLS("pick-and-drill", ItemType.PICKAXE, ItemType.DRILL),
+		DRILLS("drills", ItemType.DRILL),
+		;
+
+		override fun asString(): String? {
+			return label
+		}
+
+		constructor(label: String, vararg items: ItemType) : this(label, items.toSet())
+
+		fun matches(type: ItemType) = items.contains(type)
+	}
 
 	object TConfig : ManagedConfig(identifier, Category.MINING) {
 		val cooldownEnabled by toggle("ability-cooldown") { false }
 		val disableInDungeons by toggle("disable-in-dungeons") { true }
+		val showOnTools by choice("show-on-tools") { ShowOnTools.PICKAXES_AND_DRILLS }
 		val cooldownScale by integer("ability-scale", 16, 64) { 16 }
 		val cooldownReadyToast by toggle("ability-cooldown-toast") { false }
 		val drillFuelBar by toggle("fuel-bar") { true }
@@ -114,9 +129,12 @@ object PickaxeAbility : FirmamentFeature {
 			BlockPickaxeAbility.ONLY_DESTRUCTIVE -> ability.any { it.name in destructiveAbilities }
 		}
 		if (shouldBlock) {
-			MC.sendChat(tr("firmament.pickaxe.blocked",
-			               "Firmament blocked a pickaxe ability from being used on a private island.")
-				            .red() // TODO: .clickCommand("firm confignavigate ${TConfig.identifier} block-on-dynamic")
+			MC.sendChat(
+				tr(
+					"firmament.pickaxe.blocked",
+					"Firmament blocked a pickaxe ability from being used on a private island."
+				)
+					.red() // TODO: .clickCommand("firm confignavigate ${TConfig.identifier} block-on-dynamic")
 			)
 			event.cancel()
 		}
@@ -179,7 +197,12 @@ object PickaxeAbility : FirmamentFeature {
 			if (!TConfig.cooldownReadyToast) return
 			val mc: MinecraftClient = MinecraftClient.getInstance()
 			mc.toastManager.add(
-				SystemToast.create(mc, SystemToast.Type.NARRATOR_TOGGLE, tr("firmament.pickaxe.ability-ready","Pickaxe Cooldown"), tr("firmament.pickaxe.ability-ready.desc", "Pickaxe ability is ready!"))
+				SystemToast.create(
+					mc,
+					SystemToast.Type.NARRATOR_TOGGLE,
+					tr("firmament.pickaxe.ability-ready", "Pickaxe Cooldown"),
+					tr("firmament.pickaxe.ability-ready.desc", "Pickaxe ability is ready!")
+				)
 			)
 		}
 	}
@@ -225,11 +248,15 @@ object PickaxeAbility : FirmamentFeature {
 		if (!TConfig.cooldownEnabled) return
 		if (TConfig.disableInDungeons && DungeonUtil.isInDungeonIsland) return
 		if (!event.isRenderingCursor) return
-		var ability = getCooldownFromLore(MC.player?.getStackInHand(Hand.MAIN_HAND) ?: return) ?: return
-		defaultAbilityDurations[ability.name] = ability.cooldown
+		val stack = MC.player?.getStackInHand(Hand.MAIN_HAND) ?: return
+		if (!TConfig.showOnTools.matches(ItemType.fromItemStack(stack) ?: ItemType.NIL))
+			return
+		var ability = getCooldownFromLore(stack)?.also { ability ->
+			defaultAbilityDurations[ability.name] = ability.cooldown
+		}
 		val ao = abilityOverride
-		if (ao != ability.name && ao != null) {
-			ability = PickaxeAbilityData(ao, defaultAbilityDurations[ao] ?: 120.seconds)
+		if (ability == null || (ao != ability.name && ao != null)) {
+			ability = PickaxeAbilityData(ao ?: return, defaultAbilityDurations[ao] ?: 120.seconds)
 		}
 		event.context.matrices.pushMatrix()
 		event.context.matrices.translate(MC.window.scaledWidth / 2F, MC.window.scaledHeight / 2F)

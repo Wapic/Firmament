@@ -74,7 +74,6 @@ object FeatureManager : DataHolder<FeatureManager.Config>(serializer(), "feature
 			loadFeature(CustomCapes)
 			loadFeature(Hud)
 			loadFeature(EtherwarpOverlay)
-			loadFeature(WardrobeKeybinds)
 			loadFeature(DianaWaypoints)
 			loadFeature(ItemRarityCosmetics)
 			loadFeature(PickaxeAbility)

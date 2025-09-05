@@ -9,11 +9,8 @@ import moe.nea.firmament.gui.config.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.mc.SlotUtils.clickLeftMouseButton
 
-object WardrobeKeybinds : FirmamentFeature {
-	override val identifier: String
-		get() = "wardrobe-keybinds"
-
-	object TConfig : ManagedConfig(identifier, Category.INVENTORY) {
+object WardrobeKeybinds {
+	object TConfig : ManagedConfig("wardrobe-keybinds", Category.INVENTORY) {
 		val wardrobeKeybinds by toggle("wardrobe-keybinds") { false }
 		val changePageKeybind by keyBinding("change-page") { GLFW.GLFW_KEY_ENTER }
 		val nextPage by keyBinding("next-page") { GLFW.GLFW_KEY_D }
@@ -21,10 +18,8 @@ object WardrobeKeybinds : FirmamentFeature {
 		val slotKeybinds = (1..9).map {
 			keyBinding("slot-$it") { GLFW.GLFW_KEY_0 + it }
 		}
+		val allowUnequipping by toggle("allow-unequipping") { true }
 	}
-
-	override val config: ManagedConfig?
-		get() = TConfig
 
 	val slotKeybindsWithSlot = TConfig.slotKeybinds.withIndex().map { (index, keybinding) ->
 		index + 36 to keybinding
@@ -60,7 +55,6 @@ object WardrobeKeybinds : FirmamentFeature {
 		}
 
 
-
 		val slot =
 			slotKeybindsWithSlot
 				.find { event.matches(it.second.get()) }
@@ -72,7 +66,10 @@ object WardrobeKeybinds : FirmamentFeature {
 		val invSlot = handler.getSlot(slot)
 
 		val itemStack = invSlot.stack
-		if (itemStack.item != Items.PINK_DYE && itemStack.item != Items.LIME_DYE) return
+		val isSelected = itemStack.item == Items.LIME_DYE
+		val isSelectable = itemStack.item == Items.PINK_DYE
+		if (!isSelectable && !isSelected) return
+		if (!TConfig.allowUnequipping && isSelected) return
 
 		invSlot.clickLeftMouseButton(handler)
 	}

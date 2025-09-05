@@ -46,6 +46,7 @@ object SaveCursorPosition : FirmamentFeature {
             (lastPosition.middle.first - middleX).absoluteValue < 1 &&
             (lastPosition.middle.second - middleY).absoluteValue < 1
         ) {
+			// TODO: GLFW.glfwSetCursorPos(handler, x, y);
             InputUtil.setCursorParameters(
                 MC.window.handle,
                 InputUtil.GLFW_CURSOR_NORMAL,

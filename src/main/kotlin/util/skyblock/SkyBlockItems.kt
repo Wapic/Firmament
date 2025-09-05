@@ -21,4 +21,5 @@ object SkyBlockItems {
 	val TRIBAL_SPEAR = SkyblockId("TRIBAL_SPEAR")
 	val BLOCK_ZAPPER = SkyblockId("BLOCK_ZAPPER")
 	val HUNTING_TOOLKIT = SkyblockId("HUNTING_TOOLKIT")
+	val ETHERWARP_CONDUIT = SkyblockId("ETHERWARP_CONDUIT")
 }

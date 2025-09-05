@@ -33,6 +33,7 @@ import moe.nea.firmament.repo.RepoManager
 import moe.nea.firmament.repo.set
 import moe.nea.firmament.util.collections.WeakCache
 import moe.nea.firmament.util.json.DashlessUUIDSerializer
+import moe.nea.firmament.util.mc.loreAccordingToNbt
 
 /**
  * A SkyBlock item id, as used by the NEU repo.
@@ -202,6 +203,19 @@ fun ItemStack.setSkyBlockFirmamentUiId(uiId: String) = setSkyBlockId(SkyblockId(
 fun ItemStack.setSkyBlockId(skyblockId: SkyblockId): ItemStack {
 	this.extraAttributes["id"] = skyblockId.neuItem
 	return this
+}
+
+private val STORED_REGEX = "Stored: ($SHORT_NUMBER_FORMAT)/.+".toPattern()
+private val AMOUNT_REGEX = "(?:Offer amount|Amount|Order amount): ($SHORT_NUMBER_FORMAT)x".toPattern()
+fun ItemStack.getLogicalStackSize(): Long {
+	return loreAccordingToNbt.firstNotNullOfOrNull {
+		val string = it.unformattedString
+		STORED_REGEX.useMatch(string) {
+			parseShortNumber(group(1)).toLong()
+		} ?: AMOUNT_REGEX.useMatch(string) {
+			parseShortNumber(group(1)).toLong()
+		}
+	} ?: count.toLong()
 }
 
 val ItemStack.skyBlockId: SkyblockId?

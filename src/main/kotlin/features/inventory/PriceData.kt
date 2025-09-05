@@ -12,6 +12,7 @@ import moe.nea.firmament.util.FirmFormatters.formatCommas
 import moe.nea.firmament.util.asBazaarStock
 import moe.nea.firmament.util.bold
 import moe.nea.firmament.util.darkGrey
+import moe.nea.firmament.util.getLogicalStackSize
 import moe.nea.firmament.util.gold
 import moe.nea.firmament.util.skyBlockId
 import moe.nea.firmament.util.tr
@@ -64,7 +65,7 @@ object PriceData : FirmamentFeature {
 		if (!TConfig.tooltipEnabled) return
 		if (TConfig.enableKeybinding.isBound && !TConfig.enableKeybinding.isPressed()) return
 		val sbId = it.stack.skyBlockId
-		val stackSize = it.stack.count
+		val stackSize = it.stack.getLogicalStackSize()
 		val isShowingStack = TConfig.stackSizeKey.isPressed()
 		val multiplier = if (isShowingStack) stackSize else 1
 		val multiplierText =

@@ -2,7 +2,6 @@
 
 package moe.nea.firmament.features.inventory
 
-import com.mojang.blaze3d.pipeline.RenderPipeline
 import java.util.UUID
 import org.lwjgl.glfw.GLFW
 import kotlinx.serialization.KSerializer
@@ -19,7 +18,6 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.serializer
 import net.minecraft.client.gl.RenderPipelines
 import net.minecraft.client.gui.screen.ingame.HandledScreen
-import net.minecraft.client.render.RenderLayer
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.screen.GenericContainerScreenHandler
@@ -65,12 +63,24 @@ object SlotLocking : FirmamentFeature {
 		get() = "slot-locking"
 
 	@Serializable
-	data class Data(
+	data class DimensionData(
 		val lockedSlots: MutableSet<Int> = mutableSetOf(),
-		val lockedSlotsRift: MutableSet<Int> = mutableSetOf(),
-		val lockedUUIDs: MutableSet<UUID> = mutableSetOf(),
-		val boundSlots: BoundSlots = BoundSlots()
+		val boundSlots: BoundSlots = BoundSlots(),
 	)
+
+	@Serializable
+	data class Data(
+		val lockedUUIDs: MutableSet<UUID> = mutableSetOf(),
+		val rift: DimensionData = DimensionData(),
+		val overworld: DimensionData = DimensionData(),
+	)
+
+
+	val currentWorldData
+		get() = if (SBData.skyblockLocation == SkyBlockIsland.RIFT)
+			DConfig.data?.rift
+		else
+			DConfig.data?.overworld
 
 	@Serializable
 	data class BoundSlot(
@@ -161,12 +171,7 @@ object SlotLocking : FirmamentFeature {
 	val lockedUUIDs get() = DConfig.data?.lockedUUIDs
 
 	val lockedSlots
-		get() = when (SBData.skyblockLocation) {
-			SkyBlockIsland.RIFT -> DConfig.data?.lockedSlotsRift
-			null -> null
-			else -> DConfig.data?.lockedSlots
-		}
-
+		get() = currentWorldData?.lockedSlots
 	fun isSalvageScreen(screen: HandledScreen<*>?): Boolean {
 		if (screen == null) return false
 		return screen.title.unformattedString.contains("Salvage Item")
@@ -265,7 +270,7 @@ object SlotLocking : FirmamentFeature {
 
 	@Subscribe
 	fun onQuickMoveBoundSlot(it: IsSlotProtectedEvent) {
-		val boundSlots = DConfig.data?.boundSlots ?: BoundSlots()
+		val boundSlots = currentWorldData?.boundSlots ?: BoundSlots()
 		val isValidAction =
 			it.actionType == SlotActionType.QUICK_MOVE || (it.actionType == SlotActionType.PICKUP && !TConfig.slotBindRequireShift)
 		if (!isValidAction) return
@@ -330,7 +335,7 @@ object SlotLocking : FirmamentFeature {
 			storedLockingSlot = null
 			val hotBarSlot = if (slot.isHotbar()) slot else storedSlot
 			val invSlot = if (slot.isHotbar()) storedSlot else slot
-			val boundSlots = DConfig.data?.boundSlots ?: return
+			val boundSlots = currentWorldData?.boundSlots ?: return
 			lockedSlots?.remove(hotBarSlot.index)
 			lockedSlots?.remove(invSlot.index)
 			boundSlots.removeDuplicateForInventory(invSlot.index)
@@ -346,7 +351,7 @@ object SlotLocking : FirmamentFeature {
 		}
 		if (it.matches(TConfig.slotBind)) {
 			storedLockingSlot = null
-			val boundSlots = DConfig.data?.boundSlots ?: return
+			val boundSlots = currentWorldData?.boundSlots ?: return
 			if (slot != null)
 				boundSlots.removeAllInvolving(slot.index)
 		}
@@ -354,7 +359,7 @@ object SlotLocking : FirmamentFeature {
 
 	@Subscribe
 	fun onRenderAllBoundSlots(event: HandledScreenForegroundEvent) {
-		val boundSlots = DConfig.data?.boundSlots ?: return
+		val boundSlots = currentWorldData?.boundSlots ?: return
 		fun findByIndex(index: Int) = event.screen.getSlotByIndex(index, true)
 		val accScreen = event.screen as AccessorHandledScreen
 		val sx = accScreen.x_Firmament
@@ -452,7 +457,7 @@ object SlotLocking : FirmamentFeature {
 
 	fun toggleSlotLock(slot: Slot) {
 		val lockedSlots = lockedSlots ?: return
-		val boundSlots = DConfig.data?.boundSlots ?: BoundSlots()
+		val boundSlots = currentWorldData?.boundSlots ?: BoundSlots()
 		if (slot.inventory is PlayerInventory) {
 			if (boundSlots.removeAllInvolving(slot.index)) {
 				// intentionally do nothing

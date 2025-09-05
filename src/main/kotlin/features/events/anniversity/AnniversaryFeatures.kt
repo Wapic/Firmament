@@ -140,7 +140,7 @@ object AnniversaryFeatures : FirmamentFeature {
     }
 
     val expReward = "\\+(?<exp>$SHORT_NUMBER_FORMAT) (?<kind>[^ ]+) XP".toPattern()
-    val coinReward = "\\+(?<amount>$SHORT_NUMBER_FORMAT) coins".toPattern()
+    val coinReward = "(?i)\\+(?<amount>$SHORT_NUMBER_FORMAT) Coins".toPattern()
     val itemReward = "(?:(?<amount>[0-9]+)x )?(?<name>.*)".toPattern()
     fun parseReward(string: String): Reward {
         expReward.useMatch<Unit>(string) {

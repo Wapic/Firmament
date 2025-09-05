@@ -105,6 +105,7 @@ object EtherwarpOverlay : FirmamentFeature {
 			Blocks.MOSS_CARPET,
 			Blocks.PALE_MOSS_CARPET,
 			Blocks.COCOA,
+			Blocks.LADDER,
 		),
 		setOf(
 			BlockTags.FLOWER_POTS,
@@ -115,6 +116,7 @@ object EtherwarpOverlay : FirmamentFeature {
 		setOf(), setOf(
 			// Wall signs have a hitbox
 			BlockTags.ALL_SIGNS, BlockTags.ALL_HANGING_SIGNS,
+			BlockTags.BANNERS,
 		)
 	)
 

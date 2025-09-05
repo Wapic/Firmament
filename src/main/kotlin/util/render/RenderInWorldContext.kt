@@ -174,11 +174,11 @@ class RenderInWorldContext private constructor(
 			val lastNormal0 = lastNormal ?: normal
 			lastNormal = normal
 			buffer.vertex(matrix.positionMatrix, a.x.toFloat(), a.y.toFloat(), a.z.toFloat())
-				.color(-1)
+				.color(color)
 				.normal(matrix, lastNormal0.x, lastNormal0.y, lastNormal0.z)
 				
 			buffer.vertex(matrix.positionMatrix, b.x.toFloat(), b.y.toFloat(), b.z.toFloat())
-				.color(-1)
+				.color(color)
 				.normal(matrix, normal.x, normal.y, normal.z)
 				
 		}

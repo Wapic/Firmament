@@ -41,10 +41,13 @@ private constructor(
 		val GARDEN = forMode("garden")
 		val DUNGEON = forMode("dungeon")
 		val NIL = forMode("_")
+		val GALATEA = forMode("foraging_2")
 	}
 
 	val hasCustomMining
 		get() = RepoManager.miningData.customMiningAreas[this]?.isSpecialMining ?: false
+	val isModernServer
+		get() = this == GALATEA
 
 	val userFriendlyName
 		get() = RepoManager.neuRepo.constants.islands.areaNames

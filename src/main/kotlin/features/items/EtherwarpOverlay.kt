@@ -2,6 +2,9 @@ package moe.nea.firmament.features.items
 
 import io.github.notenoughupdates.moulconfig.ChromaColour
 import net.minecraft.block.Blocks
+import net.minecraft.registry.entry.RegistryEntry
+import net.minecraft.registry.tag.BlockTags
+import net.minecraft.registry.tag.TagKey
 import net.minecraft.text.Text
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.hit.HitResult
@@ -13,6 +16,7 @@ import moe.nea.firmament.events.WorldRenderLastEvent
 import moe.nea.firmament.features.FirmamentFeature
 import moe.nea.firmament.gui.config.ManagedConfig
 import moe.nea.firmament.util.MC
+import moe.nea.firmament.util.SBData
 import moe.nea.firmament.util.extraAttributes
 import moe.nea.firmament.util.render.RenderInWorldContext
 import moe.nea.firmament.util.skyBlockId
@@ -48,106 +52,86 @@ object EtherwarpOverlay : FirmamentFeature {
 		OCCUPIED(tr("firmament.etherwarp.fail.occupied", "Occupied"), TConfig::failureCubeColour),
 	}
 
-	val interactionBlocked = setOf(
-		Blocks.HOPPER,
-		Blocks.CHEST,
-		Blocks.ENDER_CHEST,
-		Blocks.FURNACE,
-		Blocks.CRAFTING_TABLE,
-		Blocks.CAULDRON,
-		Blocks.WATER_CAULDRON,
-		Blocks.ENCHANTING_TABLE,
-		Blocks.DISPENSER,
-		Blocks.DROPPER,
-		Blocks.BREWING_STAND,
-		Blocks.TRAPPED_CHEST,
-		Blocks.OAK_DOOR,
-		Blocks.IRON_DOOR,
-		Blocks.OAK_TRAPDOOR,
-		Blocks.SPRUCE_TRAPDOOR,
-		Blocks.BIRCH_TRAPDOOR,
-		Blocks.JUNGLE_TRAPDOOR,
-		Blocks.ACACIA_TRAPDOOR,
-		Blocks.CHERRY_TRAPDOOR,
-		Blocks.DARK_OAK_TRAPDOOR,
-		Blocks.PALE_OAK_TRAPDOOR,
-		Blocks.MANGROVE_TRAPDOOR,
-		Blocks.BAMBOO_TRAPDOOR,
-		Blocks.IRON_TRAPDOOR,
-		Blocks.SPRUCE_DOOR,
-		Blocks.BIRCH_DOOR,
-		Blocks.JUNGLE_DOOR,
-		Blocks.ACACIA_DOOR,
-		Blocks.CHERRY_DOOR,
-		Blocks.DARK_OAK_DOOR,
-		Blocks.PALE_OAK_DOOR,
-		Blocks.MANGROVE_DOOR,
-		Blocks.BAMBOO_DOOR,
-		Blocks.CRIMSON_TRAPDOOR,
-		Blocks.WARPED_TRAPDOOR,
-		Blocks.CRIMSON_DOOR,
-		Blocks.WARPED_DOOR,
-		Blocks.COPPER_DOOR,
-		Blocks.EXPOSED_COPPER_DOOR,
-		Blocks.OXIDIZED_COPPER_DOOR,
-		Blocks.WEATHERED_COPPER_DOOR,
-		Blocks.WAXED_COPPER_DOOR,
-		Blocks.WAXED_EXPOSED_COPPER_DOOR,
-		Blocks.WAXED_OXIDIZED_COPPER_DOOR,
-		Blocks.WAXED_WEATHERED_COPPER_DOOR,
-		Blocks.COPPER_TRAPDOOR,
-		Blocks.EXPOSED_COPPER_TRAPDOOR,
-		Blocks.OXIDIZED_COPPER_TRAPDOOR,
-		Blocks.WEATHERED_COPPER_TRAPDOOR,
-		Blocks.WAXED_COPPER_TRAPDOOR,
-		Blocks.WAXED_EXPOSED_COPPER_TRAPDOOR,
-		Blocks.WAXED_OXIDIZED_COPPER_TRAPDOOR,
-		Blocks.WAXED_WEATHERED_COPPER_TRAPDOOR,
+	val interactionBlocked = Checker(
+		setOf(
+			Blocks.HOPPER,
+			Blocks.CHEST,
+			Blocks.ENDER_CHEST,
+			Blocks.FURNACE,
+			Blocks.CRAFTING_TABLE,
+			Blocks.CAULDRON,
+			Blocks.WATER_CAULDRON,
+			Blocks.ENCHANTING_TABLE,
+			Blocks.DISPENSER,
+			Blocks.DROPPER,
+			Blocks.BREWING_STAND,
+			Blocks.TRAPPED_CHEST,
+		),
+		setOf(
+			BlockTags.DOORS,
+			BlockTags.TRAPDOORS,
+			BlockTags.ANVIL,
+		)
 	)
 
-	val etherwarpHallpasses = setOf(
-		Blocks.CREEPER_HEAD,
-		Blocks.CREEPER_WALL_HEAD,
-		Blocks.DRAGON_HEAD,
-		Blocks.DRAGON_WALL_HEAD,
-		Blocks.SKELETON_SKULL,
-		Blocks.SKELETON_WALL_SKULL,
-		Blocks.WITHER_SKELETON_SKULL,
-		Blocks.WITHER_SKELETON_WALL_SKULL,
-		Blocks.PIGLIN_HEAD,
-		Blocks.PIGLIN_WALL_HEAD,
-		Blocks.ZOMBIE_HEAD,
-		Blocks.ZOMBIE_WALL_HEAD,
-		Blocks.PLAYER_HEAD,
-		Blocks.PLAYER_WALL_HEAD,
-		Blocks.REPEATER,
-		Blocks.COMPARATOR,
-		Blocks.BIG_DRIPLEAF_STEM,
-		Blocks.WHITE_CARPET,
-		Blocks.ORANGE_CARPET,
-		Blocks.MAGENTA_CARPET,
-		Blocks.LIGHT_BLUE_CARPET,
-		Blocks.YELLOW_CARPET,
-		Blocks.LIME_CARPET,
-		Blocks.PINK_CARPET,
-		Blocks.GRAY_CARPET,
-		Blocks.LIGHT_GRAY_CARPET,
-		Blocks.CYAN_CARPET,
-		Blocks.PURPLE_CARPET,
-		Blocks.BLUE_CARPET,
-		Blocks.BROWN_CARPET,
-		Blocks.GREEN_CARPET,
-		Blocks.RED_CARPET,
-		Blocks.BLACK_CARPET,
-		Blocks.MOSS_CARPET,
-		Blocks.PALE_MOSS_CARPET,
+	data class Checker<T>(
+		val direct: Set<T>,
+		val byTag: Set<TagKey<T>>,
+	) {
+		fun matches(entry: RegistryEntry<T>): Boolean {
+			return entry.value() in direct || checkTags(entry, byTag)
+		}
+	}
+
+	val etherwarpHallpasses = Checker(
+		setOf(
+			Blocks.CREEPER_HEAD,
+			Blocks.CREEPER_WALL_HEAD,
+			Blocks.DRAGON_HEAD,
+			Blocks.DRAGON_WALL_HEAD,
+			Blocks.SKELETON_SKULL,
+			Blocks.SKELETON_WALL_SKULL,
+			Blocks.WITHER_SKELETON_SKULL,
+			Blocks.WITHER_SKELETON_WALL_SKULL,
+			Blocks.PIGLIN_HEAD,
+			Blocks.PIGLIN_WALL_HEAD,
+			Blocks.ZOMBIE_HEAD,
+			Blocks.ZOMBIE_WALL_HEAD,
+			Blocks.PLAYER_HEAD,
+			Blocks.PLAYER_WALL_HEAD,
+			Blocks.REPEATER,
+			Blocks.COMPARATOR,
+			Blocks.BIG_DRIPLEAF_STEM,
+			Blocks.MOSS_CARPET,
+			Blocks.PALE_MOSS_CARPET,
+			Blocks.COCOA,
+		),
+		setOf(
+			BlockTags.FLOWER_POTS,
+			BlockTags.WOOL_CARPETS,
+		),
 	)
+	val etherwarpConsidersFat = Checker(
+		setOf(), setOf(
+			// Wall signs have a hitbox
+			BlockTags.ALL_SIGNS, BlockTags.ALL_HANGING_SIGNS,
+		)
+	)
+
+
+	fun <T> checkTags(holder: RegistryEntry<out T>, set: Set<TagKey<out T>>) =
+		holder.streamTags()
+			.anyMatch(set::contains)
+
 
 	fun isEtherwarpTransparent(world: BlockView, blockPos: BlockPos): Boolean {
 		val blockState = world.getBlockState(blockPos)
-		if (blockState.block.defaultState.getCollisionShape(world, blockPos).isEmpty)
+		val block = blockState.block
+		if (etherwarpConsidersFat.matches(blockState.registryEntry))
+			return false
+		if (block.defaultState.getCollisionShape(world, blockPos).isEmpty)
 			return true
-		if (blockState.block in etherwarpHallpasses)
+		if (etherwarpHallpasses.matches(blockState.registryEntry))
 			return true
 		return false
 	}
@@ -178,7 +162,7 @@ object EtherwarpOverlay : FirmamentFeature {
 			{ EtherwarpBlockHit.Miss })
 	}
 
-	enum class EtherwarpItemKind{
+	enum class EtherwarpItemKind {
 		MERGED,
 		RAW
 	}
@@ -198,8 +182,10 @@ object EtherwarpOverlay : FirmamentFeature {
 			else
 				return
 		}
-		val playerEyeHeight =
-			if (player.isSneaking || etherwarpTyp == EtherwarpItemKind.MERGED) 1.54 else 1.62 // Sneaking: 1.27 (1.21) 1.54 (1.8.9) / Upright: 1.62 (1.8.9,1.21)
+		val playerEyeHeight = // Sneaking: 1.27 (1.21) 1.54 (1.8.9) / Upright: 1.62 (1.8.9,1.21)
+			if (player.isSneaking || etherwarpTyp == EtherwarpItemKind.MERGED)
+				(if (SBData.skyblockLocation?.isModernServer ?: false) 1.27 else 1.54)
+			else 1.62
 		val playerEyePos = player.pos.add(0.0, playerEyeHeight, 0.0)
 		val start = playerEyePos
 		val end = player.getRotationVec(0F).multiply(120.0).add(playerEyePos)
@@ -219,7 +205,7 @@ object EtherwarpOverlay : FirmamentFeature {
 				EtherwarpResult.TOO_DISTANT
 			else if ((MC.instance.crosshairTarget as? BlockHitResult)
 					?.takeIf { it.type == HitResult.Type.BLOCK }
-					?.let { world.getBlockState(it.blockPos).block in interactionBlocked }
+					?.let { interactionBlocked.matches(world.getBlockState(it.blockPos).registryEntry) }
 					?: false
 			)
 				EtherwarpResult.INTERACTION_BLOCKED

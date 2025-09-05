@@ -2,6 +2,7 @@
 
 package moe.nea.firmament.features.inventory
 
+import org.lwjgl.glfw.GLFW
 import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.milliseconds
 import net.minecraft.client.util.InputUtil
@@ -46,13 +47,7 @@ object SaveCursorPosition : FirmamentFeature {
             (lastPosition.middle.first - middleX).absoluteValue < 1 &&
             (lastPosition.middle.second - middleY).absoluteValue < 1
         ) {
-			// TODO: GLFW.glfwSetCursorPos(handler, x, y);
-            InputUtil.setCursorParameters(
-                MC.window.handle,
-                InputUtil.GLFW_CURSOR_NORMAL,
-                lastPosition.cursor.first,
-                lastPosition.cursor.second
-            )
+			GLFW.glfwSetCursorPos(MC.window.handle, lastPosition.cursor.first, lastPosition.cursor.second);
             return lastPosition.cursor
         }
         return null

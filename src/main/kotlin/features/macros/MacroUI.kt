@@ -143,7 +143,7 @@ class MacroUI {
 	inner class Wheels {
 		@field:Bind("wheels")
 		val wheels: ObservableList<Wheel> = MacroData.DConfig.data.wheels.mapTo(ObservableList(mutableListOf())) {
-			Wheel(this, it.key, it.options.map { CommandAction((it as CommandAction).command) })
+			Wheel(this, it.keyBinding, it.options.map { CommandAction((it as CommandAction).command) })
 		}
 
 		@Bind

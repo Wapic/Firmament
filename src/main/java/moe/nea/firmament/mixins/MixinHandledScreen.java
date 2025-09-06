@@ -4,11 +4,8 @@ package moe.nea.firmament.mixins;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import moe.nea.firmament.events.*;
 import moe.nea.firmament.events.HandledScreenClickEvent;
-import moe.nea.firmament.events.HandledScreenForegroundEvent;
-import moe.nea.firmament.events.HandledScreenKeyPressedEvent;
-import moe.nea.firmament.events.IsSlotProtectedEvent;
-import moe.nea.firmament.events.SlotRenderEvents;
 import moe.nea.firmament.keybindings.GenericInputAction;
 import moe.nea.firmament.keybindings.InputModifiers;
 import net.minecraft.client.gui.DrawContext;
@@ -62,7 +59,19 @@ public abstract class MixinHandledScreen<T extends ScreenHandler> {
 
 	@Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
 	public void onMouseClicked(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
-		if (HandledScreenClickEvent.Companion.publish(new HandledScreenClickEvent((HandledScreen<?>) (Object) this, mouseX, mouseY, button)).getCancelled()) {
+		if (HandledScreenKeyPressedEvent.Companion.publish(new HandledScreenKeyPressedEvent((HandledScreen<?>) (Object) this,
+			GenericInputAction.mouse(button), InputModifiers.current())).getCancelled()) {
+			cir.setReturnValue(true);
+		}
+	}
+
+	@Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
+	private void onMouseReleased(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
+		var self = (HandledScreen<?>) (Object) this;
+		var clickEvent = new HandledScreenClickEvent(self, mouseX, mouseY, button);
+		var keyEvent = new HandledScreenKeyReleasedEvent(self, GenericInputAction.mouse(button), InputModifiers.current());
+		if (HandledScreenClickEvent.Companion.publish(clickEvent).getCancelled()
+			|| HandledScreenKeyReleasedEvent.Companion.publish(keyEvent).getCancelled()) {
 			cir.setReturnValue(true);
 		}
 	}

@@ -1,9 +1,7 @@
 package moe.nea.firmament.keybindings
 
-import com.mojang.serialization.Codec
 import org.lwjgl.glfw.GLFW
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
@@ -67,6 +65,7 @@ sealed interface GenericInputButton {
 		fun ofScanCode(scanCode: Int): GenericInputButton = ScanCodeButton(scanCode)
 		fun ofScanCodeFromKeyCode(keyCode: Int): GenericInputButton = ScanCodeButton(GLFW.glfwGetKeyScancode(keyCode))
 		fun unbound(): GenericInputButton = Unbound
+		fun mouse(mouseButton: Int): GenericInputButton = MouseButton(mouseButton)
 		fun ofKeyAndScan(keyCode: Int, scanCode: Int): GenericInputButton {
 			if (keyCode == GLFW.GLFW_KEY_UNKNOWN)
 				return ofScanCode(scanCode)
@@ -198,7 +197,8 @@ data class InputModifiers(
 	val modifiers: Int
 ) {
 	companion object {
-		fun getCurrentModifiers(): InputModifiers {
+		@JvmStatic
+		fun current(): InputModifiers {
 			val h = MC.window.handle
 			val ctrl = if (MinecraftClient.IS_SYSTEM_MAC) {
 				InputUtil.isKeyPressed(h, GLFW.GLFW_KEY_LEFT_SUPER)

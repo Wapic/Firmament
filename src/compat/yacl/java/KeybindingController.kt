@@ -75,8 +75,8 @@ class KeybindingWidget(
 	}
 
 	override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-		if (button == 0 && isHovered) {
-			sm.onClick()
+		if (isHovered) {
+			sm.onClick(button)
 			return true
 		}
 		return super.mouseClicked(mouseX, mouseY, button)

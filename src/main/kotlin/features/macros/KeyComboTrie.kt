@@ -46,14 +46,14 @@ sealed interface KeyComboTrie {
 
 @Serializable
 data class MacroWheel(
-	val key: SavedKeyBinding,
+	val keyBinding: SavedKeyBinding = SavedKeyBinding.unbound(),
 	val options: List<HotkeyAction>
 )
 
 @Serializable
 data class ComboKeyAction(
 	val action: HotkeyAction,
-	val keys: List<SavedKeyBinding>,
+	val keySequence: List<SavedKeyBinding> = listOf(),
 )
 
 data class Leaf(val action: HotkeyAction) : KeyComboTrie {

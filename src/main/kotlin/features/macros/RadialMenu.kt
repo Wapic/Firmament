@@ -127,7 +127,7 @@ object RadialMacros {
 	fun onOpen(event: WorldKeyboardEvent) {
 		if (RadialMenuViewer.activeMenu != null) return
 		wheels.forEach { wheel ->
-			if (event.matches(wheel.key, atLeast = true)) {
+			if (event.matches(wheel.keyBinding, atLeast = true)) {
 				class R(val action: HotkeyAction) : RadialMenuOption {
 					override val isEnabled: Boolean
 						get() = true
@@ -142,7 +142,7 @@ object RadialMacros {
 				}
 				RadialMenuViewer.activeMenu = object : RadialMenu {
 					override val key: SavedKeyBinding
-						get() = wheel.key
+						get() = wheel.keyBinding
 					override val options: List<RadialMenuOption> =
 						wheel.options.map { R(it) }
 				}

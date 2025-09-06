@@ -1,5 +1,6 @@
 package moe.nea.firmament.events
 
+import org.lwjgl.glfw.GLFW
 import net.minecraft.client.gui.screen.ingame.HandledScreen
 import moe.nea.firmament.keybindings.GenericInputAction
 import moe.nea.firmament.keybindings.InputModifiers
@@ -21,6 +22,7 @@ data class HandledScreenKeyPressedEvent(
 		return keyBinding.matches(input, modifiers, atLeast)
 	}
 
+	fun isLeftClick() = input == GenericInputAction.mouse(GLFW.GLFW_MOUSE_BUTTON_LEFT)
 	companion object : FirmamentEventBus<HandledScreenKeyPressedEvent>()
 }
 

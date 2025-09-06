@@ -9,7 +9,7 @@ data class SavedKeyBinding(
 	val modifiers: InputModifiers,
 ) {
 	companion object {
-		fun isShiftDown() = InputModifiers.getCurrentModifiers().shift
+		fun isShiftDown() = InputModifiers.current().shift
 
 		fun unbound(): SavedKeyBinding = withoutMods(GenericInputButton.unbound())
 		fun withoutMods(input: GenericInputButton) = SavedKeyBinding(input, InputModifiers.none())
@@ -21,7 +21,7 @@ data class SavedKeyBinding(
 	fun isPressed(atLeast: Boolean = false): Boolean {
 		if (!button.isPressed())
 			return false
-		val mods = InputModifiers.getCurrentModifiers()
+		val mods = InputModifiers.current()
 		return mods.matches(this.modifiers, atLeast)
 	}
 

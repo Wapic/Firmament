@@ -25,11 +25,10 @@ class KeyBindingStateManager(
 	var lastPressed: GenericInputButton? = null
 	var label: Text = Text.literal("")
 
-	fun onClick() {
+	fun onClick(mouseButton: Int) {
 		if (editing) {
-			editing = false
-			blur()
-		} else {
+			keyboardEvent(GenericInputButton.mouse(mouseButton), true)
+		} else if (mouseButton == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
 			editing = true
 			requestFocus()
 		}
@@ -37,8 +36,8 @@ class KeyBindingStateManager(
 	}
 
 	fun keyboardEvent(keyCode: GenericInputButton, pressed: Boolean): Boolean {
-		return if (pressed) onKeyPressed(keyCode, InputModifiers.getCurrentModifiers())
-		else onKeyReleased(keyCode, InputModifiers.getCurrentModifiers())
+		return if (pressed) onKeyPressed(keyCode, InputModifiers.current())
+		else onKeyReleased(keyCode, InputModifiers.current())
 	}
 
 	fun onKeyPressed(
@@ -91,7 +90,7 @@ class KeyBindingStateManager(
 		var stroke = value().format()
 		if (editing) {
 			stroke = Text.empty()
-			val modifiers = InputModifiers.getCurrentModifiers()
+			val modifiers = InputModifiers.current()
 			if (!modifiers.isEmpty()) {
 				stroke.append(modifiers.format())
 				stroke.append(" + ")
@@ -112,11 +111,16 @@ class KeyBindingStateManager(
 				false,
 				false
 			), action = {
-				this@KeyBindingStateManager.onClick()
+				this@KeyBindingStateManager.onClick(it)
 			}) {
 			override fun keyboardEvent(event: KeyboardEvent, context: GuiImmediateContext): Boolean {
 				if (event is KeyboardEvent.KeyPressed) {
-					return this@KeyBindingStateManager.keyboardEvent(GenericInputButton.ofKeyAndScan(event.keycode, event.scancode), event.pressed)
+					return this@KeyBindingStateManager.keyboardEvent(
+						GenericInputButton.ofKeyAndScan(
+							event.keycode,
+							event.scancode
+						), event.pressed
+					)
 				}
 				return super.keyboardEvent(event, context)
 			}

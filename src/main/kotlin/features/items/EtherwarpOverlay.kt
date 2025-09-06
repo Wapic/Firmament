@@ -71,6 +71,7 @@ object EtherwarpOverlay : FirmamentFeature {
 			BlockTags.DOORS,
 			BlockTags.TRAPDOORS,
 			BlockTags.ANVIL,
+			BlockTags.FENCE_GATES,
 		)
 	)
 

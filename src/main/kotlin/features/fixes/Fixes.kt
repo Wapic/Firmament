@@ -1,6 +1,5 @@
 package moe.nea.firmament.features.fixes
 
-import moe.nea.jarvis.api.Point
 import org.joml.Vector2i
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 import net.minecraft.client.MinecraftClient

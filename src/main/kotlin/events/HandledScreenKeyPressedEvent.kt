@@ -1,38 +1,37 @@
 package moe.nea.firmament.events
 
 import net.minecraft.client.gui.screen.ingame.HandledScreen
-import net.minecraft.client.option.KeyBinding
-import moe.nea.firmament.keybindings.IKeyBinding
+import moe.nea.firmament.keybindings.GenericInputAction
+import moe.nea.firmament.keybindings.InputModifiers
+import moe.nea.firmament.keybindings.SavedKeyBinding
 
-sealed interface HandledScreenKeyEvent {
+sealed interface HandledScreenInputEvent {
 	val screen: HandledScreen<*>
-	val keyCode: Int
-	val scanCode: Int
-	val modifiers: Int
-
-	fun matches(keyBinding: KeyBinding): Boolean {
-		return matches(IKeyBinding.minecraft(keyBinding))
-	}
-
-	fun matches(keyBinding: IKeyBinding): Boolean {
-		return keyBinding.matches(keyCode, scanCode, modifiers)
-	}
+	val input: GenericInputAction
+	val modifiers: InputModifiers
 }
 
 data class HandledScreenKeyPressedEvent(
 	override val screen: HandledScreen<*>,
-	override val keyCode: Int,
-	override val scanCode: Int,
-	override val modifiers: Int
-) : FirmamentEvent.Cancellable(), HandledScreenKeyEvent {
+	override val input: GenericInputAction,
+	override val modifiers: InputModifiers,
+	// TODO: val isRepeat: Boolean,
+) : FirmamentEvent.Cancellable(), HandledScreenInputEvent {
+	fun matches(keyBinding: SavedKeyBinding, atLeast: Boolean = false): Boolean {
+		return keyBinding.matches(input, modifiers, atLeast)
+	}
+
 	companion object : FirmamentEventBus<HandledScreenKeyPressedEvent>()
 }
 
 data class HandledScreenKeyReleasedEvent(
 	override val screen: HandledScreen<*>,
-	override val keyCode: Int,
-	override val scanCode: Int,
-	override val modifiers: Int
-) : FirmamentEvent.Cancellable(), HandledScreenKeyEvent {
+	override val input: GenericInputAction,
+	override val modifiers: InputModifiers,
+) : FirmamentEvent.Cancellable(), HandledScreenInputEvent {
+	fun matches(keyBinding: SavedKeyBinding, atLeast: Boolean = false): Boolean {
+		return keyBinding.matches(input, modifiers, atLeast)
+	}
+
 	companion object : FirmamentEventBus<HandledScreenKeyReleasedEvent>()
 }

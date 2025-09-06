@@ -4,8 +4,9 @@ package moe.nea.firmament.mixins.customgui;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Local;
 import moe.nea.firmament.events.HandledScreenKeyReleasedEvent;
+import moe.nea.firmament.keybindings.GenericInputAction;
+import moe.nea.firmament.keybindings.InputModifiers;
 import moe.nea.firmament.util.customgui.CoordRememberingSlot;
 import moe.nea.firmament.util.customgui.CustomGui;
 import moe.nea.firmament.util.customgui.HasCustomGui;
@@ -75,7 +76,10 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 	}
 
 	public boolean keyReleased_firmament(int keyCode, int scanCode, int modifiers) {
-		if (HandledScreenKeyReleasedEvent.Companion.publish(new HandledScreenKeyReleasedEvent((HandledScreen<?>) (Object) this, keyCode, scanCode, modifiers)).getCancelled())
+		if (HandledScreenKeyReleasedEvent.Companion.publish(new HandledScreenKeyReleasedEvent(
+			(HandledScreen<?>) (Object) this,
+			GenericInputAction.key(keyCode, scanCode),
+			InputModifiers.of(modifiers))).getCancelled())
 			return true;
 		return override != null && override.keyReleased(keyCode, scanCode, modifiers);
 	}
@@ -174,7 +178,7 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 		method = "mouseClicked",
 		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;mouseClicked(DDI)Z"))
 	public boolean overrideMouseClicks(HandledScreen instance, double mouseX, double mouseY, int button,
-	                                   Operation<Boolean> original) {
+									   Operation<Boolean> original) {
 		if (override != null) {
 			if (override.mouseClick(mouseX, mouseY, button))
 				return true;

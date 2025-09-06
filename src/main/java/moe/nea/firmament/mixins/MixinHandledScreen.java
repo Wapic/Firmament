@@ -9,6 +9,8 @@ import moe.nea.firmament.events.HandledScreenForegroundEvent;
 import moe.nea.firmament.events.HandledScreenKeyPressedEvent;
 import moe.nea.firmament.events.IsSlotProtectedEvent;
 import moe.nea.firmament.events.SlotRenderEvents;
+import moe.nea.firmament.keybindings.GenericInputAction;
+import moe.nea.firmament.keybindings.InputModifiers;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerInventory;
@@ -50,7 +52,10 @@ public abstract class MixinHandledScreen<T extends ScreenHandler> {
 
 	@Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;handleHotbarKeyPressed(II)Z", shift = At.Shift.BEFORE), cancellable = true)
 	public void onKeyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
-		if (HandledScreenKeyPressedEvent.Companion.publish(new HandledScreenKeyPressedEvent((HandledScreen<?>) (Object) this, keyCode, scanCode, modifiers)).getCancelled()) {
+		if (HandledScreenKeyPressedEvent.Companion.publish(new HandledScreenKeyPressedEvent(
+			(HandledScreen<?>) (Object) this,
+			GenericInputAction.key(keyCode, scanCode),
+			InputModifiers.of(modifiers))).getCancelled()) {
 			cir.setReturnValue(true);
 		}
 	}

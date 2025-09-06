@@ -12,13 +12,13 @@ import kotlin.coroutines.resume
 import net.minecraft.client.gui.screen.Screen
 import moe.nea.firmament.events.HandledScreenKeyPressedEvent
 import moe.nea.firmament.gui.FirmButtonComponent
-import moe.nea.firmament.keybindings.IKeyBinding
+import moe.nea.firmament.keybindings.SavedKeyBinding
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.MoulConfigUtils
 import moe.nea.firmament.util.ScreenUtil
 
 private object InputHandler {
-	data class KeyInputContinuation(val keybind: IKeyBinding, val onContinue: () -> Unit)
+	data class KeyInputContinuation(val keybind: SavedKeyBinding, val onContinue: () -> Unit)
 
 	private val activeContinuations = mutableListOf<KeyInputContinuation>()
 
@@ -46,7 +46,7 @@ private object InputHandler {
 	}
 }
 
-suspend fun waitForInput(keybind: IKeyBinding): Unit = suspendCancellableCoroutine { cont ->
+suspend fun waitForInput(keybind: SavedKeyBinding): Unit = suspendCancellableCoroutine { cont ->
 	val unregister =
 		InputHandler.registerContinuation(InputHandler.KeyInputContinuation(keybind) { cont.resume(Unit) })
 	cont.invokeOnCancellation {

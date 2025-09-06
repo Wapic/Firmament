@@ -25,9 +25,6 @@ object ComboProcessor {
 	val breadCrumbs = mutableListOf<SavedKeyBinding>()
 
 	init {
-		val f = SavedKeyBinding(InputUtil.GLFW_KEY_F)
-		val one = SavedKeyBinding(InputUtil.GLFW_KEY_1)
-		val two = SavedKeyBinding(InputUtil.GLFW_KEY_2)
 		setActions(
 			MacroData.DConfig.data.comboActions
 		)

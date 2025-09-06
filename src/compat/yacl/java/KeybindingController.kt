@@ -10,6 +10,7 @@ import net.minecraft.text.Text
 import moe.nea.firmament.gui.config.KeyBindingHandler
 import moe.nea.firmament.gui.config.KeyBindingStateManager
 import moe.nea.firmament.gui.config.ManagedOption
+import moe.nea.firmament.keybindings.GenericInputButton
 import moe.nea.firmament.keybindings.SavedKeyBinding
 
 class KeybindingController(
@@ -57,11 +58,11 @@ class KeybindingWidget(
 	}
 
 	override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-		return sm.keyboardEvent(keyCode, true)
+		return sm.keyboardEvent(GenericInputButton.ofKeyAndScan(keyCode, scanCode), true)
 	}
 
 	override fun keyReleased(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-		return sm.keyboardEvent(keyCode, false)
+		return sm.keyboardEvent(GenericInputButton.ofKeyAndScan(keyCode, scanCode), false)
 	}
 
 	override fun unfocus() {

@@ -11,6 +11,8 @@ import org.lwjgl.glfw.GLFW
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import moe.nea.firmament.gui.FirmButtonComponent
+import moe.nea.firmament.keybindings.GenericInputButton
+import moe.nea.firmament.keybindings.InputModifiers
 import moe.nea.firmament.keybindings.SavedKeyBinding
 
 class KeyBindingStateManager(
@@ -20,8 +22,7 @@ class KeyBindingStateManager(
 	val requestFocus: () -> Unit,
 ) {
 	var editing = false
-	var lastPressed = 0
-	var lastPressedNonModifier = 0
+	var lastPressed: GenericInputButton? = null
 	var label: Text = Text.literal("")
 
 	fun onClick() {
@@ -35,60 +36,52 @@ class KeyBindingStateManager(
 		updateLabel()
 	}
 
-	fun keyboardEvent(keyCode: Int, pressed: Boolean): Boolean {
-		return if (pressed) onKeyPressed(keyCode, SavedKeyBinding.getModInt())
-		else onKeyReleased(keyCode, SavedKeyBinding.getModInt())
+	fun keyboardEvent(keyCode: GenericInputButton, pressed: Boolean): Boolean {
+		return if (pressed) onKeyPressed(keyCode, InputModifiers.getCurrentModifiers())
+		else onKeyReleased(keyCode, InputModifiers.getCurrentModifiers())
 	}
 
-	fun onKeyPressed(ch: Int, modifiers: Int): Boolean {
+	fun onKeyPressed(
+		ch: GenericInputButton,
+		modifiers: InputModifiers
+	): Boolean { // TODO !!!!!: genericify this method to allow for other inputs
 		if (!editing) {
 			return false
 		}
-		if (ch == GLFW.GLFW_KEY_ESCAPE) {
-			lastPressedNonModifier = 0
+		if (ch == GenericInputButton.escape()) {
 			editing = false
-			lastPressed = 0
-			setValue(SavedKeyBinding(GLFW.GLFW_KEY_UNKNOWN))
+			lastPressed = null
+			setValue(SavedKeyBinding.unbound())
 			updateLabel()
 			blur()
 			return true
 		}
-		if (ch == GLFW.GLFW_KEY_LEFT_SHIFT || ch == GLFW.GLFW_KEY_RIGHT_SHIFT
-			|| ch == GLFW.GLFW_KEY_LEFT_ALT || ch == GLFW.GLFW_KEY_RIGHT_ALT
-			|| ch == GLFW.GLFW_KEY_LEFT_CONTROL || ch == GLFW.GLFW_KEY_RIGHT_CONTROL
-		) {
+		if (ch.isModifier()) {
 			lastPressed = ch
 		} else {
-			setValue(
-				SavedKeyBinding(
-					ch, modifiers
-				)
-			)
+			setValue(SavedKeyBinding(ch, modifiers))
 			editing = false
 			blur()
-			lastPressed = 0
-			lastPressedNonModifier = 0
+			lastPressed = null
 		}
 		updateLabel()
 		return true
 	}
 
 	fun onLostFocus() {
-		lastPressedNonModifier = 0
 		editing = false
-		lastPressed = 0
+		lastPressed = null
 		updateLabel()
 	}
 
-	fun onKeyReleased(ch: Int, modifiers: Int): Boolean {
+	fun onKeyReleased(ch: GenericInputButton, modifiers: InputModifiers): Boolean {
 		if (!editing)
 			return false
-		if (lastPressedNonModifier == ch || (lastPressedNonModifier == 0 && ch == lastPressed)) {
+		if (ch == lastPressed) { // TODO: check modifiers dont duplicate (CTRL+CTRL)
 			setValue(SavedKeyBinding(ch, modifiers))
 			editing = false
 			blur()
-			lastPressed = 0
-			lastPressedNonModifier = 0
+			lastPressed = null
 		}
 		updateLabel()
 		return true
@@ -97,16 +90,11 @@ class KeyBindingStateManager(
 	fun updateLabel() {
 		var stroke = value().format()
 		if (editing) {
-			stroke = Text.literal("")
-			val (shift, ctrl, alt) = SavedKeyBinding.getMods(SavedKeyBinding.getModInt())
-			if (shift) {
-				stroke.append("SHIFT + ")
-			}
-			if (alt) {
-				stroke.append("ALT + ")
-			}
-			if (ctrl) {
-				stroke.append("CTRL + ")
+			stroke = Text.empty()
+			val modifiers = InputModifiers.getCurrentModifiers()
+			if (!modifiers.isEmpty()) {
+				stroke.append(modifiers.format())
+				stroke.append(" + ")
 			}
 			stroke.append("???")
 			stroke.styled { it.withColor(Formatting.YELLOW) }
@@ -128,7 +116,7 @@ class KeyBindingStateManager(
 			}) {
 			override fun keyboardEvent(event: KeyboardEvent, context: GuiImmediateContext): Boolean {
 				if (event is KeyboardEvent.KeyPressed) {
-					return this@KeyBindingStateManager.keyboardEvent(event.keycode, event.pressed)
+					return this@KeyBindingStateManager.keyboardEvent(GenericInputButton.ofKeyAndScan(event.keycode, event.scancode), event.pressed)
 				}
 				return super.keyboardEvent(event, context)
 			}

@@ -1,17 +1,16 @@
 package moe.nea.firmament.events
 
-import net.minecraft.client.option.KeyBinding
-import moe.nea.firmament.keybindings.IKeyBinding
+import moe.nea.firmament.keybindings.GenericInputAction
+import moe.nea.firmament.keybindings.InputModifiers
+import moe.nea.firmament.keybindings.SavedKeyBinding
 
 data class WorldKeyboardEvent(val keyCode: Int, val scanCode: Int, val modifiers: Int) : FirmamentEvent.Cancellable() {
+	fun matches(keyBinding: SavedKeyBinding, atLeast: Boolean = false): Boolean {
+		return keyBinding.matches(intoAction(), InputModifiers(modifiers), atLeast)
+	}
+
+	fun intoAction() = GenericInputAction.key(keyCode, scanCode)
+
+
 	companion object : FirmamentEventBus<WorldKeyboardEvent>()
-
-	fun matches(keyBinding: KeyBinding): Boolean {
-		return matches(IKeyBinding.minecraft(keyBinding))
-	}
-
-	fun matches(keyBinding: IKeyBinding, atLeast: Boolean = false): Boolean {
-		return if (atLeast) keyBinding.matchesAtLeast(keyCode, scanCode, modifiers) else
-			keyBinding.matches(keyCode, scanCode, modifiers)
-	}
 }

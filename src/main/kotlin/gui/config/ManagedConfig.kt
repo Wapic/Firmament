@@ -26,6 +26,8 @@ import net.minecraft.text.Text
 import net.minecraft.util.StringIdentifiable
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.gui.FirmButtonComponent
+import moe.nea.firmament.keybindings.GenericInputButton
+import moe.nea.firmament.keybindings.InputModifiers
 import moe.nea.firmament.keybindings.SavedKeyBinding
 import moe.nea.firmament.util.ScreenUtil.setScreenLater
 import moe.nea.firmament.util.collections.InstanceList
@@ -185,7 +187,9 @@ abstract class ManagedConfig(
 	protected fun keyBinding(
 		propertyName: String,
 		default: () -> Int,
-	): ManagedOption<SavedKeyBinding> = keyBindingWithOutDefaultModifiers(propertyName) { SavedKeyBinding(default()) }
+	): ManagedOption<SavedKeyBinding> = keyBindingWithOutDefaultModifiers(propertyName) {
+		SavedKeyBinding.keyWithoutMods(default())
+	}
 
 	protected fun keyBindingWithOutDefaultModifiers(
 		propertyName: String,
@@ -197,7 +201,7 @@ abstract class ManagedConfig(
 	protected fun keyBindingWithDefaultUnbound(
 		propertyName: String,
 	): ManagedOption<SavedKeyBinding> {
-		return keyBindingWithOutDefaultModifiers(propertyName) { SavedKeyBinding(GLFW.GLFW_KEY_UNKNOWN) }
+		return keyBindingWithOutDefaultModifiers(propertyName) { SavedKeyBinding.unbound() }
 	}
 
 	protected fun integer(
@@ -231,15 +235,15 @@ abstract class ManagedConfig(
 		latestGuiAppender = guiapp
 		guiapp.appendFullRow(
 			RowComponent(
-			FirmButtonComponent(TextComponent("←")) {
-				if (parent != null) {
-					save()
-					setScreenLater(parent)
-				} else {
-					AllConfigsGui.showAllGuis()
+				FirmButtonComponent(TextComponent("←")) {
+					if (parent != null) {
+						save()
+						setScreenLater(parent)
+					} else {
+						AllConfigsGui.showAllGuis()
+					}
 				}
-			}
-		))
+			))
 		sortedOptions.forEach { it.appendToGui(guiapp) }
 		guiapp.reloadables.forEach { it() }
 		val component = CenterComponent(

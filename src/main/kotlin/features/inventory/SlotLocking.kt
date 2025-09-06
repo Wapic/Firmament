@@ -35,6 +35,7 @@ import moe.nea.firmament.events.ScreenChangeEvent
 import moe.nea.firmament.events.SlotRenderEvents
 import moe.nea.firmament.features.FirmamentFeature
 import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.keybindings.InputModifiers
 import moe.nea.firmament.keybindings.SavedKeyBinding
 import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
 import moe.nea.firmament.util.CommonSoundEffects
@@ -142,7 +143,7 @@ object SlotLocking : FirmamentFeature {
 	object TConfig : ManagedConfig(identifier, Category.INVENTORY) {
 		val lockSlot by keyBinding("lock") { GLFW.GLFW_KEY_L }
 		val lockUUID by keyBindingWithOutDefaultModifiers("lock-uuid") {
-			SavedKeyBinding(GLFW.GLFW_KEY_L, shift = true)
+			SavedKeyBinding.keyWithMods(GLFW.GLFW_KEY_L, InputModifiers.of(shift = true))
 		}
 		val slotBind by keyBinding("bind") { GLFW.GLFW_KEY_L }
 		val slotBindRequireShift by toggle("require-quick-move") { true }

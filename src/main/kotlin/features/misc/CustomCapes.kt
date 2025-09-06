@@ -133,7 +133,11 @@ object CustomCapes : FirmamentFeature {
 		FIRMAMENT_STATIC(
 			"Firmament",
 			TexturedCapeRenderer(Firmament.identifier("textures/cape/firm_static.png"))
-		)
+		),
+		HYPIXEL_PLUS(
+			"Hypixel+",
+			TexturedCapeRenderer(Firmament.identifier("textures/cape/h_plus.png"))
+		),
 		;
 
 		val cape = CustomCape(name, label, render)
@@ -146,6 +150,7 @@ object CustomCapes : FirmamentFeature {
 				Devs.nea to AllCapes.UNPLEASANT_GRADIENT,
 				Devs.kath to AllCapes.FIRMAMENT_STATIC,
 				Devs.jani to AllCapes.FIRMAMENT_ANIMATED,
+				Devs.HPlus.ic22487 to AllCapes.HYPIXEL_PLUS,
 			),
 			Devs.FurfSky.all.map { it to AllCapes.FURFSKY_STATIC },
 		).flatten().flatMap { (dev, cape) -> dev.uuids.map { it to cape.cape } }.toMap()

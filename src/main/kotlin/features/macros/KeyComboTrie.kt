@@ -15,15 +15,15 @@ sealed interface KeyComboTrie {
 			val root = Branch(mutableMapOf())
 			for (combo in combos) {
 				var p = root
-				if (combo.keys.isEmpty()) {
+				if (combo.keySequence.isEmpty()) {
 					ErrorUtil.softUserError("Key Combo for ${combo.action.label.string} is empty")
 					continue
 				}
-				for ((index, key) in combo.keys.withIndex()) {
+				for ((index, key) in combo.keySequence.withIndex()) {
 					val m = (p.nodes as MutableMap)
-					if (index == combo.keys.lastIndex) {
+					if (index == combo.keySequence.lastIndex) {
 						if (key in m) {
-							ErrorUtil.softUserError("Overlapping actions found for ${combo.keys.joinToString(" > ")} (another action ${m[key]} already exists).")
+							ErrorUtil.softUserError("Overlapping actions found for ${combo.keySequence.joinToString(" > ")} (another action ${m[key]} already exists).")
 							break
 						}
 
@@ -31,7 +31,7 @@ sealed interface KeyComboTrie {
 					} else {
 						val c = m.getOrPut(key) { Branch(mutableMapOf()) }
 						if (c !is Branch) {
-							ErrorUtil.softUserError("Overlapping actions found for ${combo.keys} (final node exists at index $index) through another action already")
+							ErrorUtil.softUserError("Overlapping actions found for ${combo.keySequence} (final node exists at index $index) through another action already")
 							break
 						} else {
 							p = c

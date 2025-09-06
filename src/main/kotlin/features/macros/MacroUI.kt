@@ -255,7 +255,7 @@ class MacroUI {
 		fun commandR() = StructuredText.of(command)
 
 		@field:Bind("combo")
-		val combo = action.keys.map { KeyBindingEditor(it, this) }.toObservableList()
+		val combo = action.keySequence.map { KeyBindingEditor(it, this) }.toObservableList()
 
 		@Bind
 		fun formattedCombo() =

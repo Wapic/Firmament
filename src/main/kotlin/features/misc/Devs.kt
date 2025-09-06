@@ -34,5 +34,8 @@ object Devs {
 			persuasiveViksy
 		)
 	}
+	object HPlus {
+		val ic22487 = Dev("ab2be3b2-bb75-4aaa-892d-9fff5a7e3953")
+	}
 
 }

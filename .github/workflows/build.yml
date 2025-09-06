@@ -67,3 +67,29 @@ jobs:
                     curl "$WEBHOOK_URL" -X POST -H "Content-type: multipart/form-data" --form "files[0]=@$(echo *.jar)"
                 env:
                     WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+
+    prepare-release:
+        name: Prepare a relase
+        runs-on: ubuntu-22.04
+        needs: build
+        if: ${{ 'push' == github.event_name && startsWith(github.ref, 'refs/tags/') }}
+        steps:
+            -   uses: actions/checkout@v4
+                name: Checkout repository
+                with:
+                    fetch-tags: true
+                    fetch-depth: 0
+                    filter: 'tree:0'
+
+            -   name: Download generated artifact
+                uses: actions/download-artifact@v4
+                with:
+                    name: built-mod-jar
+            -   name: Generate changelog
+                run: ./docs/generate-changelog.sh > changelog.md
+
+            -   name: Upload release
+                env:
+                    GH_TOKEN: ${{ github.token }}
+                run: |
+                    gh release create -t "Firmament ${GITHUB_REF#refs/tags/}" "${GITHUB_REF#refs/tags/}" -F "changelog.md" "*.jar"

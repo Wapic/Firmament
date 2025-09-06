@@ -12,9 +12,9 @@ import moe.nea.firmament.keybindings.SavedKeyBinding
 
 class KeyComboTrieCreation {
 	val basicAction = CommandAction("ac Hello")
-	val aPress = SavedKeyBinding(InputUtil.GLFW_KEY_A)
-	val bPress = SavedKeyBinding(InputUtil.GLFW_KEY_B)
-	val cPress = SavedKeyBinding(InputUtil.GLFW_KEY_C)
+	val aPress = SavedKeyBinding.keyWithoutMods(InputUtil.GLFW_KEY_A)
+	val bPress = SavedKeyBinding.keyWithoutMods(InputUtil.GLFW_KEY_B)
+	val cPress = SavedKeyBinding.keyWithoutMods(InputUtil.GLFW_KEY_C)
 
 	@Test
 	fun testValidShortTrie() {

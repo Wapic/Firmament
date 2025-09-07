@@ -95,3 +95,11 @@ jobs:
                     GH_TOKEN: ${{ github.token }}
                 run: |
                     gh release create --draft -t "Firmament ${GITHUB_REF#refs/tags/}" "${GITHUB_REF#refs/tags/}" -F "changelog.md" "*.jar"
+
+            -   name: Notify discord
+                env:
+                    ACTOR: ${{ github.actor }}
+                    WEBHOOK: ${{ secrets.CONFIDENTIAL_WEBHOOK }}
+                    REPO: ${{ github.repository }}
+                run: |
+                    curl -X POST "$WEBHOOK" --data "$(jq -n --arg v "https://github.com/$REPO/releases/${GITHUB_REF#refs/tags/}" --arg a "$WEBHOOK" '{"content": ("Created release preview, ready for publishing: " + $v), "username": ("Release preview / " + $a), "avatar_url": ("https://github.com/" + $a + ".png")}')" -H 'content-type: application/json'

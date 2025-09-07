@@ -2,11 +2,13 @@ package moe.nea.firmament.features.misc
 
 import io.netty.buffer.ByteBuf
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.network.codec.PacketCodec
 import net.minecraft.network.codec.PacketCodecs
 import net.minecraft.network.packet.CustomPayload
+import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.JoinServerEvent
@@ -60,15 +62,17 @@ object ModAnnouncer {
 
 	@Subscribe
 	fun onServerJoin(event: JoinServerEvent) {
-		event.networkHandler.sendPacket(
-			event.packetSender.createPacket(
-				ModPacket(
-					FabricLoader.getInstance()
-						.allMods
-						.filter { !it.metadata.containsCustomValue("firmament:hide_from_modlist") }
-						.map { ModEntry(it.metadata.id, it.metadata.version.friendlyString) })
-			)
-		)
+		val packet = ModPacket(
+			FabricLoader.getInstance()
+				.allMods
+				.filter { !it.metadata.containsCustomValue("firmament:hide_from_modlist") }
+				.map { ModEntry(it.metadata.id, it.metadata.version.friendlyString) })
+		val pbb = PacketByteBufs.create()
+		ModPacket.CODEC.encode(pbb, packet)
+		if (pbb.writerIndex() > CustomPayloadC2SPacket.MAX_PAYLOAD_SIZE)
+			return
+
+		event.networkHandler.sendPacket(event.packetSender.createPacket(packet))
 	}
 
 	init {

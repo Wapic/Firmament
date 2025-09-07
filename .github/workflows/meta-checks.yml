@@ -12,7 +12,7 @@ jobs:
         name: Run REUSE Compliance check
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v5
                 name: Checkout Repository
             -   name: REUSE Compliance Check
                 uses: fsfe/reuse-action@140e81ab76b30d9c5641b7b11e28222b3a11f8f9
@@ -23,8 +23,8 @@ jobs:
         outputs:
             hooks: ${{ steps.generate-matrix.outputs.hooks }}
         steps:
-            -   uses: actions/checkout@v4
-                name: Checkout Repository+
+            -   uses: actions/checkout@v5
+                name: Checkout Repository
             -   name: Generate matrix
                 id: generate-matrix
                 run: |
@@ -41,9 +41,9 @@ jobs:
                 hook: ${{ fromJSON(needs.pre-commit-generate.outputs.hooks) }}
         name: 'PRE-Commit: ${{ matrix.hook }}'
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v5
                 name: Checkout Repository
-            -   uses: actions/setup-python@v4
+            -   uses: actions/setup-python@v5
                 name: Setup Python
             -   name: Check ${{ matrix.hook }}
                 uses: pre-commit/action@v3.0.1

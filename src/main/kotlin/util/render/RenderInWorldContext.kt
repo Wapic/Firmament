@@ -5,6 +5,7 @@ import java.lang.Math.pow
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import util.render.CustomRenderLayers
+import kotlin.math.pow
 import net.minecraft.client.render.Camera
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.client.render.RenderTickCounter
@@ -145,8 +146,16 @@ class RenderInWorldContext private constructor(
 		matrixStack.push()
 		// TODO: add color arg to this
 		// TODO: this does not render through blocks (or water layers) anymore
-		RenderSystem.lineWidth(lineWidth / pow(camera.pos.squaredDistanceTo(blockPos.toCenterPos()), 0.25).toFloat())
-		matrixStack.translate(blockPos.x.toFloat(), blockPos.y.toFloat(), blockPos.z.toFloat())
+		RenderSystem.lineWidth(lineWidth / camera.pos.squaredDistanceTo(blockPos.toCenterPos()).pow(0.25).toFloat())
+		val offset = 1 / 512F
+		matrixStack.translate(
+			blockPos.x.toFloat() - offset,
+			blockPos.y.toFloat() - offset,
+			blockPos.z.toFloat() - offset
+		)
+		val scale = 1 + 2 * offset
+		matrixStack.scale(scale, scale, scale)
+
 		buildWireFrameCube(matrixStack.peek(), buf)
 		matrixStack.pop()
 		vertexConsumers.draw()
@@ -176,11 +185,11 @@ class RenderInWorldContext private constructor(
 			buffer.vertex(matrix.positionMatrix, a.x.toFloat(), a.y.toFloat(), a.z.toFloat())
 				.color(color)
 				.normal(matrix, lastNormal0.x, lastNormal0.y, lastNormal0.z)
-				
+
 			buffer.vertex(matrix.positionMatrix, b.x.toFloat(), b.y.toFloat(), b.z.toFloat())
 				.color(color)
 				.normal(matrix, normal.x, normal.y, normal.z)
-				
+
 		}
 
 	}
@@ -203,11 +212,11 @@ class RenderInWorldContext private constructor(
 			buf.vertex(matrix.positionMatrix, i, j, k)
 				.normal(matrix, normal.x, normal.y, normal.z)
 				.color(-1)
-				
+
 			buf.vertex(matrix.positionMatrix, x, y, z)
 				.normal(matrix, normal.x, normal.y, normal.z)
 				.color(-1)
-				
+
 		}
 
 

@@ -14,9 +14,10 @@ import moe.nea.firmament.events.SlotClickEvent
 import moe.nea.firmament.events.SlotRenderEvents
 import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.customgui.customGui
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.data.ProfileSpecificDataHolder
 
 object StorageOverlay : FirmamentFeature {
@@ -27,6 +28,7 @@ object StorageOverlay : FirmamentFeature {
 	override val identifier: String
 		get() = "storage-overlay"
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.INVENTORY) {
 		val alwaysReplace by toggle("always-replace") { true }
 		val outlineActiveStoragePage by toggle("outline-active-page") { false }

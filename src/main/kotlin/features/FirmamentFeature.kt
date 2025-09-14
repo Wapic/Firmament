@@ -3,7 +3,7 @@
 package moe.nea.firmament.features
 
 import moe.nea.firmament.events.subscription.SubscriptionOwner
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 
 // TODO: remove this entire feature system and revamp config
 interface FirmamentFeature : SubscriptionOwner {

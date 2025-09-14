@@ -1,4 +1,4 @@
-package moe.nea.firmament.gui.config
+package moe.nea.firmament.util.data
 
 import com.mojang.serialization.Codec
 import io.github.notenoughupdates.moulconfig.ChromaColour
@@ -11,32 +11,42 @@ import io.github.notenoughupdates.moulconfig.gui.component.RowComponent
 import io.github.notenoughupdates.moulconfig.gui.component.ScrollPanelComponent
 import io.github.notenoughupdates.moulconfig.gui.component.TextComponent
 import io.github.notenoughupdates.moulconfig.platform.MoulConfigScreenComponent
-import moe.nea.jarvis.api.Point
-import org.joml.Vector2i
-import org.lwjgl.glfw.GLFW
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import moe.nea.firmament.Firmament
+import moe.nea.firmament.gui.FirmButtonComponent
+import moe.nea.firmament.gui.config.AllConfigsGui
+import moe.nea.firmament.gui.config.BooleanHandler
+import moe.nea.firmament.gui.config.ChoiceHandler
+import moe.nea.firmament.gui.config.ClickHandler
+import moe.nea.firmament.gui.config.ColourHandler
+import moe.nea.firmament.gui.config.DurationHandler
+import moe.nea.firmament.gui.config.GuiAppender
+import moe.nea.firmament.gui.config.HudMeta
+import moe.nea.firmament.gui.config.HudMetaHandler
+import moe.nea.firmament.gui.config.HudPosition
+import moe.nea.firmament.gui.config.IntegerHandler
+import moe.nea.firmament.gui.config.KeyBindingHandler
+import moe.nea.firmament.gui.config.ManagedOption
+import moe.nea.firmament.gui.config.StringHandler
+import moe.nea.firmament.keybindings.SavedKeyBinding
+import moe.nea.firmament.util.ScreenUtil
+import moe.nea.firmament.util.collections.InstanceList
+import net.minecraft.client.gui.screen.Screen
+import net.minecraft.text.Text
+import net.minecraft.util.StringIdentifiable
+import org.joml.Vector2i
+import kotlinx.serialization.json.buildJsonObject
 import kotlin.io.path.createDirectories
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.time.Duration
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.text.Text
-import net.minecraft.util.StringIdentifiable
-import moe.nea.firmament.Firmament
-import moe.nea.firmament.gui.FirmButtonComponent
-import moe.nea.firmament.keybindings.GenericInputButton
-import moe.nea.firmament.keybindings.InputModifiers
-import moe.nea.firmament.keybindings.SavedKeyBinding
-import moe.nea.firmament.util.ScreenUtil.setScreenLater
-import moe.nea.firmament.util.collections.InstanceList
+import moe.nea.firmament.gui.config.storage.ConfigStorageClass
 
 abstract class ManagedConfig(
-	override val name: String,
+	val name: String,
 	val category: Category,
-	// TODO: allow vararg secondaryCategories: Category,
-) : ManagedConfigElement() {
+) : IDataHolder<Unit> {
 	enum class Category {
 		// Böse Kategorie, nicht benutzten lol
 		MISC,
@@ -75,29 +85,32 @@ abstract class ManagedConfig(
 		category.configs.add(this)
 	}
 
-	// TODO: warn if two files use the same config file name :(
-	val file = Firmament.CONFIG_DIR.resolve("$name.json")
-	val data: JsonObject by lazy {
-		try {
-			Firmament.json.decodeFromString(
-				file.readText()
-			)
-		} catch (e: Exception) {
-			Firmament.logger.info("Could not read config $name. Loading empty config.")
-			JsonObject(mutableMapOf())
+	override fun keys(): Collection<Unit> {
+		return listOf(Unit)
+	}
+
+	override fun clear() {
+		sortedOptions.forEach {
+			it._actualValue = null
 		}
 	}
 
-	fun save() {
-		val data = JsonObject(allOptions.mapNotNull { (key, value) ->
-			value.toJson()?.let {
-				key to it
+	override val storageClass: ConfigStorageClass
+		get() = ConfigStorageClass.CONFIG
+
+	override fun saveTo(key: Unit): JsonObject {
+		return buildJsonObject {
+			sortedOptions.forEach {
+				put(it.propertyName, it.toJson() ?: return@forEach)
 			}
-		}.toMap())
-		file.parent.createDirectories()
-		file.writeText(Firmament.json.encodeToString(data))
+		}
 	}
 
+	override fun loadFrom(key: Unit, jsonObject: JsonObject) {
+		sortedOptions.forEach {
+			it.load(jsonObject)
+		}
+	}
 
 	val allOptions = mutableMapOf<String, ManagedOption<*>>()
 	val sortedOptions = mutableListOf<ManagedOption<*>>()
@@ -112,7 +125,6 @@ abstract class ManagedConfig(
 		if (propertyName in allOptions) error("Cannot register the same name twice")
 		return ManagedOption(this, propertyName, default, handler).also {
 			it.handler.initOption(it)
-			it.load(data)
 			allOptions[propertyName] = it
 			sortedOptions.add(it)
 		}
@@ -188,7 +200,7 @@ abstract class ManagedConfig(
 		propertyName: String,
 		default: () -> Int,
 	): ManagedOption<SavedKeyBinding> = keyBindingWithOutDefaultModifiers(propertyName) {
-		SavedKeyBinding.keyWithoutMods(default())
+		SavedKeyBinding.Companion.keyWithoutMods(default())
 	}
 
 	protected fun keyBindingWithOutDefaultModifiers(
@@ -201,7 +213,7 @@ abstract class ManagedConfig(
 	protected fun keyBindingWithDefaultUnbound(
 		propertyName: String,
 	): ManagedOption<SavedKeyBinding> {
-		return keyBindingWithOutDefaultModifiers(propertyName) { SavedKeyBinding.unbound() }
+		return keyBindingWithOutDefaultModifiers(propertyName) { SavedKeyBinding.Companion.unbound() }
 	}
 
 	protected fun integer(
@@ -237,8 +249,8 @@ abstract class ManagedConfig(
 			RowComponent(
 				FirmButtonComponent(TextComponent("←")) {
 					if (parent != null) {
-						save()
-						setScreenLater(parent)
+						markDirty()
+						ScreenUtil.setScreenLater(parent)
 					} else {
 						AllConfigsGui.showAllGuis()
 					}
@@ -264,7 +276,7 @@ abstract class ManagedConfig(
 	}
 
 	fun showConfigEditor(parent: Screen? = null) {
-		setScreenLater(getConfigEditor(parent))
+		ScreenUtil.setScreenLater(getConfigEditor(parent))
 	}
 
 }

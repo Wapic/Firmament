@@ -3,18 +3,20 @@ package moe.nea.firmament.features.misc
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HudRenderEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.tr
 import moe.nea.jarvis.api.Point
 import org.joml.Vector2i
 import net.minecraft.client.network.PlayerListEntry
 import net.minecraft.text.Text
+import moe.nea.firmament.util.data.Config
 
 object Hud : FirmamentFeature {
 	override val identifier: String
 		get() = "hud"
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.MISC) {
 		var dayCount by toggle("day-count") { false }
 		val dayCountHud by position("day-count-hud", 80, 10) { Vector2i() }

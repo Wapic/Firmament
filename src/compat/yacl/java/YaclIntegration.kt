@@ -38,7 +38,7 @@ import moe.nea.firmament.gui.config.HudMeta
 import moe.nea.firmament.gui.config.HudMetaHandler
 import moe.nea.firmament.gui.config.IntegerHandler
 import moe.nea.firmament.gui.config.KeyBindingHandler
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.gui.config.ManagedOption
 import moe.nea.firmament.gui.config.StringHandler
 import moe.nea.firmament.keybindings.SavedKeyBinding
@@ -77,7 +77,7 @@ class YaclIntegration : FirmamentConfigScreenProvider {
 		val binding = Binding.generic(
 			managedOption.default(),
 			managedOption::value,
-			{ managedOption.value = it; managedOption.element.save() })
+			{ managedOption.value = it; managedOption.element.markDirty() })
 
 		fun <T> createDefaultBinding(function: (Option<T>) -> ControllerBuilder<T>): Option.Builder<T> {
 			return Option.createBuilder<T>()
@@ -118,7 +118,7 @@ class YaclIntegration : FirmamentConfigScreenProvider {
 						{
 							managedOption.value =
 								it.toChromaWithoutAnimation(managedOption.value.timeForFullRotationInMillis)
-							managedOption.element.save()
+							managedOption.element.markDirty()
 						})
 				val speedBinding =
 					Binding.generic(
@@ -126,7 +126,7 @@ class YaclIntegration : FirmamentConfigScreenProvider {
 						{ managedOption.value.timeForFullRotationInMillis },
 						{
 							managedOption.value = managedOption.value.copy(timeForFullRotationInMillis = it)
-							managedOption.element.save()
+							managedOption.element.markDirty()
 						}
 					)
 

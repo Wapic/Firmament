@@ -7,6 +7,7 @@ import io.github.notenoughupdates.moulconfig.observer.GetSetter
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
+import moe.nea.firmament.util.data.ManagedConfig
 import net.minecraft.text.Text
 
 class StringHandler(val config: ManagedConfig) : ManagedConfig.OptionHandler<String> {
@@ -25,7 +26,7 @@ class StringHandler(val config: ManagedConfig) : ManagedConfig.OptionHandler<Str
                 object : GetSetter<String> by opt {
                     override fun set(newValue: String) {
                         opt.set(newValue)
-                        config.save()
+                        config.markDirty()
                     }
                 },
                 130,

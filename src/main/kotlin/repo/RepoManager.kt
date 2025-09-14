@@ -17,7 +17,7 @@ import net.minecraft.util.StringIdentifiable
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.Firmament.logger
 import moe.nea.firmament.events.ReloadRegistrationEvent
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.MinecraftDispatcher
@@ -35,18 +35,18 @@ object RepoManager {
 			username = "NotEnoughUpdates"
 			reponame = "NotEnoughUpdates-REPO"
 			branch = "master"
-			save()
+			markDirty()
 		}
 		val enableREI by toggle("enable-rei") { true }
 		val disableItemGroups by toggle("disable-item-groups") { true }
 		val reload by button("reload") {
-			save()
+			markDirty()
 			Firmament.coroutineScope.launch {
 				RepoManager.reload()
 			}
 		}
 		val redownload by button("redownload") {
-			save()
+			markDirty()
 			RepoManager.launchAsyncUpdate(true)
 		}
 		val alwaysSuperCraft by toggle("enable-super-craft") { true }

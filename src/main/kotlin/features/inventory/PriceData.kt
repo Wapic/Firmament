@@ -6,12 +6,13 @@ import net.minecraft.util.StringIdentifiable
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ItemTooltipEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.repo.HypixelStaticData
 import moe.nea.firmament.util.FirmFormatters.formatCommas
 import moe.nea.firmament.util.asBazaarStock
 import moe.nea.firmament.util.bold
 import moe.nea.firmament.util.darkGrey
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.getLogicalStackSize
 import moe.nea.firmament.util.gold
 import moe.nea.firmament.util.skyBlockId
@@ -22,6 +23,7 @@ object PriceData : FirmamentFeature {
 	override val identifier: String
 		get() = "price-data"
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.INVENTORY) {
 		val tooltipEnabled by toggle("enable-always") { true }
 		val enableKeybinding by keyBindingWithDefaultUnbound("enable-keybind")

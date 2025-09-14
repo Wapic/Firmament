@@ -4,12 +4,14 @@ import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.AttackBlockEvent
 import moe.nea.firmament.events.UseBlockEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 
 object DianaWaypoints : FirmamentFeature {
     override val identifier get() = "diana"
     override val config get() = TConfig
 
+	@Config
     object TConfig : ManagedConfig(identifier, Category.EVENTS) {
         val ancestralSpadeSolver by toggle("ancestral-spade") { true }
         val ancestralSpadeTeleport by keyBindingWithDefaultUnbound("ancestral-teleport")

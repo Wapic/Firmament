@@ -18,6 +18,10 @@ object SBData {
 		"CLICK THIS TO SUGGEST IT IN CHAT [DASHES]",
 		"CLICK THIS TO SUGGEST IT IN CHAT [NO DASHES]",
 	)
+
+	val NULL_UUID = UUID(0L, 0L)
+	val profileIdOrNil get() = profileId ?: NULL_UUID
+
 	var profileId: UUID? = null
 		get() {
 			// TODO: allow unfiltered access to this somehow

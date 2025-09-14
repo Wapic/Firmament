@@ -3,7 +3,6 @@
 package moe.nea.firmament.mixins;
 
 import moe.nea.firmament.gui.config.KeyBindingHandler;
-import moe.nea.firmament.gui.config.ManagedConfig;
 import moe.nea.firmament.keybindings.FirmamentKeyBindings;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.option.ControlsListWidget;

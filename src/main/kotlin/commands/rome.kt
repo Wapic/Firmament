@@ -20,7 +20,7 @@ import moe.nea.firmament.features.inventory.storageoverlay.StorageOverviewScreen
 import moe.nea.firmament.features.mining.MiningBlockInfoUi
 import moe.nea.firmament.gui.config.AllConfigsGui
 import moe.nea.firmament.gui.config.BooleanHandler
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.gui.config.ManagedOption
 import moe.nea.firmament.init.MixinPlugin
 import moe.nea.firmament.repo.HypixelStaticData
@@ -90,7 +90,7 @@ fun firmamentCommand() = literal("firmament") {
 						}
 						propertyObj as ManagedOption<Boolean>
 						propertyObj.value = !propertyObj.value
-						configObj.save()
+						configObj.markDirty()
 						source.sendFeedback(
 							Text.stringifiedTranslatable(
 								"firmament.command.toggle.toggled", configObj.labelText,

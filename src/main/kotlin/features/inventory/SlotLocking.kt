@@ -34,7 +34,7 @@ import moe.nea.firmament.events.IsSlotProtectedEvent
 import moe.nea.firmament.events.ScreenChangeEvent
 import moe.nea.firmament.events.SlotRenderEvents
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.keybindings.InputModifiers
 import moe.nea.firmament.keybindings.SavedKeyBinding
 import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
@@ -42,6 +42,7 @@ import moe.nea.firmament.util.CommonSoundEffects
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData
 import moe.nea.firmament.util.SkyBlockIsland
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.data.ProfileSpecificDataHolder
 import moe.nea.firmament.util.extraAttributes
 import moe.nea.firmament.util.json.DashlessUUIDSerializer
@@ -140,6 +141,7 @@ object SlotLocking : FirmamentFeature {
 	}
 
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.INVENTORY) {
 		val lockSlot by keyBinding("lock") { GLFW.GLFW_KEY_L }
 		val lockUUID by keyBindingWithOutDefaultModifiers("lock-uuid") {

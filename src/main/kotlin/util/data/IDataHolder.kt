@@ -1,71 +1,95 @@
 package moe.nea.firmament.util.data
 
-import java.util.concurrent.CopyOnWriteArrayList
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
-import kotlin.reflect.KClass
-import net.minecraft.text.Text
+import java.util.UUID
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
 import moe.nea.firmament.Firmament
-import moe.nea.firmament.events.ScreenChangeEvent
-import moe.nea.firmament.util.MC
+import moe.nea.firmament.gui.config.storage.ConfigStorageClass
+import moe.nea.firmament.gui.config.storage.FirmamentConfigLoader
+import moe.nea.firmament.util.SBData
 
-interface IDataHolder<T> {
-	companion object {
-		internal var badLoads: MutableList<String> = CopyOnWriteArrayList()
-		private val allConfigs: MutableMap<KClass<out IDataHolder<*>>, IDataHolder<*>> = mutableMapOf()
-		private val dirty: MutableSet<KClass<out IDataHolder<*>>> = mutableSetOf()
-
-		internal fun <T : IDataHolder<K>, K> putDataHolder(kClass: KClass<T>, inst: IDataHolder<K>) {
-			allConfigs[kClass] = inst
-		}
-
-		fun <T : IDataHolder<K>, K> markDirty(kClass: KClass<T>) {
-			if (kClass !in allConfigs) {
-				Firmament.logger.error("Tried to markDirty '${kClass.qualifiedName}', which isn't registered as 'IConfigHolder'")
-				return
-			}
-			dirty.add(kClass)
-		}
-
-		private fun performSaves() {
-			val toSave = dirty.toList().also {
-				dirty.clear()
-			}
-			for (it in toSave) {
-				val obj = allConfigs[it]
-				if (obj == null) {
-					Firmament.logger.error("Tried to save '${it}', which isn't registered as 'ConfigHolder'")
-					continue
-				}
-				obj.save()
-			}
-		}
-
-		private fun warnForResetConfigs() {
-			if (badLoads.isNotEmpty()) {
-				MC.sendChat(
-					Text.literal(
-						"The following configs have been reset: ${badLoads.joinToString(", ")}. " +
-							"This can be intentional, but probably isn't."
-					)
-				)
-				badLoads.clear()
-			}
-		}
-
-		fun registerEvents() {
-			ScreenChangeEvent.subscribe("IDataHolder:saveOnScreenChange") { event ->
-				performSaves()
-				warnForResetConfigs()
-			}
-			ClientLifecycleEvents.CLIENT_STOPPING.register(ClientLifecycleEvents.ClientStopping {
-				performSaves()
-			})
-		}
-
+sealed interface IDataHolder<T> {
+	fun markDirty() {
+		FirmamentConfigLoader.markDirty(this)
 	}
 
-	val data: T
-	fun save()
-	fun markDirty()
-	fun load()
+	fun keys(): Collection<T>
+	fun saveTo(key: T): JsonObject
+	fun loadFrom(key: T, jsonObject: JsonObject)
+	fun clear()
+	val storageClass: ConfigStorageClass
+}
+
+open class ProfileKeyedConfig<T>(
+	val prefix: String,
+	val serializer: KSerializer<T>,
+	val default: () -> T,
+) : IDataHolder<UUID> {
+
+	override val storageClass: ConfigStorageClass
+		get() = ConfigStorageClass.PROFILE
+	private var _data: MutableMap<UUID, T>? = null
+
+	val data
+		get() = _data!!.let { map ->
+			map[SBData.profileIdOrNil]
+				?: default().also { map[SBData.profileIdOrNil] = it }
+		} ?: error("Config $this not loaded — forgot to register?")
+
+	override fun keys(): Collection<UUID> {
+		return _data!!.keys
+	}
+
+	override fun saveTo(key: UUID): JsonObject {
+		val d = _data!!
+		return buildJsonObject {
+			put(prefix, Firmament.json.encodeToJsonElement(serializer, d[key] ?: return@buildJsonObject))
+		}
+	}
+
+	override fun loadFrom(key: UUID, jsonObject: JsonObject) {
+		(_data ?: mutableMapOf<UUID, T>().also { _data = it })[key] =
+			jsonObject[prefix]
+				?.let {
+					Firmament.json.decodeFromJsonElement(serializer, it)
+				} ?: default()
+	}
+
+	override fun clear() {
+		_data = null
+	}
+}
+
+abstract class GenericConfig<T>(
+	val prefix: String,
+	val serializer: KSerializer<T>,
+	val default: () -> T,
+) : IDataHolder<Unit> {
+
+	private var _data: T? = null
+
+	val data get() = _data ?: error("Config $this not loaded — forgot to register?")
+
+	override fun keys(): Collection<Unit> {
+		return listOf(Unit)
+	}
+
+	open fun onLoad() {
+	}
+
+	override fun saveTo(key: Unit): JsonObject {
+		return buildJsonObject {
+			put(prefix, Firmament.json.encodeToJsonElement(serializer, data))
+		}
+	}
+
+	override fun loadFrom(key: Unit, jsonObject: JsonObject) {
+		_data = jsonObject[prefix]?.let { Firmament.json.decodeFromJsonElement(serializer, it) } ?: default()
+		onLoad()
+	}
+
+	override fun clear() {
+		_data = null
+	}
 }

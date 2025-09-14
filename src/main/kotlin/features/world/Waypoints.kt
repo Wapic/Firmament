@@ -17,8 +17,9 @@ import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.events.WorldReadyEvent
 import moe.nea.firmament.events.WorldRenderLastEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.mc.asFakeServer
 import moe.nea.firmament.util.render.RenderInWorldContext
 import moe.nea.firmament.util.tr
@@ -27,6 +28,7 @@ object Waypoints : FirmamentFeature {
 	override val identifier: String
 		get() = "waypoints"
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.MINING) { // TODO: add to misc
 		val tempWaypointDuration by duration("temp-waypoint-duration", 0.seconds, 1.hours) { 30.seconds }
 		val showIndex by toggle("show-index") { true }

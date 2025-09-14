@@ -14,9 +14,10 @@ import net.minecraft.world.BlockView
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.WorldRenderLastEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.extraAttributes
 import moe.nea.firmament.util.render.RenderInWorldContext
 import moe.nea.firmament.util.skyBlockId
@@ -27,6 +28,7 @@ object EtherwarpOverlay : FirmamentFeature {
 	override val identifier: String
 		get() = "etherwarp-overlay"
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.ITEMS) {
 		var etherwarpOverlay by toggle("etherwarp-overlay") { false }
 		var onlyShowWhileSneaking by toggle("only-show-while-sneaking") { true }

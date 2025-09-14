@@ -1,6 +1,7 @@
 package moe.nea.firmament.annotations.process
 
 import com.google.auto.service.AutoService
+import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger

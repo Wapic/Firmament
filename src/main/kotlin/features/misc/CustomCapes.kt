@@ -23,15 +23,17 @@ import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.Identifier
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.TimeMark
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.mc.CustomRenderPassHelper
 
 object CustomCapes : FirmamentFeature {
 	override val identifier: String
 		get() = "developer-capes"
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.DEV) {
 		val showCapes by toggle("show-cape") { true }
 	}

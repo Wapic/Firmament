@@ -19,7 +19,7 @@ import moe.nea.firmament.events.SlotClickEvent
 import moe.nea.firmament.events.UseItemEvent
 import moe.nea.firmament.events.WorldReadyEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.DurabilityBarEvent
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData
@@ -27,6 +27,7 @@ import moe.nea.firmament.util.SHORT_NUMBER_FORMAT
 import moe.nea.firmament.util.SkyBlockIsland
 import moe.nea.firmament.util.TIME_PATTERN
 import moe.nea.firmament.util.TimeMark
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.extraAttributes
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.mc.loreAccordingToNbt
@@ -62,6 +63,7 @@ object PickaxeAbility : FirmamentFeature {
 		fun matches(type: ItemType) = items.contains(type)
 	}
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.MINING) {
 		val cooldownEnabled by toggle("ability-cooldown") { false }
 		val disableInDungeons by toggle("disable-in-dungeons") { true }

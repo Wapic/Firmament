@@ -7,9 +7,11 @@ import moe.nea.firmament.repo.RepoManager
 import moe.nea.firmament.util.ErrorUtil
 import net.minecraft.block.Block
 import moe.nea.firmament.events.ReloadRegistrationEvent
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 
 object JadeIntegration {
+	@Config
 	object TConfig : ManagedConfig("jade-integration", Category.INTEGRATIONS) {
 		val miningProgress by toggle("progress") { true }
 		val blockDetection by toggle("blocks") { true }

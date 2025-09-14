@@ -10,12 +10,13 @@ import net.minecraft.text.Text
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ProcessChatEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.gui.hud.MoulConfigHud
 import moe.nea.firmament.util.BazaarPriceStrategy
 import moe.nea.firmament.util.FirmFormatters.formatCommas
 import moe.nea.firmament.util.SkyblockId
 import moe.nea.firmament.util.StringUtil.parseIntWithComma
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.data.ProfileSpecificDataHolder
 import moe.nea.firmament.util.formattedString
 import moe.nea.firmament.util.useMatch
@@ -56,6 +57,7 @@ object PristineProfitTracker : FirmamentFeature {
 	override val config: ManagedConfig?
 		get() = TConfig
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.MINING) {
 		val timeout by duration("timeout", 0.seconds, 120.seconds) { 30.seconds }
 		val gui by position("position", 100, 30) { Vector2i() }

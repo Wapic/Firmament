@@ -3,6 +3,7 @@ package moe.nea.firmament.gui.config
 import io.github.notenoughupdates.moulconfig.observer.GetSetter
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import moe.nea.firmament.util.data.ManagedConfig
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 import net.minecraft.text.Text
@@ -27,11 +28,11 @@ class ManagedOption<T : Any>(
 	val descriptionTranslationKey = "firmament.config.${element.name}.${propertyName}.description"
 	val labelDescription: Text = Text.translatable(descriptionTranslationKey)
 
-	private var actualValue: T? = null
+	var _actualValue: T? = null
 	var value: T
-		get() = actualValue ?: error("Lateinit variable not initialized")
+		get() = _actualValue ?: error("Lateinit variable not initialized")
 		set(value) {
-			actualValue = value
+			_actualValue = value
 			element.onChange(this)
 		}
 

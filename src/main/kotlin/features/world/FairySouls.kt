@@ -14,12 +14,13 @@ import moe.nea.firmament.events.ProcessChatEvent
 import moe.nea.firmament.events.SkyblockServerUpdateEvent
 import moe.nea.firmament.events.WorldRenderLastEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.repo.RepoManager
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData
 import moe.nea.firmament.util.SkyBlockIsland
 import moe.nea.firmament.util.blockPos
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.data.ProfileSpecificDataHolder
 import moe.nea.firmament.util.render.RenderInWorldContext
 import moe.nea.firmament.util.render.RenderInWorldContext.Companion.renderInWorld
@@ -37,9 +38,10 @@ object FairySouls : FirmamentFeature {
     override val config: ManagedConfig
         get() = TConfig
 
+	@Config
     object DConfig : ProfileSpecificDataHolder<Data>(serializer(), "found-fairysouls", ::Data)
 
-
+	@Config
     object TConfig : ManagedConfig("fairy-souls", Category.MISC) {
         val displaySouls by toggle("show") { false }
         val resetSouls by button("reset") {

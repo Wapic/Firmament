@@ -18,7 +18,7 @@ import moe.nea.firmament.events.ChestInventoryUpdateEvent
 import moe.nea.firmament.events.CommandEvent
 import moe.nea.firmament.events.ScreenChangeEvent
 import moe.nea.firmament.events.SlotRenderEvents
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
 import moe.nea.firmament.util.ClipboardUtils
 import moe.nea.firmament.util.MC

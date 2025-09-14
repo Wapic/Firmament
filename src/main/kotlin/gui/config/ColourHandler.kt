@@ -10,6 +10,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import moe.nea.firmament.util.data.ManagedConfig
 
 class ColourHandler(val config: ManagedConfig) :
 	ManagedConfig.OptionHandler<ChromaColour> {
@@ -73,7 +74,7 @@ class ColourHandler(val config: ManagedConfig) :
 				opt.value.toLegacyString(),
 				{
 					opt.value = ChromaColour.forLegacyString(it)
-					config.save()
+					config.markDirty()
 				},
 				{ }
 			)

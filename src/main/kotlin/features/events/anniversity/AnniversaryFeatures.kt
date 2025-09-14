@@ -14,7 +14,7 @@ import moe.nea.firmament.events.ProcessChatEvent
 import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.events.WorldReadyEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.gui.hud.MoulConfigHud
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
 import moe.nea.firmament.repo.ItemNameLookup
@@ -23,6 +23,7 @@ import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SHORT_NUMBER_FORMAT
 import moe.nea.firmament.util.SkyblockId
 import moe.nea.firmament.util.TimeMark
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.parseShortNumber
 import moe.nea.firmament.util.useMatch
 
@@ -30,6 +31,7 @@ object AnniversaryFeatures : FirmamentFeature {
     override val identifier: String
         get() = "anniversary"
 
+	@Config
     object TConfig : ManagedConfig(identifier, Category.EVENTS) {
         val enableShinyPigTracker by toggle("shiny-pigs") {true}
         val trackPigCooldown by position("pig-hud", 200, 300) { Vector2i(100, 200) }

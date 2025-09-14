@@ -46,6 +46,7 @@ import moe.nea.firmament.events.ScreenRenderPostEvent
 import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.events.registration.registerFirmamentEvents
 import moe.nea.firmament.features.FeatureManager
+import moe.nea.firmament.gui.config.storage.FirmamentConfigLoader
 import moe.nea.firmament.repo.HypixelStaticData
 import moe.nea.firmament.repo.RepoManager
 import moe.nea.firmament.util.MC
@@ -137,10 +138,10 @@ object Firmament {
 	fun onClientInitialize() {
 		InitLevel.bump(InitLevel.MC_INIT)
 		FeatureManager.subscribeEvents()
+		FirmamentConfigLoader.loadConfig()
 		ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { instance ->
 			TickEvent.publish(TickEvent(MC.currentTick++))
 		})
-		IDataHolder.registerEvents()
 		RepoManager.initialize()
 		SBData.init()
 		FeatureManager.autoload()

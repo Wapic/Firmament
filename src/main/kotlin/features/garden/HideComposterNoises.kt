@@ -5,11 +5,13 @@ import net.minecraft.sound.SoundEvent
 import net.minecraft.sound.SoundEvents
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.SoundReceiveEvent
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.SBData
 import moe.nea.firmament.util.SkyBlockIsland
+import moe.nea.firmament.util.data.Config
 
 object HideComposterNoises {
+	@Config
 	object TConfig : ManagedConfig("composter", Category.GARDEN) {
 		val hideComposterNoises by toggle("no-more-noises") { false }
 	}

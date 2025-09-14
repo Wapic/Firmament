@@ -8,5 +8,10 @@ data class MacroData(
 	var comboActions: List<ComboKeyAction> = listOf(),
 	var wheels: List<MacroWheel> = listOf(),
 ) {
-	object DConfig : DataHolder<MacroData>(kotlinx.serialization.serializer(), "macros", ::MacroData)
+	object DConfig : DataHolder<MacroData>(kotlinx.serialization.serializer(), "macros", ::MacroData) {
+		override fun onLoad() {
+			ComboProcessor.setActions(data.comboActions)
+			RadialMacros.setWheels(data.wheels)
+		}
+	}
 }

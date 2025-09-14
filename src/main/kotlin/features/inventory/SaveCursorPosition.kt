@@ -7,15 +7,17 @@ import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.milliseconds
 import net.minecraft.client.util.InputUtil
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.TimeMark
 import moe.nea.firmament.util.assertNotNullOr
+import moe.nea.firmament.util.data.Config
 
 object SaveCursorPosition : FirmamentFeature {
     override val identifier: String
         get() = "save-cursor-position"
 
+	@Config
     object TConfig : ManagedConfig(identifier, Category.INVENTORY) {
         val enable by toggle("enable") { true }
         val tolerance by duration("tolerance", 10.milliseconds, 5000.milliseconds) { 500.milliseconds }

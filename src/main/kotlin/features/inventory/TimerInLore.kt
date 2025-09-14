@@ -11,9 +11,10 @@ import net.minecraft.text.Text
 import net.minecraft.util.StringIdentifiable
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ItemTooltipEvent
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.SBData
 import moe.nea.firmament.util.aqua
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.grey
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.timestamp
@@ -21,6 +22,7 @@ import moe.nea.firmament.util.tr
 import moe.nea.firmament.util.unformattedString
 
 object TimerInLore {
+	@Config
 	object TConfig : ManagedConfig("lore-timers", Category.INVENTORY) {
 		val showTimers by toggle("show") { true }
 		val showCreationTimestamp by toggle("show-creation") { true }

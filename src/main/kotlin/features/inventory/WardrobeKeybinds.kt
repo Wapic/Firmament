@@ -5,11 +5,13 @@ import net.minecraft.item.Items
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HandledScreenKeyPressedEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.mc.SlotUtils.clickLeftMouseButton
 
 object WardrobeKeybinds {
+	@Config
 	object TConfig : ManagedConfig("wardrobe-keybinds", Category.INVENTORY) {
 		val wardrobeKeybinds by toggle("wardrobe-keybinds") { false }
 		val changePageKeybind by keyBinding("change-page") { GLFW.GLFW_KEY_ENTER }

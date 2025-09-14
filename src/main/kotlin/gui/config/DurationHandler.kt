@@ -12,6 +12,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
+import moe.nea.firmament.util.data.ManagedConfig
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration

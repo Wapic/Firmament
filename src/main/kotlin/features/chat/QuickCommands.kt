@@ -16,7 +16,7 @@ import moe.nea.firmament.commands.thenArgument
 import moe.nea.firmament.commands.thenExecute
 import moe.nea.firmament.events.CommandEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.gui.config.ManagedOption
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData

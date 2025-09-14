@@ -13,8 +13,9 @@ import moe.nea.firmament.events.ClientStartedEvent
 import moe.nea.firmament.events.EntityRenderTintEvent
 import moe.nea.firmament.events.HudRenderEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.render.TintedOverlayTexture
 import moe.nea.firmament.util.skyBlockId
 import moe.nea.firmament.util.skyblock.SkyBlockItems
@@ -24,6 +25,7 @@ object BonemerangOverlay : FirmamentFeature {
 	override val identifier: String
 		get() = "bonemerang-overlay"
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.ITEMS) {
 		var bonemerangOverlay by toggle("bonemerang-overlay") { false }
 		val bonemerangOverlayHud by position("bonemerang-overlay-hud", 80, 10) { Vector2i() }

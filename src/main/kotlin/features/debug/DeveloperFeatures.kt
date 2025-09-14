@@ -17,11 +17,12 @@ import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.DebugInstantiateEvent
 import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.init.MixinPlugin
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.TimeMark
 import moe.nea.firmament.util.asm.AsmAnnotationUtil
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.iterate
 
 object DeveloperFeatures : FirmamentFeature {
@@ -38,6 +39,7 @@ object DeveloperFeatures : FirmamentFeature {
 			.iterate { it.parent }
 			.find { it.resolve("settings.gradle.kts").exists() }
 
+	@Config
 	object TConfig : ManagedConfig("developer", Category.DEV) {
 		val autoRebuildResources by toggle("auto-rebuild") { false }
 	}

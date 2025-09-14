@@ -28,7 +28,6 @@ abstract class MultiFileDataHolder<T>(
 				try {
 					it.nameWithoutExtension to Firmament.json.decodeFromString(dataSerializer, it.readText())
 				} catch (e: Exception) { /* Expecting IOException and SerializationException, but Kotlin doesn't allow multi catches*/
-					IDataHolder.badLoads.add(configName)
 					Firmament.logger.error(
 						"Exception during loading of multi file data holder $it ($configName). This will reset that profiles config.",
 						e

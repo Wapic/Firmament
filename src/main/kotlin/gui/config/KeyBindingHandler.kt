@@ -11,6 +11,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import moe.nea.firmament.gui.FirmButtonComponent
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.keybindings.FirmamentKeyBindings
 import moe.nea.firmament.keybindings.SavedKeyBinding
 
@@ -35,7 +36,7 @@ class KeyBindingHandler(val name: String, val managedConfig: ManagedConfig) :
 			{ opt.value },
 			{
 				opt.value = it
-				opt.element.save()
+				opt.element.markDirty()
 			},
 			{ button.blur() },
 			{ button.requestFocus() }

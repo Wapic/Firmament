@@ -9,12 +9,13 @@ import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HudRenderEvent
 import moe.nea.firmament.events.SlotRenderEvents
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.jarvis.JarvisIntegration
 import moe.nea.firmament.util.FirmFormatters.formatPercent
 import moe.nea.firmament.util.FirmFormatters.shortFormat
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.petData
 import moe.nea.firmament.util.render.drawGuiTexture
 import moe.nea.firmament.util.skyblock.Rarity
@@ -29,6 +30,7 @@ object PetFeatures : FirmamentFeature {
 	override val config: ManagedConfig?
 		get() = TConfig
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.INVENTORY) {
 		val highlightEquippedPet by toggle("highlight-pet") { true }
 		var petOverlay by toggle("pet-overlay") { false }

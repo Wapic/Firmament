@@ -1,5 +1,6 @@
 package moe.nea.firmament.features.macros
 
+import me.shedaniel.math.Color
 import org.joml.Vector2f
 import util.render.CustomRenderLayers
 import kotlin.math.atan2
@@ -93,7 +94,7 @@ object RadialMenuViewer {
 			option.renderSlice(event.context)
 			mat.popMatrix()
 		}
-		event.context.drawLine(1, 1, delta.x.toInt(), delta.y.toInt(), me.shedaniel.math.Color.ofOpaque(0x00FF00))
+		event.context.drawLine(1, 1, delta.x.toInt(), delta.y.toInt(), Color.ofOpaque(0x00FF00))
 		mat.popMatrix()
 	}
 
@@ -115,7 +116,7 @@ object RadialMenuViewer {
 }
 
 object RadialMacros {
-	var wheels = MacroData.DConfig.data.wheels
+	lateinit var wheels: List<MacroWheel>
 		private set
 
 	fun setWheels(wheels: List<MacroWheel>) {

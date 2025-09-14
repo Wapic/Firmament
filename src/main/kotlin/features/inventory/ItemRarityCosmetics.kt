@@ -11,9 +11,10 @@ import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HotbarItemRenderEvent
 import moe.nea.firmament.events.SlotRenderEvents
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.collections.lastNotNullOfOrNull
 import moe.nea.firmament.util.collections.memoizeIdentity
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.mc.loreAccordingToNbt
 import moe.nea.firmament.util.skyblock.Rarity
 import moe.nea.firmament.util.unformattedString
@@ -22,6 +23,7 @@ object ItemRarityCosmetics : FirmamentFeature {
 	override val identifier: String
 		get() = "item-rarity-cosmetics"
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.INVENTORY) {
 		val showItemRarityBackground by toggle("background") { false }
 		val showItemRarityInHotbar by toggle("background-hotbar") { false }

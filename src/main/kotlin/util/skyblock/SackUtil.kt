@@ -8,6 +8,8 @@ import net.minecraft.text.Text
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ChestInventoryUpdateEvent
 import moe.nea.firmament.events.ProcessChatEvent
+import moe.nea.firmament.gui.config.storage.ConfigFixEvent
+import moe.nea.firmament.gui.config.storage.ConfigStorageClass
 import moe.nea.firmament.repo.ItemNameLookup
 import moe.nea.firmament.util.SHORT_NUMBER_FORMAT
 import moe.nea.firmament.util.SkyblockId
@@ -28,7 +30,14 @@ object SackUtil {
 //		val sackTypes:
 	)
 
-	object Store : ProfileSpecificDataHolder<SackContents>(serializer(), "Sacks", ::SackContents)
+	object Store : ProfileSpecificDataHolder<SackContents>(serializer(), "sacks", ::SackContents)
+
+	@Subscribe
+	fun onConfigFix(event: ConfigFixEvent) {
+		event.on(996, ConfigStorageClass.PROFILE) {
+			move("Sacks", "sacks")
+		}
+	}
 
 	val items get() = Store.data?.contents ?: mutableMapOf()
 	val storedRegex = "^Stored: (?<stored>$SHORT_NUMBER_FORMAT)/(?<max>$SHORT_NUMBER_FORMAT)$".toPattern()

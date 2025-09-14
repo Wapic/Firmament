@@ -13,16 +13,18 @@ import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HandledScreenClickEvent
 import moe.nea.firmament.events.HandledScreenForegroundEvent
 import moe.nea.firmament.events.HandledScreenPushREIEvent
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.ScreenUtil
 import moe.nea.firmament.util.TimeMark
 import moe.nea.firmament.util.data.DataHolder
 import moe.nea.firmament.util.accessors.getRectangle
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.gold
 
 object InventoryButtons {
 
+	@Config
     object TConfig : ManagedConfig("inventory-buttons-config", Category.INVENTORY) {
         val _openEditor by button("open-editor") {
             openEditor()

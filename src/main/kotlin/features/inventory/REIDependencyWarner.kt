@@ -77,7 +77,7 @@ object REIDependencyWarner {
 		event.subcommand("disablereiwarning") {
 			thenExecute {
 				RepoManager.Config.warnForMissingItemListMod = false
-				RepoManager.Config.save()
+				RepoManager.Config.markDirty()
 				MC.sendChat(Text.translatable("firmament.reiwarning.disabled").yellow())
 			}
 		}

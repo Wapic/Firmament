@@ -5,7 +5,7 @@ import io.github.notenoughupdates.moulconfig.gui.editors.GuiOptionEditorAccordio
 import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
 import io.github.notenoughupdates.moulconfig.processor.ProcessedCategory
 import io.github.notenoughupdates.moulconfig.processor.ProcessedOption
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 
 class ProcessedCategoryFirm(
 	val category: ManagedConfig.Category,

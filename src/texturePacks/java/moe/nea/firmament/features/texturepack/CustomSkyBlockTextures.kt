@@ -16,8 +16,9 @@ import moe.nea.firmament.events.FinalizeResourceManagerEvent
 import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.features.FirmamentFeature
 import moe.nea.firmament.features.debug.PowerUserTools
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.collections.WeakCache
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.mc.decodeProfileTextureProperty
 import moe.nea.firmament.util.skyBlockId
 
@@ -25,6 +26,7 @@ object CustomSkyBlockTextures : FirmamentFeature {
 	override val identifier: String
 		get() = "custom-skyblock-textures"
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.INTEGRATIONS) { // TODO: should this be its own thing?
 		val enabled by toggle("enabled") { true }
 		val skullsEnabled by toggle("skulls-enabled") { true }

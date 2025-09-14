@@ -39,7 +39,7 @@ class JarvisIntegration : JarvisPlugin {
     }
 
     override fun onHudEditorClosed() {
-        configs.forEach { it.save() }
+        configs.forEach { it.markDirty() }
     }
 
     override fun getAllConfigOptions(): List<JarvisConfigOption> {

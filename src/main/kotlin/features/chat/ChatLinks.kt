@@ -27,9 +27,10 @@ import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ModifyChatEvent
 import moe.nea.firmament.events.ScreenRenderPostEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.jarvis.JarvisIntegration
 import moe.nea.firmament.util.MC
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.render.drawTexture
 import moe.nea.firmament.util.transformEachRecursively
 import moe.nea.firmament.util.unformattedString
@@ -38,6 +39,7 @@ object ChatLinks : FirmamentFeature {
 	override val identifier: String
 		get() = "chat-links"
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.CHAT) {
 		val enableLinks by toggle("links-enabled") { true }
 		val imageEnabled by toggle("image-enabled") { true }

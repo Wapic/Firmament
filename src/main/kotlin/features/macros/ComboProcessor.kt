@@ -24,12 +24,6 @@ object ComboProcessor {
 	var lastInput = TimeMark.farPast()
 	val breadCrumbs = mutableListOf<SavedKeyBinding>()
 
-	init {
-		setActions(
-			MacroData.DConfig.data.comboActions
-		)
-	}
-
 	fun setActions(actions: List<ComboKeyAction>) {
 		rootTrie = KeyComboTrie.fromComboList(actions)
 		reset()

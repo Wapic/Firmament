@@ -53,7 +53,7 @@ import moe.nea.firmament.gui.config.HudMeta
 import moe.nea.firmament.gui.config.HudMetaHandler
 import moe.nea.firmament.gui.config.IntegerHandler
 import moe.nea.firmament.gui.config.KeyBindingHandler
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.gui.config.ManagedOption
 import moe.nea.firmament.gui.config.StringHandler
 import moe.nea.firmament.gui.toMoulConfig
@@ -335,7 +335,7 @@ class MCConfigEditorIntegration : FirmamentConfigScreenProvider {
 
 	val configObject = object : Config() {
 		override fun saveNow() {
-			ManagedConfig.allManagedConfigs.getAll().forEach { it.save() }
+			ManagedConfig.allManagedConfigs.getAll().forEach { it.markDirty() }
 		}
 
 		override fun shouldAutoFocusSearchbar(): Boolean {

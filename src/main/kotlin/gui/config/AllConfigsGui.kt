@@ -10,9 +10,11 @@ import moe.nea.firmament.commands.get
 import moe.nea.firmament.commands.thenArgument
 import moe.nea.firmament.commands.thenExecute
 import moe.nea.firmament.events.CommandEvent
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.MoulConfigUtils
 import moe.nea.firmament.util.ScreenUtil.setScreenLater
+import moe.nea.firmament.util.data.Config
 
 object AllConfigsGui {
 //
@@ -21,6 +23,7 @@ object AllConfigsGui {
 //			RepoManager.Config
 //		) + FeatureManager.allFeatures.mapNotNull { it.config }
 
+	@Config
 	object ConfigConfig : ManagedConfig("configconfig", Category.META) {
 		val enableYacl by toggle("enable-yacl") { false }
 		val enableMoulConfig by toggle("enable-moulconfig") { true }

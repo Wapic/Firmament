@@ -8,14 +8,16 @@ import net.minecraft.text.Style
 import net.minecraft.util.Formatting
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.EntityRenderTintEvent
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SkyblockId
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.render.TintedOverlayTexture
 import moe.nea.firmament.util.skyBlockId
 import moe.nea.firmament.util.skyblock.SkyBlockItems
 
 object CenturyRaffleFeatures {
+	@Config
 	object TConfig : ManagedConfig("centuryraffle", Category.EVENTS) {
 		val highlightPlayersForSlice by toggle("highlight-cake-players") { true }
 //		val highlightAllPlayers by toggle("highlight-all-cake-players") { true }

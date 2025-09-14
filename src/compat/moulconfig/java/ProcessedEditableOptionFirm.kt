@@ -36,11 +36,11 @@ abstract class ProcessedEditableOptionFirm<T : Any>(
 			ErrorUtil.softError("Failed to set value p0 in $this")
 			return false
 		}
-		managedConfig.save()
+		managedConfig.markDirty()
 		return true
 	}
 
 	override fun explicitNotifyChange() {
-		managedConfig.save()
+		managedConfig.markDirty()
 	}
 }

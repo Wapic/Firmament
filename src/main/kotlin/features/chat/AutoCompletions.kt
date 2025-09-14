@@ -9,12 +9,14 @@ import moe.nea.firmament.commands.thenExecute
 import moe.nea.firmament.events.CommandEvent
 import moe.nea.firmament.events.MaskCommands
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.repo.RepoManager
 import moe.nea.firmament.util.MC
+import moe.nea.firmament.util.data.Config
 
 object AutoCompletions : FirmamentFeature {
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.CHAT) {
 		val provideWarpTabCompletion by toggle("warp-complete") { true }
 		val replaceWarpIsByWarpIsland by toggle("warp-is") { true }

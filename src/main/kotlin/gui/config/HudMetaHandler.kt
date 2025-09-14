@@ -10,6 +10,7 @@ import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.gui.FirmButtonComponent
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.jarvis.JarvisIntegration
 import moe.nea.firmament.util.MC
 

@@ -28,10 +28,11 @@ import moe.nea.firmament.events.ScreenChangeEvent
 import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.events.WorldKeyboardEvent
 import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.gui.config.ManagedConfig
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
 import moe.nea.firmament.util.ClipboardUtils
 import moe.nea.firmament.util.MC
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.focusedItemStack
 import moe.nea.firmament.util.mc.IntrospectableItemModelManager
 import moe.nea.firmament.util.mc.SNbtFormatter
@@ -47,6 +48,7 @@ object PowerUserTools : FirmamentFeature {
 	override val identifier: String
 		get() = "power-user"
 
+	@Config
 	object TConfig : ManagedConfig(identifier, Category.DEV) {
 		val showItemIds by toggle("show-item-id") { false }
 		val copyItemId by keyBindingWithDefaultUnbound("copy-item-id")

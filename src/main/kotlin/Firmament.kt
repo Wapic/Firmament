@@ -143,7 +143,6 @@ object Firmament {
 		})
 		RepoManager.initialize()
 		SBData.init()
-		FeatureManager.subscribeEvents()
 		HypixelStaticData.spawnDataCollectionLoop()
 		ClientCommandRegistrationCallback.EVENT.register(this::registerCommands)
 		ClientLifecycleEvents.CLIENT_STARTED.register(ClientLifecycleEvents.ClientStarted {

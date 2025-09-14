@@ -530,7 +530,10 @@ fun patchRenderDoc(
 	}
 }
 tasks.runClient {
-	javaLauncher.set(javaToolchains.launcherFor(java.toolchain).map { patchRenderDoc(it) })
+	javaLauncher.set(
+		javaToolchains.launcherFor(java.toolchain)
+//			.map { patchRenderDoc(it) }
+	)
 }
 
 tasks.withType<AbstractArchiveTask>().configureEach {

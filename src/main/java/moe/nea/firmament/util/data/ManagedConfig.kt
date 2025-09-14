@@ -37,6 +37,8 @@ import net.minecraft.text.Text
 import net.minecraft.util.StringIdentifiable
 import org.joml.Vector2i
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.putJsonObject
 import kotlin.io.path.createDirectories
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
@@ -100,15 +102,18 @@ abstract class ManagedConfig(
 
 	override fun saveTo(key: Unit): JsonObject {
 		return buildJsonObject {
-			sortedOptions.forEach {
-				put(it.propertyName, it.toJson() ?: return@forEach)
+			putJsonObject(name) {
+				sortedOptions.forEach {
+					put(it.propertyName, it.toJson() ?: return@forEach)
+				}
 			}
 		}
 	}
 
 	override fun loadFrom(key: Unit, jsonObject: JsonObject) {
+		val unprefixed = jsonObject[name]?.jsonObject ?: JsonObject(mapOf())
 		sortedOptions.forEach {
-			it.load(jsonObject)
+			it.load(unprefixed)
 		}
 	}
 

@@ -26,20 +26,26 @@ object LegacyImporter {
 		}
 	}
 
+	val legacyStorage = listOf(
+		"inventory-buttons",
+		"macros",
+	)
+
 	fun importFromLegacy() {
 		configFolder.moveTo(backupPath)
 		configFolder.createDirectories()
 
-		copyIf(
-			backupPath.resolve("inventory-buttons.json"),
-			storageFolder.resolve("inventory-buttons.json")
-		)
+		legacyStorage.forEach {
+			copyIf(
+				backupPath.resolve("$it.json"),
+				storageFolder.resolve("$it.json")
+			)
+		}
 
 		backupPath.listDirectoryEntries("*.json")
+			.filter { it.nameWithoutExtension !in legacyStorage }
 			.forEach { path ->
 				val name = path.name
-				if (name == "inventory-buttons.json")
-					return@forEach
 				path.copyTo(configFolder.resolve(name))
 			}
 

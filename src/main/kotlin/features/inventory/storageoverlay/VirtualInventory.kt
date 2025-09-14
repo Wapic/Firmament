@@ -18,7 +18,6 @@ import net.minecraft.nbt.NbtIo
 import net.minecraft.nbt.NbtList
 import net.minecraft.nbt.NbtOps
 import net.minecraft.nbt.NbtSizeTracker
-import net.minecraft.registry.RegistryOps
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.mc.TolerantRegistriesOps

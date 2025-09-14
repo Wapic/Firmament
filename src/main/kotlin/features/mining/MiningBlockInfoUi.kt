@@ -1,7 +1,6 @@
 package moe.nea.firmament.features.mining
 
 import io.github.notenoughupdates.moulconfig.observer.ObservableList
-import io.github.notenoughupdates.moulconfig.observer.Property
 import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
 import io.github.notenoughupdates.moulconfig.xml.Bind
 import net.minecraft.client.gui.screen.Screen

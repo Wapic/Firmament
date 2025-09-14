@@ -8,14 +8,13 @@ import net.minecraft.text.Text
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HudRenderEvent
 import moe.nea.firmament.events.WorldKeyboardEvent
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.tr
 
-object Fixes : FirmamentFeature {
-	override val identifier: String
+object Fixes {
+	val identifier: String
 		get() = "fixes"
 
 	@Config
@@ -33,9 +32,6 @@ object Fixes : FirmamentFeature {
 		val hideRecipeBook by toggle("hide-recipe-book") { false }
 		val hideOffHand by toggle("hide-off-hand") { false }
 	}
-
-	override val config: ManagedConfig
-		get() = TConfig
 
 	fun handleIsPressed(
 		keyBinding: KeyBinding,

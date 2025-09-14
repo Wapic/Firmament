@@ -8,14 +8,13 @@ import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HudRenderEvent
 import moe.nea.firmament.events.SlotRenderEvents
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.jarvis.JarvisIntegration
 import moe.nea.firmament.util.FirmFormatters.formatPercent
 import moe.nea.firmament.util.FirmFormatters.shortFormat
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.petData
 import moe.nea.firmament.util.render.drawGuiTexture
 import moe.nea.firmament.util.skyblock.Rarity
@@ -23,12 +22,9 @@ import moe.nea.firmament.util.titleCase
 import moe.nea.firmament.util.useMatch
 import moe.nea.firmament.util.withColor
 
-object PetFeatures : FirmamentFeature {
-	override val identifier: String
+object PetFeatures {
+	val identifier: String
 		get() = "pets"
-
-	override val config: ManagedConfig?
-		get() = TConfig
 
 	@Config
 	object TConfig : ManagedConfig(identifier, Category.INVENTORY) {

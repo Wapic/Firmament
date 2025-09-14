@@ -9,23 +9,27 @@ import moe.nea.firmament.gui.config.storage.ConfigStorageClass
 import moe.nea.firmament.gui.config.storage.FirmamentConfigLoader
 import moe.nea.firmament.util.SBData
 
-sealed interface IDataHolder<T> {
+sealed class IDataHolder<T> {
 	fun markDirty() {
 		FirmamentConfigLoader.markDirty(this)
 	}
 
-	fun keys(): Collection<T>
-	fun saveTo(key: T): JsonObject
-	fun loadFrom(key: T, jsonObject: JsonObject)
-	fun clear()
-	val storageClass: ConfigStorageClass
+	init {
+		require(this.javaClass.getAnnotation(Config::class.java) != null)
+	}
+
+	abstract fun keys(): Collection<T>
+	abstract fun saveTo(key: T): JsonObject
+	abstract fun loadFrom(key: T, jsonObject: JsonObject)
+	abstract fun clear()
+	abstract val storageClass: ConfigStorageClass
 }
 
 open class ProfileKeyedConfig<T>(
 	val prefix: String,
 	val serializer: KSerializer<T>,
 	val default: () -> T,
-) : IDataHolder<UUID> {
+) : IDataHolder<UUID>() {
 
 	override val storageClass: ConfigStorageClass
 		get() = ConfigStorageClass.PROFILE
@@ -65,7 +69,7 @@ abstract class GenericConfig<T>(
 	val prefix: String,
 	val serializer: KSerializer<T>,
 	val default: () -> T,
-) : IDataHolder<Unit> {
+) : IDataHolder<Unit>() {
 
 	private var _data: T? = null
 

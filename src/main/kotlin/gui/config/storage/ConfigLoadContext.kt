@@ -27,13 +27,15 @@ data class ConfigLoadContext(
 	}
 
 	fun logInfo(message: String) {
-		Firmament.logger.info("[ConfigUpgrade] $message")
+		if (Firmament.DEBUG)
+			Firmament.logger.info("[ConfigUpgrade] $message")
 		logBuffer.append("[INFO] ").append(message).appendLine()
 	}
 
 	fun logError(message: String, exception: Throwable) {
 		markShouldSaveLogBuffer()
-		Firmament.logger.error("[ConfigUpgrade] $message", exception)
+		if (Firmament.DEBUG)
+			Firmament.logger.error("[ConfigUpgrade] $message", exception)
 		logBuffer.append("[ERROR] ").append(message).appendLine()
 		PrintWriter(StringBuilderWriter(logBuffer)).use {
 			exception.printStackTrace(it)
@@ -49,6 +51,16 @@ data class ConfigLoadContext(
 
 	fun ensureWritable(path: Path) {
 		path.createParentDirectories()
+	}
+
+	fun use(block: (ConfigLoadContext) -> Unit) {
+		try {
+			block(this)
+		} catch (ex: Exception) {
+			logError("Caught exception on CLC", ex)
+		} finally {
+			close()
+		}
 	}
 
 	override fun close() {

@@ -10,11 +10,11 @@ import moe.nea.firmament.commands.get
 import moe.nea.firmament.commands.thenArgument
 import moe.nea.firmament.commands.thenExecute
 import moe.nea.firmament.events.CommandEvent
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.MoulConfigUtils
 import moe.nea.firmament.util.ScreenUtil.setScreenLater
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 
 object AllConfigsGui {
 //

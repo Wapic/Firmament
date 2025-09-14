@@ -1,45 +1,31 @@
 package moe.nea.firmament.features.misc
 
-import com.mojang.blaze3d.buffers.GpuBuffer
-import com.mojang.blaze3d.buffers.Std140Builder
-import com.mojang.blaze3d.systems.RenderSystem
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.util.OptionalDouble
-import java.util.OptionalInt
-import org.joml.Vector4f
 import util.render.CustomRenderPipelines
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import net.minecraft.client.network.AbstractClientPlayerEntity
-import net.minecraft.client.render.BufferBuilder
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.client.render.VertexConsumer
 import net.minecraft.client.render.VertexConsumerProvider
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState
-import net.minecraft.client.util.BufferAllocator
 import net.minecraft.client.util.SkinTextures
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.Identifier
 import moe.nea.firmament.Firmament
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.TimeMark
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.mc.CustomRenderPassHelper
 
-object CustomCapes : FirmamentFeature {
-	override val identifier: String
+object CustomCapes {
+	val identifier: String
 		get() = "developer-capes"
 
 	@Config
 	object TConfig : ManagedConfig(identifier, Category.DEV) {
 		val showCapes by toggle("show-cape") { true }
 	}
-
-	override val config: ManagedConfig
-		get() = TConfig
 
 	interface CustomCapeRenderer {
 		fun replaceRender(

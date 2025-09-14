@@ -7,13 +7,12 @@ import net.minecraft.util.Formatting
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ScreenChangeEvent
 import moe.nea.firmament.events.SlotRenderEvents
-import moe.nea.firmament.features.FirmamentFeature
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
 import moe.nea.firmament.repo.SBItemStack
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.skyblockId
 
-object CraftingOverlay : FirmamentFeature {
+object CraftingOverlay {
 
 	private var screen: GenericContainerScreen? = null
 	private var recipe: NEUCraftingRecipe? = null
@@ -43,7 +42,7 @@ object CraftingOverlay : FirmamentFeature {
 		}
 	}
 
-	override val identifier: String
+	val identifier: String
 		get() = "crafting-overlay"
 
 	@OptIn(ExpensiveItemCacheApi::class)

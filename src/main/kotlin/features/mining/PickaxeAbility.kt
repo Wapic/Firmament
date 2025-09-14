@@ -18,8 +18,6 @@ import moe.nea.firmament.events.ProfileSwitchEvent
 import moe.nea.firmament.events.SlotClickEvent
 import moe.nea.firmament.events.UseItemEvent
 import moe.nea.firmament.events.WorldReadyEvent
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.DurabilityBarEvent
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData
@@ -28,6 +26,7 @@ import moe.nea.firmament.util.SkyBlockIsland
 import moe.nea.firmament.util.TIME_PATTERN
 import moe.nea.firmament.util.TimeMark
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.extraAttributes
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.mc.loreAccordingToNbt
@@ -44,8 +43,8 @@ import moe.nea.firmament.util.tr
 import moe.nea.firmament.util.unformattedString
 import moe.nea.firmament.util.useMatch
 
-object PickaxeAbility : FirmamentFeature {
-	override val identifier: String
+object PickaxeAbility {
+	val identifier: String
 		get() = "pickaxe-info"
 
 	enum class ShowOnTools(val label: String, val items: Set<ItemType>) : StringIdentifiable {
@@ -101,9 +100,6 @@ object PickaxeAbility : FirmamentFeature {
 	)
 	val destructiveAbilities = setOf("Pickobulus")
 	val pickaxeTypes = setOf(ItemType.PICKAXE, ItemType.DRILL, ItemType.GAUNTLET)
-
-	override val config: ManagedConfig
-		get() = TConfig
 
 	fun getCooldownPercentage(name: String, cooldown: Duration): Double {
 		val sinceLastUsage = lastUsage[name]?.passedTime() ?: Duration.INFINITE

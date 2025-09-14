@@ -4,10 +4,9 @@ import org.lwjgl.glfw.GLFW
 import net.minecraft.item.Items
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HandledScreenKeyPressedEvent
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.mc.SlotUtils.clickLeftMouseButton
 
 object WardrobeKeybinds {

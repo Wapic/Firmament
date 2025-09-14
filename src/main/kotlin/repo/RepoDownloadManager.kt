@@ -21,6 +21,7 @@ import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.Firmament.logger
+import moe.nea.firmament.repo.RepoDownloadManager.latestSavedVersionHash
 import moe.nea.firmament.util.iterate
 
 
@@ -54,11 +55,11 @@ object RepoDownloadManager {
 	private class GithubCommitsResponse(val sha: String)
 
 	private suspend fun requestLatestGithubSha(branchOverride: String?): String? {
-		if (RepoManager.Config.branch == "prerelease") {
-			RepoManager.Config.branch = "master"
+		if (RepoManager.TConfig.branch == "prerelease") {
+			RepoManager.TConfig.branch = "master"
 		}
 		val response =
-			Firmament.httpClient.get("https://api.github.com/repos/${RepoManager.Config.username}/${RepoManager.Config.reponame}/commits/${branchOverride ?: RepoManager.Config.branch}")
+			Firmament.httpClient.get("https://api.github.com/repos/${RepoManager.TConfig.username}/${RepoManager.TConfig.reponame}/commits/${branchOverride ?: RepoManager.TConfig.branch}")
 		if (response.status.value != 200) {
 			return null
 		}
@@ -87,7 +88,7 @@ object RepoDownloadManager {
 			val currentSha = loadSavedVersionHash()
 			if (latestSha != currentSha || force) {
 				val requestUrl =
-					"https://github.com/${RepoManager.Config.username}/${RepoManager.Config.reponame}/archive/$latestSha.zip"
+					"https://github.com/${RepoManager.TConfig.username}/${RepoManager.TConfig.reponame}/archive/$latestSha.zip"
 				logger.info("Planning to upgrade repository from $currentSha to $latestSha from $requestUrl")
 				val zipFile = downloadGithubArchive(requestUrl)
 				logger.info("Download repository zip file to $zipFile. Deleting old repository")

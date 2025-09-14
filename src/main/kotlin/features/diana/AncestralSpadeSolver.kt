@@ -10,19 +10,16 @@ import moe.nea.firmament.events.SoundReceiveEvent
 import moe.nea.firmament.events.WorldKeyboardEvent
 import moe.nea.firmament.events.WorldReadyEvent
 import moe.nea.firmament.events.WorldRenderLastEvent
-import moe.nea.firmament.events.subscription.SubscriptionOwner
-import moe.nea.firmament.features.FirmamentFeature
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData
 import moe.nea.firmament.util.SkyBlockIsland
-import moe.nea.firmament.util.SkyblockId
 import moe.nea.firmament.util.TimeMark
 import moe.nea.firmament.util.WarpUtil
 import moe.nea.firmament.util.render.RenderInWorldContext
 import moe.nea.firmament.util.skyBlockId
 import moe.nea.firmament.util.skyblock.SkyBlockItems
 
-object AncestralSpadeSolver : SubscriptionOwner {
+object AncestralSpadeSolver {
 	var lastDing = TimeMark.farPast()
 		private set
 	private val pitches = mutableListOf<Float>()
@@ -122,8 +119,4 @@ object AncestralSpadeSolver : SubscriptionOwner {
 		pitches.clear()
 		lastDing = TimeMark.farPast()
 	}
-
-	override val delegateFeature: FirmamentFeature
-		get() = DianaWaypoints
-
 }

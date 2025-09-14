@@ -11,13 +11,11 @@ import moe.nea.firmament.events.ParticleSpawnEvent
 import moe.nea.firmament.events.ProcessChatEvent
 import moe.nea.firmament.events.WorldReadyEvent
 import moe.nea.firmament.events.WorldRenderLastEvent
-import moe.nea.firmament.events.subscription.SubscriptionOwner
-import moe.nea.firmament.features.FirmamentFeature
 import moe.nea.firmament.util.TimeMark
 import moe.nea.firmament.util.collections.mutableMapWithMaxSize
 import moe.nea.firmament.util.render.RenderInWorldContext.Companion.renderInWorld
 
-object NearbyBurrowsSolver : SubscriptionOwner {
+object NearbyBurrowsSolver {
 
 
 	private val recentlyDugBurrows: MutableMap<BlockPos, TimeMark> = mutableMapWithMaxSize(20)
@@ -134,9 +132,6 @@ object NearbyBurrowsSolver : SubscriptionOwner {
 		burrows.remove(blockPos)
 		lastBlockClick = blockPos
 	}
-
-	override val delegateFeature: FirmamentFeature
-		get() = DianaWaypoints
 }
 
 fun Position.toBlockPos(): BlockPos {

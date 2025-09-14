@@ -7,7 +7,6 @@ import java.net.URI
 import java.net.URL
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicInteger
-import moe.nea.jarvis.api.Point
 import org.joml.Vector2i
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,17 +25,16 @@ import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ModifyChatEvent
 import moe.nea.firmament.events.ScreenRenderPostEvent
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.jarvis.JarvisIntegration
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.render.drawTexture
 import moe.nea.firmament.util.transformEachRecursively
 import moe.nea.firmament.util.unformattedString
 
-object ChatLinks : FirmamentFeature {
-	override val identifier: String
+object ChatLinks {
+	val identifier: String
 		get() = "chat-links"
 
 	@Config
@@ -54,7 +52,6 @@ object ChatLinks : FirmamentFeature {
 
 	private fun isUrlAllowed(url: String) = isHostAllowed(url.removePrefix("https://").substringBefore("/"))
 
-	override val config get() = TConfig
 	val urlRegex = "https://[^. ]+\\.[^ ]+(\\.?(\\s|$))".toRegex()
 	val nextTexId = AtomicInteger(0)
 
@@ -76,7 +73,7 @@ object ChatLinks : FirmamentFeature {
 		}
 		imageCache[url] = Firmament.coroutineScope.async {
 			try {
-				val response = Firmament.httpClient.get(URL(url))
+				val response = Firmament.httpClient.get(URI.create(url).toURL())
 				if (response.status.value == 200) {
 					val inputStream = response.bodyAsChannel().toInputStream(Firmament.globalJob)
 					val image = NativeImage.read(inputStream)

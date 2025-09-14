@@ -1,7 +1,6 @@
 package moe.nea.firmament.features.items
 
 import me.shedaniel.math.Color
-import moe.nea.jarvis.api.Point
 import org.joml.Vector2i
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.decoration.ArmorStandEntity
@@ -9,20 +8,18 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.util.Formatting
 import net.minecraft.util.math.Box
 import moe.nea.firmament.annotations.Subscribe
-import moe.nea.firmament.events.ClientStartedEvent
 import moe.nea.firmament.events.EntityRenderTintEvent
 import moe.nea.firmament.events.HudRenderEvent
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.render.TintedOverlayTexture
 import moe.nea.firmament.util.skyBlockId
 import moe.nea.firmament.util.skyblock.SkyBlockItems
 import moe.nea.firmament.util.tr
 
-object BonemerangOverlay : FirmamentFeature {
-	override val identifier: String
+object BonemerangOverlay {
+	val identifier: String
 		get() = "bonemerang-overlay"
 
 	@Config
@@ -31,13 +28,6 @@ object BonemerangOverlay : FirmamentFeature {
 		val bonemerangOverlayHud by position("bonemerang-overlay-hud", 80, 10) { Vector2i() }
 		var highlightHitEntities by toggle("highlight-hit-entities") { false }
 	}
-
-	@Subscribe
-	fun onInit(event: ClientStartedEvent) {
-	}
-
-	override val config: ManagedConfig
-		get() = TConfig
 
 	fun getEntities(): MutableSet<LivingEntity> {
 		val entities = mutableSetOf<LivingEntity>()

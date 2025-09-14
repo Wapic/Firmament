@@ -19,19 +19,13 @@ import moe.nea.firmament.events.CustomItemModelEvent
 import moe.nea.firmament.events.EarlyResourceReloadEvent
 import moe.nea.firmament.events.FinalizeResourceManagerEvent
 import moe.nea.firmament.events.ScreenChangeEvent
-import moe.nea.firmament.events.subscription.SubscriptionOwner
-import moe.nea.firmament.features.FirmamentFeature
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.IdentifierSerializer
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.json.SingletonSerializableList
 import moe.nea.firmament.util.runNull
 
-object CustomGlobalTextures : SinglePreparationResourceReloader<CustomGlobalTextures.CustomGuiTextureOverride>(),
-	SubscriptionOwner {
-	override val delegateFeature: FirmamentFeature
-		get() = CustomSkyBlockTextures
-
+object CustomGlobalTextures : SinglePreparationResourceReloader<CustomGlobalTextures.CustomGuiTextureOverride>() {
 	class CustomGuiTextureOverride(
 		val classes: List<ItemOverrideCollection>
 	)
@@ -64,12 +58,14 @@ object CustomGlobalTextures : SinglePreparationResourceReloader<CustomGlobalText
 			.supplyAsync(
 				{
 					prepare(event.resourceManager)
-				}, event.preparationExecutor)
+				}, event.preparationExecutor
+			)
 	}
 
 	@Volatile
 	var preparationFuture: CompletableFuture<CustomGuiTextureOverride> = CompletableFuture.completedFuture(
-		CustomGuiTextureOverride(listOf()))
+		CustomGuiTextureOverride(listOf())
+	)
 
 	override fun prepare(manager: ResourceManager?, profiler: Profiler?): CustomGuiTextureOverride {
 		return preparationFuture.join()
@@ -104,7 +100,10 @@ object CustomGlobalTextures : SinglePreparationResourceReloader<CustomGlobalText
 				val screenFilter =
 					Firmament.tryDecodeJsonFromStream<ScreenFilter>(guiClassResource.inputStream)
 						.getOrElse { ex ->
-							ErrorUtil.softError("Failed to load screen filter at $key used by ${it.value.map { it.first }}", ex)
+							ErrorUtil.softError(
+								"Failed to load screen filter at $key used by ${it.value.map { it.first }}",
+								ex
+							)
 							return@mapNotNull null
 						}
 				ItemOverrideCollection(screenFilter, it.value.map { it.second })

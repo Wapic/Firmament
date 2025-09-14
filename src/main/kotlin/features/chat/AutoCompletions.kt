@@ -8,13 +8,12 @@ import moe.nea.firmament.commands.thenArgument
 import moe.nea.firmament.commands.thenExecute
 import moe.nea.firmament.events.CommandEvent
 import moe.nea.firmament.events.MaskCommands
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.repo.RepoManager
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 
-object AutoCompletions : FirmamentFeature {
+object AutoCompletions {
 
 	@Config
 	object TConfig : ManagedConfig(identifier, Category.CHAT) {
@@ -22,9 +21,7 @@ object AutoCompletions : FirmamentFeature {
 		val replaceWarpIsByWarpIsland by toggle("warp-is") { true }
 	}
 
-	override val config: ManagedConfig?
-		get() = TConfig
-	override val identifier: String
+	val identifier: String
 		get() = "auto-completions"
 
 	@Subscribe
@@ -46,9 +43,9 @@ object AutoCompletions : FirmamentFeature {
 				thenExecute {
 					val warpName = get(toArg)
 					if (warpName == "is" && TConfig.replaceWarpIsByWarpIsland) {
-						MC.sendServerCommand("warp island")
+						MC.sendCommand("warp island")
 					} else {
-						MC.sendServerCommand("warp $warpName")
+						MC.sendCommand("warp $warpName")
 					}
 				}
 			}

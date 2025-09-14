@@ -9,10 +9,10 @@ import moe.nea.jarvis.api.JarvisPlugin
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.Text
 import moe.nea.firmament.Firmament
-import moe.nea.firmament.features.FeatureManager
 import moe.nea.firmament.gui.config.HudMeta
 import moe.nea.firmament.gui.config.HudMetaHandler
-import moe.nea.firmament.repo.RepoManager
+import moe.nea.firmament.gui.config.storage.FirmamentConfigLoader
+import moe.nea.firmament.util.data.ManagedConfig
 
 class JarvisIntegration : JarvisPlugin {
     override fun getModId(): String =
@@ -27,9 +27,7 @@ class JarvisIntegration : JarvisPlugin {
     }
 
     val configs
-        get() = listOf(
-            RepoManager.Config
-        ) + FeatureManager.allFeatures.mapNotNull { it.config }
+        get() = FirmamentConfigLoader.allConfigs.filterIsInstance<ManagedConfig>()
 
 
     override fun getAllHuds(): List<JarvisHud> {

@@ -1,7 +1,6 @@
 package moe.nea.firmament.features.macros
 
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.client.util.InputUtil
 import net.minecraft.text.Text
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HudRenderEvent

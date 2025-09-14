@@ -17,16 +17,18 @@ import net.minecraft.util.StringIdentifiable
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.Firmament.logger
 import moe.nea.firmament.events.ReloadRegistrationEvent
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.MinecraftDispatcher
 import moe.nea.firmament.util.SkyblockId
 import moe.nea.firmament.util.TestUtil
+import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.tr
 
 object RepoManager {
-	object Config : ManagedConfig("repo", Category.META) {
+	@Config
+	object TConfig : ManagedConfig("repo", Category.META) {
 		var username by string("username") { "NotEnoughUpdates" }
 		var reponame by string("reponame") { "NotEnoughUpdates-REPO" }
 		var branch by string("branch") { "master" }
@@ -173,7 +175,7 @@ object RepoManager {
 			return
 		}
 		neuRepo = makeNEURepository(RepoDownloadManager.repoSavedLocation)
-		if (Config.autoUpdate) {
+		if (TConfig.autoUpdate) {
 			launchAsyncUpdate()
 		} else {
 			Firmament.coroutineScope.launch {
@@ -204,8 +206,8 @@ object RepoManager {
 	}
 
 	fun getRepoRef(): String {
-		return "${Config.username}/${Config.reponame}#${Config.branch}"
+		return "${TConfig.username}/${TConfig.reponame}#${TConfig.branch}"
 	}
 
-	fun shouldLoadREI(): Boolean = Config.enableREI
+	fun shouldLoadREI(): Boolean = TConfig.enableREI
 }

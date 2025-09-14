@@ -9,8 +9,8 @@ import kotlinx.serialization.json.JsonElement
 import kotlin.jvm.optionals.getOrNull
 import net.minecraft.util.StringIdentifiable
 import moe.nea.firmament.gui.CheckboxComponent
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.ErrorUtil
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.json.KJsonOps
 
 class ChoiceHandler<E>(

@@ -2,10 +2,9 @@
 
 package moe.nea.firmament.util
 
-import java.util.*
+import java.util.Base64
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import moe.nea.firmament.Firmament
 

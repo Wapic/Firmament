@@ -2,17 +2,19 @@
 
 package moe.nea.firmament.apis
 
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.appendPathSegments
+import java.time.Duration
+import java.time.Instant
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
-import moe.nea.firmament.Firmament
 import net.minecraft.client.MinecraftClient
-import java.time.Duration
-import java.time.Instant
-import java.util.*
+import moe.nea.firmament.Firmament
 
 object UrsaManager {
     private data class Token(

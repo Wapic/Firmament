@@ -46,7 +46,7 @@ import moe.nea.firmament.gui.config.storage.ConfigStorageClass
 abstract class ManagedConfig(
 	val name: String,
 	val category: Category,
-) : IDataHolder<Unit> {
+) : IDataHolder<Unit>() {
 	enum class Category {
 		// Böse Kategorie, nicht benutzten lol
 		MISC,

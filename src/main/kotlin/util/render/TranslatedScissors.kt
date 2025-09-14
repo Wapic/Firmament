@@ -2,7 +2,6 @@ package moe.nea.firmament.util.render
 
 import org.joml.Matrix3x2f
 import org.joml.Vector3f
-import org.joml.Vector4f
 import net.minecraft.client.gui.DrawContext
 
 fun DrawContext.enableScissorWithTranslation(x1: Float, y1: Float, x2: Float, y2: Float) {

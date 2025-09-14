@@ -5,6 +5,7 @@ import net.minecraft.client.render.OverlayTexture
 import net.minecraft.client.render.entity.state.EntityRenderState
 import net.minecraft.entity.Entity
 import net.minecraft.entity.LivingEntity
+import moe.nea.firmament.events.EntityRenderTintEvent.Companion.overlayOverride
 import moe.nea.firmament.util.render.TintedOverlayTexture
 
 /**

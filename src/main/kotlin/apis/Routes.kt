@@ -2,19 +2,15 @@
 
 package moe.nea.firmament.apis
 
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.util.*
-import java.util.*
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.http.isSuccess
+import io.ktor.util.CaseInsensitiveMap
+import java.util.UUID
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.collections.MutableMap
-import kotlin.collections.listOf
-import kotlin.collections.mutableMapOf
-import kotlin.collections.set
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.util.MinecraftDispatcher
 

@@ -39,7 +39,6 @@ import moe.nea.firmament.features.debug.ExportedTestConstantMeta
 import moe.nea.firmament.repo.RepoManager.initialize
 import moe.nea.firmament.util.LegacyFormattingCode
 import moe.nea.firmament.util.LegacyTagParser
-import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.MinecraftDispatcher
 import moe.nea.firmament.util.SkyblockId
 import moe.nea.firmament.util.TestUtil

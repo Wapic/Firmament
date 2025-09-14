@@ -13,6 +13,7 @@ import moe.nea.firmament.gui.config.storage.ConfigStorageClass
 import moe.nea.firmament.repo.ItemNameLookup
 import moe.nea.firmament.util.SHORT_NUMBER_FORMAT
 import moe.nea.firmament.util.SkyblockId
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.data.ProfileSpecificDataHolder
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.mc.iterableView
@@ -30,6 +31,7 @@ object SackUtil {
 //		val sackTypes:
 	)
 
+	@Config
 	object Store : ProfileSpecificDataHolder<SackContents>(serializer(), "sacks", ::SackContents)
 
 	@Subscribe

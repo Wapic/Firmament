@@ -6,7 +6,6 @@ import io.github.notenoughupdates.moulconfig.gui.MouseEvent
 import io.github.notenoughupdates.moulconfig.observer.GetSetter
 import io.github.notenoughupdates.moulconfig.platform.MoulConfigRenderContext
 import net.minecraft.client.gl.RenderPipelines
-import net.minecraft.client.render.RenderLayer
 import moe.nea.firmament.Firmament
 
 class CheckboxComponent<T>(

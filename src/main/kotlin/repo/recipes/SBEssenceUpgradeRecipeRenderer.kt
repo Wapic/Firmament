@@ -1,8 +1,6 @@
 package moe.nea.firmament.repo.recipes
 
 import io.github.moulberry.repo.NEURepository
-import io.github.moulberry.repo.data.NEUForgeRecipe
-import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
 import net.minecraft.item.ItemStack
 import net.minecraft.text.Text

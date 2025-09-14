@@ -12,12 +12,11 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
-import moe.nea.firmament.util.data.ManagedConfig
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
-import net.minecraft.text.Text
 import moe.nea.firmament.util.FirmFormatters
+import moe.nea.firmament.util.data.ManagedConfig
 
 class DurationHandler(val config: ManagedConfig, val min: Duration, val max: Duration) :
     ManagedConfig.OptionHandler<Duration> {

@@ -4,13 +4,12 @@ import net.minecraft.particle.ParticleTypes
 import net.minecraft.util.math.Vec3d
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ParticleSpawnEvent
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.compatloader.CompatLoader
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 
-object CompatibliltyFeatures : FirmamentFeature {
-	override val identifier: String
+object CompatibliltyFeatures {
+	val identifier: String
 		get() = "compatibility"
 
 	@Config
@@ -18,9 +17,6 @@ object CompatibliltyFeatures : FirmamentFeature {
 		val enhancedExplosions by toggle("explosion-enabled") { false }
 		val explosionSize by integer("explosion-power", 10, 50) { 1 }
 	}
-
-	override val config: ManagedConfig?
-		get() = TConfig
 
 	interface ExplosiveApiWrapper {
 		fun spawnParticle(vec3d: Vec3d, power: Float)

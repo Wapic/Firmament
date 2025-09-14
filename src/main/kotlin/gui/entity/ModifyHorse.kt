@@ -2,9 +2,6 @@ package moe.nea.firmament.gui.entity
 
 import com.google.gson.JsonNull
 import com.google.gson.JsonObject
-import kotlin.experimental.and
-import kotlin.experimental.inv
-import kotlin.experimental.or
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.EquipmentSlot
 import net.minecraft.entity.LivingEntity

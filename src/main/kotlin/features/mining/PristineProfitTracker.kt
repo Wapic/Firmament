@@ -1,7 +1,6 @@
 package moe.nea.firmament.features.mining
 
 import io.github.notenoughupdates.moulconfig.xml.Bind
-import moe.nea.jarvis.api.Point
 import org.joml.Vector2i
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
@@ -9,20 +8,19 @@ import kotlin.time.Duration.Companion.seconds
 import net.minecraft.text.Text
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ProcessChatEvent
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.gui.hud.MoulConfigHud
 import moe.nea.firmament.util.BazaarPriceStrategy
 import moe.nea.firmament.util.FirmFormatters.formatCommas
 import moe.nea.firmament.util.SkyblockId
 import moe.nea.firmament.util.StringUtil.parseIntWithComma
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.data.ProfileSpecificDataHolder
 import moe.nea.firmament.util.formattedString
 import moe.nea.firmament.util.useMatch
 
-object PristineProfitTracker : FirmamentFeature {
-	override val identifier: String
+object PristineProfitTracker {
+	val identifier: String
 		get() = "pristine-profit"
 
 	enum class GemstoneKind(
@@ -52,10 +50,8 @@ object PristineProfitTracker : FirmamentFeature {
 		var maxCollectionPerSecond: Double = 1.0,
 	)
 
+	@Config
 	object DConfig : ProfileSpecificDataHolder<Data>(serializer(), identifier, ::Data)
-
-	override val config: ManagedConfig?
-		get() = TConfig
 
 	@Config
 	object TConfig : ManagedConfig(identifier, Category.MINING) {
@@ -117,20 +113,18 @@ object PristineProfitTracker : FirmamentFeature {
 		                                                   formatCommas(moneyPerSecond * SECONDS_PER_HOUR, 1))
 			.formattedString()
 		val data = DConfig.data
-		if (data != null) {
-			if (data.maxCollectionPerSecond < collectionPerSecond && collectionHistogram.oldestUpdate()
-					.passedTime() > 30.seconds
-			) {
-				data.maxCollectionPerSecond = collectionPerSecond
-				DConfig.markDirty()
-			}
-			if (data.maxMoneyPerSecond < moneyPerSecond && moneyHistogram.oldestUpdate().passedTime() > 30.seconds) {
-				data.maxMoneyPerSecond = moneyPerSecond
-				DConfig.markDirty()
-			}
-			ProfitHud.collectionMax = maxOf(data.maxCollectionPerSecond, collectionPerSecond)
-			ProfitHud.moneyMax = maxOf(data.maxMoneyPerSecond, moneyPerSecond)
+		if (data.maxCollectionPerSecond < collectionPerSecond && collectionHistogram.oldestUpdate()
+				.passedTime() > 30.seconds
+		) {
+			data.maxCollectionPerSecond = collectionPerSecond
+			DConfig.markDirty()
 		}
+		if (data.maxMoneyPerSecond < moneyPerSecond && moneyHistogram.oldestUpdate().passedTime() > 30.seconds) {
+			data.maxMoneyPerSecond = moneyPerSecond
+			DConfig.markDirty()
+		}
+		ProfitHud.collectionMax = maxOf(data.maxCollectionPerSecond, collectionPerSecond)
+		ProfitHud.moneyMax = maxOf(data.maxMoneyPerSecond, moneyPerSecond)
 	}
 
 

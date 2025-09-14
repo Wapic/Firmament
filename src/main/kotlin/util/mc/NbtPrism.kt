@@ -7,13 +7,7 @@ import com.google.gson.JsonPrimitive
 import com.mojang.brigadier.StringReader
 import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
-import com.mojang.brigadier.context.CommandContext
-import com.mojang.brigadier.suggestion.Suggestions
-import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import com.mojang.serialization.JsonOps
-import java.util.concurrent.CompletableFuture
-import kotlin.collections.indices
-import kotlin.collections.map
 import kotlin.jvm.optionals.getOrNull
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement

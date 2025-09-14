@@ -1,7 +1,6 @@
 package moe.nea.firmament.util.render
 
 import com.mojang.blaze3d.systems.RenderSystem
-import java.lang.Math.pow
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import util.render.CustomRenderLayers

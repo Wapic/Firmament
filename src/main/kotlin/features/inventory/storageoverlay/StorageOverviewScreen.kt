@@ -53,18 +53,18 @@ class StorageOverviewScreen() : Screen(Text.empty()) {
 
     inline fun layoutedForEach(onEach: (data: Pair<StoragePageSlot, StorageData.StorageInventory>, offsetX: Int, offsetY: Int) -> Unit) {
         var offsetY = 0
-        var currentMaxHeight = StorageOverlay.config.margin - StorageOverlay.config.padding - scroll
+        var currentMaxHeight = StorageOverlay.TConfig.margin - StorageOverlay.TConfig.padding - scroll
         var totalHeight = -currentMaxHeight
         content.storageInventories.onEachIndexed { index, (key, value) ->
-            val pageX = (index % StorageOverlay.config.columns)
+            val pageX = (index % StorageOverlay.TConfig.columns)
             if (pageX == 0) {
-                currentMaxHeight += StorageOverlay.config.padding
+                currentMaxHeight += StorageOverlay.TConfig.padding
                 offsetY += currentMaxHeight
                 totalHeight += currentMaxHeight
                 currentMaxHeight = 0
             }
             val xPosition =
-                width / 2 - (StorageOverlay.config.columns * (pageWidth + StorageOverlay.config.padding) - StorageOverlay.config.padding) / 2 + pageX * (pageWidth + StorageOverlay.config.padding)
+                width / 2 - (StorageOverlay.TConfig.columns * (pageWidth + StorageOverlay.TConfig.padding) - StorageOverlay.TConfig.padding) / 2 + pageX * (pageWidth + StorageOverlay.TConfig.padding)
             onEach(Pair(key, value), xPosition, offsetY)
             val height = getStorePageHeight(value)
             currentMaxHeight = max(currentMaxHeight, height)
@@ -102,7 +102,7 @@ class StorageOverviewScreen() : Screen(Text.empty()) {
         return true
     }
 
-	private fun getMaxScroll() = lastRenderedHeight - height + 2 * StorageOverlay.config.margin
+	private fun getMaxScroll() = lastRenderedHeight - height + 2 * StorageOverlay.TConfig.margin
 
     private fun renderStoragePage(context: DrawContext, page: StorageData.StorageInventory, mouseX: Int, mouseY: Int) {
         context.drawText(MC.font, page.title, 2, 2, -1, true)

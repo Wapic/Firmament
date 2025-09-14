@@ -102,7 +102,7 @@ object FirmamentConfigLoader {
 	}
 
 	fun saveAll() {
-		ConfigLoadContext("load-${System.currentTimeMillis()}").use { context ->
+		ConfigLoadContext("save-${System.currentTimeMillis()}").use { context ->
 			saveStorage(
 				ConfigStorageClass.CONFIG,
 				Unit,
@@ -198,7 +198,7 @@ object FirmamentConfigLoader {
 	}
 
 	fun markDirty(holder: IDataHolder<*>) {
-		TODO("Not yet implemented")
+		saveAll()
 	}
 
 }

@@ -64,7 +64,7 @@ class FirmamentReiPlugin : REIClientPlugin {
 			if (recipe !is NEUCraftingRecipe) return@TransferHandler TransferHandler.Result.createNotApplicable()
 			val neuItem = RepoManager.getNEUItem(SkyblockId(recipe.output.itemId))
 				?: error("Could not find neu item ${recipe.output.itemId} which is used in a recipe output")
-			val useSuperCraft = context.isStackedCrafting || RepoManager.Config.alwaysSuperCraft
+			val useSuperCraft = context.isStackedCrafting || RepoManager.TConfig.alwaysSuperCraft
 			if (neuItem.isVanilla && useSuperCraft) return@TransferHandler TransferHandler.Result.createFailed(
 				Text.translatable(
 					"firmament.recipe.novanilla"
@@ -138,7 +138,7 @@ class FirmamentReiPlugin : REIClientPlugin {
 	override fun registerCollapsibleEntries(registry: CollapsibleEntryRegistry) {
 		if (!RepoManager.shouldLoadREI()) return
 
-		if (!RepoManager.Config.disableItemGroups)
+		if (!RepoManager.TConfig.disableItemGroups)
 			RepoManager.neuRepo.constants.parents.parents
 				.forEach { (parent, children) ->
 					registry.group(

@@ -26,15 +26,13 @@ import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.util.Identifier
 import net.minecraft.util.StringIdentifiable
 import moe.nea.firmament.annotations.Subscribe
-import moe.nea.firmament.events.FeaturesInitializedEvent
+import moe.nea.firmament.events.ClientInitEvent
 import moe.nea.firmament.events.HandledScreenForegroundEvent
 import moe.nea.firmament.events.HandledScreenKeyPressedEvent
 import moe.nea.firmament.events.HandledScreenKeyReleasedEvent
 import moe.nea.firmament.events.IsSlotProtectedEvent
 import moe.nea.firmament.events.ScreenChangeEvent
 import moe.nea.firmament.events.SlotRenderEvents
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.keybindings.InputModifiers
 import moe.nea.firmament.keybindings.SavedKeyBinding
 import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
@@ -43,6 +41,7 @@ import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData
 import moe.nea.firmament.util.SkyBlockIsland
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.data.ProfileSpecificDataHolder
 import moe.nea.firmament.util.extraAttributes
 import moe.nea.firmament.util.json.DashlessUUIDSerializer
@@ -60,8 +59,8 @@ import moe.nea.firmament.util.skyblockUUID
 import moe.nea.firmament.util.tr
 import moe.nea.firmament.util.unformattedString
 
-object SlotLocking : FirmamentFeature {
-	override val identifier: String
+object SlotLocking {
+	val identifier: String
 		get() = "slot-locking"
 
 	@Serializable
@@ -166,15 +165,14 @@ object SlotLocking : FirmamentFeature {
 		}
 	}
 
-	override val config: TConfig
-		get() = TConfig
-
+	@Config
 	object DConfig : ProfileSpecificDataHolder<Data>(serializer(), "locked-slots", ::Data)
 
 	val lockedUUIDs get() = DConfig.data?.lockedUUIDs
 
 	val lockedSlots
 		get() = currentWorldData?.lockedSlots
+
 	fun isSalvageScreen(screen: HandledScreen<*>?): Boolean {
 		if (screen == null) return false
 		return screen.title.unformattedString.contains("Salvage Item")
@@ -259,7 +257,7 @@ object SlotLocking : FirmamentFeature {
 	}
 
 	@Subscribe
-	fun onEvent(event: FeaturesInitializedEvent) {
+	fun onEvent(event: ClientInitEvent) {
 		IsSlotProtectedEvent.subscribe(receivesCancelled = true, "SlotLocking:unlockInDungeons") {
 			if (it.isProtected
 				&& it.origin == IsSlotProtectedEvent.MoveOrigin.DROP_FROM_HOTBAR

@@ -16,23 +16,18 @@ import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.DebugInstantiateEvent
 import moe.nea.firmament.events.TickEvent
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.init.MixinPlugin
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.TimeMark
 import moe.nea.firmament.util.asm.AsmAnnotationUtil
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.iterate
 
-object DeveloperFeatures : FirmamentFeature {
+object DeveloperFeatures {
 	val DEVELOPER_SUBCOMMAND: String = "dev"
-	override val identifier: String
+	val identifier: String
 		get() = "developer"
-	override val config: TConfig
-		get() = TConfig
-	override val defaultEnabled: Boolean
-		get() = Firmament.DEBUG
 
 	val gradleDir =
 		Path.of(".").absolute()
@@ -98,7 +93,7 @@ object DeveloperFeatures : FirmamentFeature {
 
 	@JvmStatic
 	fun hookOnBeforeResourceReload(client: MinecraftClient): CompletableFuture<Void> {
-		val reloadFuture = if (TConfig.autoRebuildResources && isEnabled && gradleDir != null) {
+		val reloadFuture = if (TConfig.autoRebuildResources && Firmament.DEBUG && gradleDir != null) {
 			val builder = ProcessBuilder("./gradlew", ":processResources")
 			builder.directory(gradleDir.toFile())
 			builder.inheritIO()

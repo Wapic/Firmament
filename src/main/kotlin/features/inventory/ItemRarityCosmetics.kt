@@ -3,24 +3,17 @@ package moe.nea.firmament.features.inventory
 import java.awt.Color
 import net.minecraft.client.gl.RenderPipelines
 import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.RenderLayer
 import net.minecraft.item.ItemStack
-import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HotbarItemRenderEvent
 import moe.nea.firmament.events.SlotRenderEvents
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
-import moe.nea.firmament.util.collections.lastNotNullOfOrNull
-import moe.nea.firmament.util.collections.memoizeIdentity
 import moe.nea.firmament.util.data.Config
-import moe.nea.firmament.util.mc.loreAccordingToNbt
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.skyblock.Rarity
-import moe.nea.firmament.util.unformattedString
 
-object ItemRarityCosmetics : FirmamentFeature {
-	override val identifier: String
+object ItemRarityCosmetics {
+	val identifier: String
 		get() = "item-rarity-cosmetics"
 
 	@Config
@@ -28,9 +21,6 @@ object ItemRarityCosmetics : FirmamentFeature {
 		val showItemRarityBackground by toggle("background") { false }
 		val showItemRarityInHotbar by toggle("background-hotbar") { false }
 	}
-
-	override val config: ManagedConfig
-		get() = TConfig
 
 	private val rarityToColor = Rarity.colourMap.mapValues {
 		val c = Color(it.value.colorValue!!)

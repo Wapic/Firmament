@@ -20,7 +20,6 @@ import moe.nea.firmament.features.inventory.storageoverlay.StorageOverviewScreen
 import moe.nea.firmament.features.mining.MiningBlockInfoUi
 import moe.nea.firmament.gui.config.AllConfigsGui
 import moe.nea.firmament.gui.config.BooleanHandler
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.gui.config.ManagedOption
 import moe.nea.firmament.init.MixinPlugin
 import moe.nea.firmament.repo.HypixelStaticData
@@ -38,6 +37,7 @@ import moe.nea.firmament.util.accessors.messages
 import moe.nea.firmament.util.asBazaarStock
 import moe.nea.firmament.util.collections.InstanceList
 import moe.nea.firmament.util.collections.WeakCache
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.mc.SNbtFormatter
 import moe.nea.firmament.util.tr
 import moe.nea.firmament.util.unformattedString

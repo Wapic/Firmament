@@ -9,19 +9,17 @@ import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.hit.HitResult
 import net.minecraft.util.math.BlockPos
 import moe.nea.firmament.annotations.Subscribe
-import moe.nea.firmament.events.ClientStartedEvent
 import moe.nea.firmament.events.WorldKeyboardEvent
 import moe.nea.firmament.events.WorldRenderLastEvent
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.render.RenderInWorldContext
 import moe.nea.firmament.util.skyBlockId
 import moe.nea.firmament.util.skyblock.SkyBlockItems
 
-object BlockZapperOverlay : FirmamentFeature {
-	override val identifier: String
+object BlockZapperOverlay {
+	val identifier: String
 		get() = "block-zapper-overlay"
 
 	@Config
@@ -30,13 +28,6 @@ object BlockZapperOverlay : FirmamentFeature {
 		val color by colour("color") { ChromaColour.fromStaticRGB(160, 0, 0, 60) }
 		var undoKey by keyBindingWithDefaultUnbound("undo-key")
 	}
-
-	@Subscribe
-	fun onInit(event: ClientStartedEvent) {
-	}
-
-	override val config: ManagedConfig
-		get() = TConfig
 
 	val bannedZapper: List<Block> = listOf<Block>(
 		Blocks.WHEAT,

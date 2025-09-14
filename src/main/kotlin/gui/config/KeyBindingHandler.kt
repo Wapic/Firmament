@@ -1,19 +1,13 @@
 package moe.nea.firmament.gui.config
 
-import io.github.notenoughupdates.moulconfig.common.IMinecraft
-import io.github.notenoughupdates.moulconfig.common.MyResourceLocation
-import io.github.notenoughupdates.moulconfig.deps.libninepatch.NinePatch
-import io.github.notenoughupdates.moulconfig.gui.GuiImmediateContext
-import io.github.notenoughupdates.moulconfig.gui.KeyboardEvent
-import io.github.notenoughupdates.moulconfig.gui.component.TextComponent
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import moe.nea.firmament.gui.FirmButtonComponent
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.keybindings.FirmamentKeyBindings
 import moe.nea.firmament.keybindings.SavedKeyBinding
+import moe.nea.firmament.util.data.ManagedConfig
 
 class KeyBindingHandler(val name: String, val managedConfig: ManagedConfig) :
 	ManagedConfig.OptionHandler<SavedKeyBinding> {

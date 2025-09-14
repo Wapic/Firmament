@@ -1,6 +1,5 @@
 package moe.nea.firmament.features.inventory.buttons
 
-import kotlinx.serialization.encodeToString
 import net.minecraft.text.Text
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.util.ErrorUtil

@@ -1,6 +1,5 @@
 package moe.nea.firmament.util.render
 
-import org.joml.Matrix3x2f
 import net.minecraft.client.gui.ScreenRect
 import net.minecraft.client.gui.render.SpecialGuiElementRenderer
 import net.minecraft.client.gui.render.state.GuiRenderState

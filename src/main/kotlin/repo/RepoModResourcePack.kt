@@ -3,7 +3,7 @@ package moe.nea.firmament.repo
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.*
+import java.util.Optional
 import net.fabricmc.fabric.api.resource.ModResourcePack
 import net.fabricmc.fabric.impl.resource.loader.ModResourcePackSorter
 import net.fabricmc.loader.api.FabricLoader

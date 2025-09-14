@@ -1,8 +1,6 @@
 package moe.nea.firmament.features.world
 
 import me.shedaniel.math.Color
-import kotlin.compareTo
-import kotlin.text.clear
 import kotlin.time.Duration.Companion.seconds
 import net.minecraft.text.Text
 import net.minecraft.util.math.BlockPos

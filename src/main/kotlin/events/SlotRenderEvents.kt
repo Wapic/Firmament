@@ -3,11 +3,8 @@
 package moe.nea.firmament.events
 
 import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.RenderLayer
-import net.minecraft.client.texture.Sprite
 import net.minecraft.screen.slot.Slot
 import net.minecraft.util.Identifier
-import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.render.drawGuiTexture
 
 interface SlotRenderEvents {

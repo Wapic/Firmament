@@ -13,84 +13,87 @@ import moe.nea.firmament.commands.thenExecute
 import moe.nea.firmament.events.CommandEvent
 import moe.nea.firmament.events.ProcessChatEvent
 import moe.nea.firmament.repo.RepoManager
+import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.data.ProfileSpecificDataHolder
 
 object WarpUtil {
-    val warps: Sequence<Islands.Warp> get() = RepoManager.neuRepo.constants.islands.warps
-        .asSequence()
-        .filter { it.warp !in ignoredWarps }
+	val warps: Sequence<Islands.Warp>
+		get() = RepoManager.neuRepo.constants.islands.warps
+			.asSequence()
+			.filter { it.warp !in ignoredWarps }
 
-    val ignoredWarps = setOf("carnival", "")
+	val ignoredWarps = setOf("carnival", "")
 
-    @Serializable
-    data class Data(
-        val excludedWarps: MutableSet<String> = mutableSetOf(),
-    )
+	@Serializable
+	data class Data(
+		val excludedWarps: MutableSet<String> = mutableSetOf(),
+	)
 
-    object DConfig : ProfileSpecificDataHolder<Data>(serializer(), "warp-util", ::Data)
+	@Config
+	object DConfig : ProfileSpecificDataHolder<Data>(serializer(), "warp-util", ::Data)
 
-    private var lastAttemptedWarp = ""
-    private var lastWarpAttempt = TimeMark.farPast()
-    fun findNearestWarp(island: SkyBlockIsland, pos: Position): Islands.Warp? {
-        return warps.asSequence().filter { it.mode == island.locrawMode }.minByOrNull {
-            if (DConfig.data?.excludedWarps?.contains(it.warp) == true) {
-                return@minByOrNull Double.MAX_VALUE
-            } else {
-                return@minByOrNull squaredDist(pos, it)
-            }
-        }
-    }
+	private var lastAttemptedWarp = ""
+	private var lastWarpAttempt = TimeMark.farPast()
+	fun findNearestWarp(island: SkyBlockIsland, pos: Position): Islands.Warp? {
+		return warps.asSequence().filter { it.mode == island.locrawMode }.minByOrNull {
+			if (DConfig.data?.excludedWarps?.contains(it.warp) == true) {
+				return@minByOrNull Double.MAX_VALUE
+			} else {
+				return@minByOrNull squaredDist(pos, it)
+			}
+		}
+	}
 
-    private fun squaredDist(pos: Position, warp: Warp): Double {
-        val dx = pos.x - warp.x
-        val dy = pos.y - warp.y
-        val dz = pos.z - warp.z
-        return dx * dx + dy * dy + dz * dz
-    }
+	private fun squaredDist(pos: Position, warp: Warp): Double {
+		val dx = pos.x - warp.x
+		val dy = pos.y - warp.y
+		val dz = pos.z - warp.z
+		return dx * dx + dy * dy + dz * dz
+	}
 
-    fun teleportToNearestWarp(island: SkyBlockIsland, pos: Position) {
-        val nearestWarp = findNearestWarp(island, pos)
-        if (nearestWarp == null) {
-            MC.sendChat(Text.translatable("firmament.warp-util.no-warp-found", island.userFriendlyName))
-            return
-        }
-        if (island == SBData.skyblockLocation
-            && sqrt(squaredDist(pos, nearestWarp)) > 1.1 * sqrt(squaredDist((MC.player ?: return).pos, nearestWarp))
-        ) {
-            MC.sendChat(Text.translatable("firmament.warp-util.already-close", nearestWarp.warp))
-            return
-        }
-        MC.sendChat(Text.translatable("firmament.warp-util.attempting-to-warp", nearestWarp.warp))
-        lastWarpAttempt = TimeMark.now()
-        lastAttemptedWarp = nearestWarp.warp
-        MC.sendServerCommand("warp ${nearestWarp.warp}")
-    }
+	fun teleportToNearestWarp(island: SkyBlockIsland, pos: Position) {
+		val nearestWarp = findNearestWarp(island, pos)
+		if (nearestWarp == null) {
+			MC.sendChat(Text.translatable("firmament.warp-util.no-warp-found", island.userFriendlyName))
+			return
+		}
+		if (island == SBData.skyblockLocation
+			&& sqrt(squaredDist(pos, nearestWarp)) > 1.1 * sqrt(squaredDist((MC.player ?: return).pos, nearestWarp))
+		) {
+			MC.sendChat(Text.translatable("firmament.warp-util.already-close", nearestWarp.warp))
+			return
+		}
+		MC.sendChat(Text.translatable("firmament.warp-util.attempting-to-warp", nearestWarp.warp))
+		lastWarpAttempt = TimeMark.now()
+		lastAttemptedWarp = nearestWarp.warp
+		MC.sendServerCommand("warp ${nearestWarp.warp}")
+	}
 
-    @Subscribe
-    fun clearUnlockedWarpsCommand(event: CommandEvent.SubCommand) {
-        event.subcommand("clearwarps") {
-            thenExecute {
-                DConfig.data?.excludedWarps?.clear()
-                DConfig.markDirty()
-                source.sendFeedback(Text.translatable("firmament.warp-util.clear-excluded"))
-            }
-        }
-    }
+	@Subscribe
+	fun clearUnlockedWarpsCommand(event: CommandEvent.SubCommand) {
+		event.subcommand("clearwarps") {
+			thenExecute {
+				DConfig.data?.excludedWarps?.clear()
+				DConfig.markDirty()
+				source.sendFeedback(Text.translatable("firmament.warp-util.clear-excluded"))
+			}
+		}
+	}
 
-    init {
-        ProcessChatEvent.subscribe("WarpUtil:processChat") {
-            if (it.unformattedString == "You haven't unlocked this fast travel destination!"
-                && lastWarpAttempt.passedTime() < 2.seconds
-            ) {
-                DConfig.data?.excludedWarps?.add(lastAttemptedWarp)
-                DConfig.markDirty()
-                MC.sendChat(Text.stringifiedTranslatable("firmament.warp-util.mark-excluded", lastAttemptedWarp))
-                lastWarpAttempt = TimeMark.farPast()
-            }
-            if (it.unformattedString.startsWith("You may now fast travel to")) {
-                DConfig.data?.excludedWarps?.clear()
-                DConfig.markDirty()
-            }
-        }
-    }
+	init {
+		ProcessChatEvent.subscribe("WarpUtil:processChat") {
+			if (it.unformattedString == "You haven't unlocked this fast travel destination!"
+				&& lastWarpAttempt.passedTime() < 2.seconds
+			) {
+				DConfig.data?.excludedWarps?.add(lastAttemptedWarp)
+				DConfig.markDirty()
+				MC.sendChat(Text.stringifiedTranslatable("firmament.warp-util.mark-excluded", lastAttemptedWarp))
+				lastWarpAttempt = TimeMark.farPast()
+			}
+			if (it.unformattedString.startsWith("You may now fast travel to")) {
+				DConfig.data?.excludedWarps?.clear()
+				DConfig.markDirty()
+			}
+		}
+	}
 }

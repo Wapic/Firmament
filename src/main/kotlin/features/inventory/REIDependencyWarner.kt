@@ -52,7 +52,7 @@ object REIDependencyWarner {
 	@Subscribe
 	fun checkREIDependency(event: SkyblockServerUpdateEvent) {
 		if (!SBData.isOnSkyblock) return
-		if (!RepoManager.Config.warnForMissingItemListMod) return
+		if (!RepoManager.TConfig.warnForMissingItemListMod) return
 		if (hasREI) return
 		if (sentWarning) return
 		sentWarning = true
@@ -76,8 +76,8 @@ object REIDependencyWarner {
 		if (hasREI) return
 		event.subcommand("disablereiwarning") {
 			thenExecute {
-				RepoManager.Config.warnForMissingItemListMod = false
-				RepoManager.Config.markDirty()
+				RepoManager.TConfig.warnForMissingItemListMod = false
+				RepoManager.TConfig.markDirty()
 				MC.sendChat(Text.translatable("firmament.reiwarning.disabled").yellow())
 			}
 		}

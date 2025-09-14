@@ -1,7 +1,6 @@
 package moe.nea.firmament.gui.entity
 
 import com.mojang.authlib.GameProfile
-import com.mojang.authlib.GameProfileRepository
 import java.util.UUID
 import net.minecraft.client.network.AbstractClientPlayerEntity
 import net.minecraft.client.util.DefaultSkinHelper
@@ -9,7 +8,6 @@ import net.minecraft.client.util.SkinTextures
 import net.minecraft.client.util.SkinTextures.Model
 import net.minecraft.client.world.ClientWorld
 import net.minecraft.util.Identifier
-import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
 

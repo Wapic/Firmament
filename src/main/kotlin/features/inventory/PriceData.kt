@@ -5,22 +5,21 @@ import net.minecraft.text.Text
 import net.minecraft.util.StringIdentifiable
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ItemTooltipEvent
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.repo.HypixelStaticData
 import moe.nea.firmament.util.FirmFormatters.formatCommas
 import moe.nea.firmament.util.asBazaarStock
 import moe.nea.firmament.util.bold
 import moe.nea.firmament.util.darkGrey
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.getLogicalStackSize
 import moe.nea.firmament.util.gold
 import moe.nea.firmament.util.skyBlockId
 import moe.nea.firmament.util.tr
 import moe.nea.firmament.util.yellow
 
-object PriceData : FirmamentFeature {
-	override val identifier: String
+object PriceData {
+	val identifier: String
 		get() = "price-data"
 
 	@Config
@@ -45,8 +44,6 @@ object PriceData : FirmamentFeature {
 			return name
 		}
 	}
-
-	override val config get() = TConfig
 
 	fun formatPrice(label: Text, price: Double): Text {
 		return Text.literal("")

@@ -13,19 +13,18 @@ import moe.nea.firmament.events.ScreenChangeEvent
 import moe.nea.firmament.events.SlotClickEvent
 import moe.nea.firmament.events.SlotRenderEvents
 import moe.nea.firmament.events.TickEvent
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.customgui.customGui
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.data.ProfileSpecificDataHolder
 
-object StorageOverlay : FirmamentFeature {
+object StorageOverlay {
 
-
+	@Config
 	object Data : ProfileSpecificDataHolder<StorageData>(serializer(), "storage-data", ::StorageData)
 
-	override val identifier: String
+	val identifier: String
 		get() = "storage-overlay"
 
 	@Config
@@ -85,9 +84,6 @@ object StorageOverlay : FirmamentFeature {
 	fun adjustScrollSpeed(amount: Double): Double {
 		return amount * TConfig.scrollSpeed * (if (TConfig.inverseScroll) 1 else -1)
 	}
-
-	override val config: TConfig
-		get() = TConfig
 
 	var lastStorageOverlay: StorageOverviewScreen? = null
 	var skipNextStorageOverlayBackflip = false

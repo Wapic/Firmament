@@ -2,14 +2,12 @@ package moe.nea.firmament.repo
 
 import io.github.moulberry.repo.IReloadable
 import io.github.moulberry.repo.NEURepository
-import io.github.moulberry.repo.data.NEUItem
 import java.util.Collections
 import java.util.NavigableMap
 import java.util.TreeMap
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.serializer
-import kotlin.jvm.optionals.getOrNull
 import kotlin.streams.asSequence
 import net.minecraft.block.Block
 import net.minecraft.item.BlockItem
@@ -17,7 +15,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.text.Text
 import moe.nea.firmament.repo.ReforgeStore.kJson
-import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData
 import moe.nea.firmament.util.SkyBlockIsland
 import moe.nea.firmament.util.SkyblockId

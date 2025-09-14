@@ -11,10 +11,10 @@ import net.minecraft.text.Text
 import net.minecraft.util.StringIdentifiable
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ItemTooltipEvent
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.SBData
 import moe.nea.firmament.util.aqua
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.grey
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.timestamp

@@ -16,16 +16,15 @@ import moe.nea.firmament.events.CommandEvent
 import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.events.WorldReadyEvent
 import moe.nea.firmament.events.WorldRenderLastEvent
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.mc.asFakeServer
 import moe.nea.firmament.util.render.RenderInWorldContext
 import moe.nea.firmament.util.tr
 
-object Waypoints : FirmamentFeature {
-	override val identifier: String
+object Waypoints {
+	val identifier: String
 		get() = "waypoints"
 
 	@Config
@@ -37,7 +36,6 @@ object Waypoints : FirmamentFeature {
 		// TODO: look ahead size
 	}
 
-	override val config get() = TConfig
 	var waypoints: FirmWaypoints? = null
 	var orderedIndex = 0
 
@@ -56,11 +54,13 @@ object Waypoints : FirmamentFeature {
 				orderedIndex %= w.waypoints.size
 				val firstColor = Color.ofRGBA(0, 200, 40, 180)
 				tracer(w.waypoints[orderedIndex].blockPos.toCenterPos(), color = firstColor.color, lineWidth = 3f)
-				w.waypoints.withIndex().toList().wrappingWindow(orderedIndex, 3).zip(listOf(
-					firstColor,
-					Color.ofRGBA(180, 200, 40, 150),
-					Color.ofRGBA(180, 80, 20, 140),
-				)).reversed().forEach { (waypoint, col) ->
+				w.waypoints.withIndex().toList().wrappingWindow(orderedIndex, 3).zip(
+					listOf(
+						firstColor,
+						Color.ofRGBA(180, 200, 40, 150),
+						Color.ofRGBA(180, 80, 20, 140),
+					)
+				).reversed().forEach { (waypoint, col) ->
 					val (index, pos) = waypoint
 					block(pos.blockPos, col.color)
 					if (TConfig.showIndex) withFacingThePlayer(pos.blockPos.toCenterPos()) {
@@ -123,10 +123,14 @@ object Waypoints : FirmamentFeature {
 					val position = pos.get(this).toAbsoluteBlockPos(source.asFakeServer())
 					val w = useEditableWaypoints()
 					w.waypoints.add(FirmWaypoints.Waypoint.from(position))
-					source.sendFeedback(Text.stringifiedTranslatable("firmament.command.waypoint.added",
-					                                                 position.x,
-					                                                 position.y,
-					                                                 position.z))
+					source.sendFeedback(
+						Text.stringifiedTranslatable(
+							"firmament.command.waypoint.added",
+							position.x,
+							position.y,
+							position.z
+						)
+					)
 				}
 			}
 		}
@@ -134,9 +138,12 @@ object Waypoints : FirmamentFeature {
 			thenLiteral("reset") {
 				thenExecute {
 					orderedIndex = 0
-					source.sendFeedback(tr(
-						"firmament.command.waypoint.reset",
-						"Reset your ordered waypoint index back to 0. If you want to delete all waypoints use /firm waypoints clear instead."))
+					source.sendFeedback(
+						tr(
+							"firmament.command.waypoint.reset",
+							"Reset your ordered waypoint index back to 0. If you want to delete all waypoints use /firm waypoints clear instead."
+						)
+					)
 				}
 			}
 			thenLiteral("changeindex") {
@@ -158,10 +165,13 @@ object Waypoints : FirmamentFeature {
 							w.waypoints.add(
 								if (toIndex > fromIndex) toIndex - 1
 								else toIndex,
-								waypoint)
+								waypoint
+							)
 							source.sendFeedback(
-								tr("firmament.command.waypoint.indexchange",
-								   "Moved waypoint from index $fromIndex to $toIndex. Note that this only matters for ordered waypoints.")
+								tr(
+									"firmament.command.waypoint.indexchange",
+									"Moved waypoint from index $fromIndex to $toIndex. Note that this only matters for ordered waypoints."
+								)
 							)
 						}
 					}
@@ -203,8 +213,12 @@ object Waypoints : FirmamentFeature {
 						val w = useNonEmptyWaypoints()
 						if (w != null && index in w.waypoints.indices) {
 							w.waypoints.removeAt(index)
-							source.sendFeedback(Text.stringifiedTranslatable("firmament.command.waypoint.remove",
-							                                                 index))
+							source.sendFeedback(
+								Text.stringifiedTranslatable(
+									"firmament.command.waypoint.remove",
+									index
+								)
+							)
 						} else {
 							source.sendError(Text.stringifiedTranslatable("firmament.command.waypoint.remove.error"))
 						}
@@ -215,12 +229,16 @@ object Waypoints : FirmamentFeature {
 	}
 
 	fun textInvalidIndex(index: Int) =
-		tr("firmament.command.waypoint.invalid-index",
-		   "Invalid index $index provided.")
+		tr(
+			"firmament.command.waypoint.invalid-index",
+			"Invalid index $index provided."
+		)
 
 	fun textNothingToExport(): Text =
-		tr("firmament.command.waypoint.export.nowaypoints",
-		   "No waypoints to export found. Add some with /firm waypoint ~ ~ ~.")
+		tr(
+			"firmament.command.waypoint.export.nowaypoints",
+			"No waypoints to export found. Add some with /firm waypoint ~ ~ ~."
+		)
 }
 
 fun <E> List<E>.wrappingWindow(startIndex: Int, windowSize: Int): List<E> {

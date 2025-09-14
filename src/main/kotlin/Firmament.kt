@@ -51,7 +51,6 @@ import moe.nea.firmament.repo.HypixelStaticData
 import moe.nea.firmament.repo.RepoManager
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData
-import moe.nea.firmament.util.data.IDataHolder
 import moe.nea.firmament.util.mc.InitLevel
 import moe.nea.firmament.util.tr
 
@@ -144,7 +143,7 @@ object Firmament {
 		})
 		RepoManager.initialize()
 		SBData.init()
-		FeatureManager.autoload()
+		FeatureManager.subscribeEvents()
 		HypixelStaticData.spawnDataCollectionLoop()
 		ClientCommandRegistrationCallback.EVENT.register(this::registerCommands)
 		ClientLifecycleEvents.CLIENT_STARTED.register(ClientLifecycleEvents.ClientStarted {

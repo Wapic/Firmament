@@ -5,12 +5,10 @@ package moe.nea.firmament.features.debug
 import net.minecraft.text.Text
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ModifyChatEvent
-import moe.nea.firmament.features.FirmamentFeature
-
 
 // In memorian Dulkir
-object MinorTrolling : FirmamentFeature {
-    override val identifier: String
+object MinorTrolling {
+    val identifier: String
         get() = "minor-trolling"
 
     val trollers = listOf("nea89o", "lrg89")

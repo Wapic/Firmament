@@ -27,13 +27,13 @@ import moe.nea.firmament.events.ItemTooltipEvent
 import moe.nea.firmament.events.ScreenChangeEvent
 import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.events.WorldKeyboardEvent
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
 import moe.nea.firmament.util.ClipboardUtils
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.focusedItemStack
+import moe.nea.firmament.util.grey
 import moe.nea.firmament.util.mc.IntrospectableItemModelManager
 import moe.nea.firmament.util.mc.SNbtFormatter
 import moe.nea.firmament.util.mc.SNbtFormatter.Companion.toPrettyString
@@ -42,10 +42,9 @@ import moe.nea.firmament.util.mc.iterableArmorItems
 import moe.nea.firmament.util.mc.loreAccordingToNbt
 import moe.nea.firmament.util.skyBlockId
 import moe.nea.firmament.util.tr
-import moe.nea.firmament.util.grey
 
-object PowerUserTools : FirmamentFeature {
-	override val identifier: String
+object PowerUserTools  {
+	val identifier: String
 		get() = "power-user"
 
 	@Config
@@ -65,9 +64,6 @@ object PowerUserTools : FirmamentFeature {
 		val highlightNonOverlayItems by toggle("highlight-non-overlay") { false }
 		val dontHighlightSemicolonItems by toggle("dont-highlight-semicolon-items") { false }
 	}
-
-	override val config
-		get() = TConfig
 
 	var lastCopiedStack: Pair<ItemStack, Text>? = null
 		set(value) {

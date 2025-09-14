@@ -15,18 +15,19 @@ import moe.nea.firmament.commands.get
 import moe.nea.firmament.commands.thenArgument
 import moe.nea.firmament.commands.thenExecute
 import moe.nea.firmament.events.CommandEvent
-import moe.nea.firmament.features.FirmamentFeature
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.gui.config.ManagedOption
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData
+import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.grey
 import moe.nea.firmament.util.tr
 
-object QuickCommands : FirmamentFeature {
-	override val identifier: String
+object QuickCommands {
+	val identifier: String
 		get() = "quick-commands"
 
+	@Config
 	object TConfig : ManagedConfig("quick-commands", Category.CHAT) {
 		val enableJoin by toggle("join") { true }
 		val enableDh by toggle("dh") { true }
@@ -43,8 +44,12 @@ object QuickCommands : FirmamentFeature {
 			val dispatcher = CommandDispatcher<FabricClientCommandSource>()
 			ClientCommandInternals.setActiveDispatcher(dispatcher)
 			ClientCommandRegistrationCallback.EVENT.invoker()
-				.register(dispatcher, CommandRegistryAccess.of(network.combinedDynamicRegistries,
-				                                               network.enabledFeatures))
+				.register(
+					dispatcher, CommandRegistryAccess.of(
+						network.combinedDynamicRegistries,
+						network.enabledFeatures
+					)
+				)
 			ClientCommandInternals.finalizeInit()
 			network.onCommandTree(lastPacket)
 		} catch (ex: Exception) {
@@ -100,8 +105,12 @@ object QuickCommands : FirmamentFeature {
 					if (joinName == null) {
 						source.sendFeedback(Text.stringifiedTranslatable("firmament.quick-commands.join.unknown", what))
 					} else {
-						source.sendFeedback(Text.stringifiedTranslatable("firmament.quick-commands.join.success",
-						                                                 joinName))
+						source.sendFeedback(
+							Text.stringifiedTranslatable(
+								"firmament.quick-commands.join.success",
+								joinName
+							)
+						)
 						MC.sendCommand("joininstance $joinName")
 					}
 				}
@@ -122,8 +131,12 @@ object QuickCommands : FirmamentFeature {
 				)
 			}
 			if (l !in kuudraLevelNames.indices) {
-				source.sendFeedback(Text.stringifiedTranslatable("firmament.quick-commands.join.unknown-kuudra",
-				                                                 kuudraLevel))
+				source.sendFeedback(
+					Text.stringifiedTranslatable(
+						"firmament.quick-commands.join.unknown-kuudra",
+						kuudraLevel
+					)
+				)
 				return null
 			}
 			return "KUUDRA_${kuudraLevelNames[l]}"
@@ -143,8 +156,12 @@ object QuickCommands : FirmamentFeature {
 				return "CATACOMBS_ENTRANCE"
 			}
 			if (l !in dungeonLevelNames.indices) {
-				source.sendFeedback(Text.stringifiedTranslatable("firmament.quick-commands.join.unknown-catacombs",
-				                                                 kuudraLevel))
+				source.sendFeedback(
+					Text.stringifiedTranslatable(
+						"firmament.quick-commands.join.unknown-catacombs",
+						kuudraLevel
+					)
+				)
 				return null
 			}
 			return "${if (masterLevel != null) "MASTER_" else ""}CATACOMBS_FLOOR_${dungeonLevelNames[l]}"

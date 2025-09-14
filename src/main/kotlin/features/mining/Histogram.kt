@@ -1,7 +1,8 @@
 
 package moe.nea.firmament.features.mining
 
-import java.util.*
+import java.util.NavigableMap
+import java.util.TreeMap
 import kotlin.time.Duration
 import moe.nea.firmament.util.TimeMark
 

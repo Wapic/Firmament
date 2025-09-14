@@ -12,11 +12,11 @@ import moe.nea.firmament.commands.thenExecute
 import moe.nea.firmament.events.CommandEvent
 import moe.nea.firmament.events.PartyMessageReceivedEvent
 import moe.nea.firmament.events.ProcessChatEvent
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.TimeMark
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.tr
 import moe.nea.firmament.util.useMatch
 

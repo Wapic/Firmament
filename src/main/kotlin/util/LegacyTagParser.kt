@@ -2,7 +2,7 @@
 
 package moe.nea.firmament.util
 
-import java.util.*
+import java.util.Stack
 import net.minecraft.nbt.AbstractNbtNumber
 import net.minecraft.nbt.NbtByte
 import net.minecraft.nbt.NbtCompound

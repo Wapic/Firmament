@@ -2,7 +2,6 @@ package moe.nea.firmament.util.render
 
 import com.mojang.blaze3d.systems.RenderSystem
 import me.shedaniel.math.Color
-import org.joml.Vector2f
 import org.joml.Vector3f
 import util.render.CustomRenderLayers
 import kotlin.math.abs

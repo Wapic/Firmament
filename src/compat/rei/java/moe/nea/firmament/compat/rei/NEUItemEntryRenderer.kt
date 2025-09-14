@@ -45,7 +45,7 @@ object NEUItemEntryRenderer : EntryRenderer<SBItemStack> {
 		delta: Float
 	) {
 		val neuItem = entry.value.neuItem
-		val itemToRender = if(!RepoManager.Config.perfectRenders.rendersPerfectVisuals() && !entry.value.isWarm() && neuItem != null) {
+		val itemToRender = if(!RepoManager.TConfig.perfectRenders.rendersPerfectVisuals() && !entry.value.isWarm() && neuItem != null) {
 			ItemCache.recacheSoon(neuItem)
 			ItemStack(Items.PAINTING)
 		} else {
@@ -72,7 +72,7 @@ object NEUItemEntryRenderer : EntryRenderer<SBItemStack> {
 
 	@OptIn(ExpensiveItemCacheApi::class)
 	override fun getTooltip(entry: EntryStack<SBItemStack>, tooltipContext: TooltipContext): Tooltip? {
-		if (!entry.value.isWarm() && !RepoManager.Config.perfectRenders.rendersPerfectText()) {
+		if (!entry.value.isWarm() && !RepoManager.TConfig.perfectRenders.rendersPerfectText()) {
 			val neuItem = entry.value.neuItem
 			if (neuItem != null) {
 				val lore = mutableListOf<Text>()

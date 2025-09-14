@@ -14,16 +14,15 @@ import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.CustomItemModelEvent
 import moe.nea.firmament.events.FinalizeResourceManagerEvent
 import moe.nea.firmament.events.TickEvent
-import moe.nea.firmament.features.FirmamentFeature
 import moe.nea.firmament.features.debug.PowerUserTools
-import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.collections.WeakCache
 import moe.nea.firmament.util.data.Config
+import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.mc.decodeProfileTextureProperty
 import moe.nea.firmament.util.skyBlockId
 
-object CustomSkyBlockTextures : FirmamentFeature {
-	override val identifier: String
+object CustomSkyBlockTextures {
+	val identifier: String
 		get() = "custom-skyblock-textures"
 
 	@Config
@@ -40,9 +39,6 @@ object CustomSkyBlockTextures : FirmamentFeature {
 		val allowRecoloringUiText by toggle("recolor-text") { true }
 		val allowLayoutChanges by toggle("screen-layouts") { true }
 	}
-
-	override val config: ManagedConfig
-		get() = TConfig
 
 	val allItemCaches by lazy {
 		listOf(

@@ -7,14 +7,14 @@ import com.mojang.brigadier.builder.ArgumentBuilder
 import com.mojang.brigadier.builder.RequiredArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.suggestion.SuggestionProvider
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+import java.lang.reflect.TypeVariable
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import kotlinx.coroutines.launch
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.util.MinecraftDispatcher
 import moe.nea.firmament.util.iterate
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
-import java.lang.reflect.TypeVariable
 
 
 typealias DefaultSource = FabricClientCommandSource

@@ -66,7 +66,7 @@ object WarpUtil {
 		MC.sendChat(Text.translatable("firmament.warp-util.attempting-to-warp", nearestWarp.warp))
 		lastWarpAttempt = TimeMark.now()
 		lastAttemptedWarp = nearestWarp.warp
-		MC.sendServerCommand("warp ${nearestWarp.warp}")
+		MC.sendCommand("warp ${nearestWarp.warp}")
 	}
 
 	@Subscribe

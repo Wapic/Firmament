@@ -71,7 +71,7 @@ object SBData {
 		SkyblockServerUpdateEvent.subscribe("SBData:sendProfileId") {
 			if (!hasReceivedProfile && isOnSkyblock && profileIdCommandDebounce.passedTime() > 10.seconds) {
 				profileIdCommandDebounce = TimeMark.now()
-				MC.sendServerCommand("profileid")
+				MC.sendCommand("profileid")
 			}
 		}
 		AllowChatEvent.subscribe("SBData:hideProfileSuggest") { event ->

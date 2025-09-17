@@ -596,6 +596,8 @@ The `label` property is a regular [string matcher](#string-matcher) and matches 
 
 The `screenType` property is an optional namespaced identifier that allows matching to a [screen type](https://minecraft.wiki/w/Java_Edition_protocol/Inventory#Types).
 
+Signs can be targeted using `firmskyblock:sign` and `firmskyblock:hanging_sign`.
+
 ### Changing the background
 
 ```json
@@ -616,6 +618,8 @@ The `screenType` property is an optional namespaced identifier that allows match
 ```
 
 You need to specify an x and y offset relative to where the regular screen would render. This means you just check where the upper left corner of the UI texture would be in your texture (and turn it into a negative number). You also need to specify a width and height of your texture. This is the width in pixels rendered. If you want a higher or lower resolution texture, you can scale the actual texture up (tho it is expected to meet the same aspect ratio as the one defined here).
+
+Signs do not have a regular origin and are instead anchored from the top-middle of the sign.
 
 ### Moving slots around
 
@@ -691,6 +695,7 @@ Some other components can also be moved. These components might be buttons, text
 Available options
 
 - `nameField`: x, y, width & height are all available to move the field to set the name of the item in an anvil.
+- `signLines[]`: x, y, are available to move the text relative to where it would render normally. Must be an array of 4 component movers.
 
 ### All together
 

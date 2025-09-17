@@ -7,11 +7,15 @@ import net.minecraft.client.font.TextRenderer
 import net.minecraft.client.gl.RenderPipelines
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.gui.screen.ingame.AbstractSignEditScreen
 import net.minecraft.client.gui.screen.ingame.HandledScreen
+import net.minecraft.client.gui.screen.ingame.HangingSignEditScreen
+import net.minecraft.client.gui.screen.ingame.SignEditScreen
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.registry.Registries
 import net.minecraft.resource.ResourceManager
 import net.minecraft.resource.SinglePreparationResourceReloader
+import net.minecraft.screen.ScreenHandler
 import net.minecraft.screen.slot.Slot
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
@@ -24,6 +28,7 @@ import moe.nea.firmament.features.texturepack.CustomScreenLayouts.Alignment.CENT
 import moe.nea.firmament.features.texturepack.CustomScreenLayouts.Alignment.LEFT
 import moe.nea.firmament.features.texturepack.CustomScreenLayouts.Alignment.RIGHT
 import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
+import moe.nea.firmament.mixins.accessor.AccessorScreenHandler
 import moe.nea.firmament.util.ErrorUtil.intoCatch
 import moe.nea.firmament.util.IdentifierSerializer
 
@@ -38,7 +43,13 @@ object CustomScreenLayouts : SinglePreparationResourceReloader<List<CustomScreen
 		val containerTitle: TitleReplacer? = null,
 		val repairCostTitle: TitleReplacer? = null,
 		val nameField: ComponentMover? = null,
-	)
+		val signLines: List<ComponentMover>? = null,
+	) {
+		init {
+			if (signLines != null)
+				require(signLines.size == 4)
+		}
+	}
 
 	@Serializable
 	data class ComponentMover(
@@ -56,11 +67,17 @@ object CustomScreenLayouts : SinglePreparationResourceReloader<List<CustomScreen
 	) {
 		fun matches(screen: Screen): Boolean {
 			// TODO: does this deserve the restriction to handled screen
-			val s = screen as? HandledScreen<*>? ?: return false
-			val typeMatches = screenType == null || s.screenHandler.type.equals(Registries.SCREEN_HANDLER
-				.get(screenType));
+			val type = when (screen) {
+				is HandledScreen<*> -> (screen.screenHandler as AccessorScreenHandler).type_firmament?.let {
+					Registries.SCREEN_HANDLER.getId(it)
+				}
 
-			return label.matches(s.title) && typeMatches
+				is HangingSignEditScreen -> Identifier.of("firmskyblock", "hanging_sign")
+				is SignEditScreen -> Identifier.of("firmskyblock", "sign")
+				else -> null
+			}
+			val typeMatches = screenType == null || type == screenType;
+			return label.matches(screen.title) && typeMatches
 		}
 	}
 
@@ -74,6 +91,16 @@ object CustomScreenLayouts : SinglePreparationResourceReloader<List<CustomScreen
 		val width: Int,
 		val height: Int,
 	) {
+		fun renderDirect(context: DrawContext) {
+			context.drawTexture(
+				RenderPipelines.GUI_TEXTURED,
+				this.texture,
+				this.x, this.y,
+				0F, 0F,
+				this.width, this.height, this.width, this.height,
+			)
+		}
+
 		fun renderGeneric(context: DrawContext, screen: HandledScreen<*>) {
 			screen as AccessorHandledScreen
 			val originalX: Int = (screen.width - screen.backgroundWidth_Firmament) / 2
@@ -197,8 +224,12 @@ object CustomScreenLayouts : SinglePreparationResourceReloader<List<CustomScreen
 	val DO_NOTHING_TEXT_REPLACER = TitleReplacer()
 
 	@JvmStatic
-	fun <T>getMover(selector: (CustomScreenLayout)-> (T?)) =
+	fun <T> getMover(selector: (CustomScreenLayout) -> (T?)) =
 		activeScreenOverride?.let(selector)
+
+	@JvmStatic
+	fun getSignTextMover(index: Int) =
+		getMover { it.signLines?.get(index) }
 
 	@JvmStatic
 	fun getTextMover(selector: (CustomScreenLayout) -> (TitleReplacer?)) =

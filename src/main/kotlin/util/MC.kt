@@ -121,6 +121,7 @@ object MC {
 	val defaultRegistries: RegistryWrapper.WrapperLookup by lazy { BuiltinRegistries.createWrapperLookup() }
 	val defaultRegistryNbtOps by lazy { RegistryOps.of(NbtOps.INSTANCE, defaultRegistries) }
 	inline val currentOrDefaultRegistries get() = currentRegistries ?: defaultRegistries
+	val currentOrDefaultRegistryNbtOps get() = RegistryOps.of(NbtOps.INSTANCE, currentOrDefaultRegistries)
 	val defaultItems: RegistryWrapper.Impl<Item> by lazy { defaultRegistries.getOrThrow(RegistryKeys.ITEM) }
 	var currentTick = 0
 	var lastWorld: World? = null

@@ -8,6 +8,7 @@ import kotlin.concurrent.thread
 import kotlin.jvm.optionals.getOrNull
 import net.minecraft.component.DataComponentTypes
 import net.minecraft.item.ItemStack
+import net.minecraft.item.Items
 import net.minecraft.nbt.NbtByte
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtElement
@@ -25,6 +26,7 @@ import moe.nea.firmament.features.debug.ExportedTestConstantMeta
 import moe.nea.firmament.repo.SBItemStack
 import moe.nea.firmament.util.HypixelPetInfo
 import moe.nea.firmament.util.LegacyTagWriter.Companion.toLegacyString
+import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.StringUtil.words
 import moe.nea.firmament.util.directLiteralStringContent
 import moe.nea.firmament.util.extraAttributes
@@ -197,10 +199,9 @@ class LegacyItemExporter private constructor(var itemStack: ItemStack) {
 	}
 
 	fun exportModernSnbt(): NbtElement {
-		val overlay = ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, itemStack.copy().also {
+		val overlay = ItemStack.CODEC.encodeStart(MC.currentOrDefaultRegistryNbtOps, itemStack.copy().also {
 			it.modifyExtraAttributes { attribs ->
 				originalId.ifPresent { attribs.putString("id", it) }
-				attribs
 			}
 		}).orThrow
 		val overlayWithVersion =
@@ -312,6 +313,8 @@ class LegacyItemExporter private constructor(var itemStack: ItemStack) {
 
 	fun legacyifyItemStack(): LegacyItemData.LegacyItemType {
 		// TODO: add a default here
+		if (itemStack.item == Items.LINGERING_POTION || itemStack.item == Items.SPLASH_POTION)
+			return LegacyItemData.LegacyItemType("potion", 16384)
 		return LegacyItemData.itemLut[itemStack.item]!!
 	}
 }

@@ -10,7 +10,7 @@ SPDX-License-Identifier = "GPL-3.0-or-later"
 SPDX-FileCopyrightText = ["Linnea Gräf <nea@nea.moe>", "Firmament Contributors"]
 
 [[annotations]]
-path = ["pnpm-lock.yaml"]
+path = ["pnpm-lock.yaml", "pnpm-workspace.yaml"]
 SPDX-License-Identifier = "CC0-1.0"
 SPDX-FileCopyrightText = ["Auto Generated"]
 

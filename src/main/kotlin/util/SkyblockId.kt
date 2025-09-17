@@ -37,6 +37,8 @@ import moe.nea.firmament.util.json.DashlessUUIDSerializer
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.mc.loreAccordingToNbt
 import moe.nea.firmament.util.skyblock.isBazaarUi
+import moe.nea.firmament.util.skyblock.isExperimentationRngMeter
+import moe.nea.firmament.util.skyblock.isSuperPairs
 
 /**
  * A SkyBlock item id, as used by the NEU repo.
@@ -230,7 +232,8 @@ fun ItemStack.getLogicalStackSize(): Long {
 val ItemStack.rawSkyBlockId: String? get() = extraAttributes.getString("id").getOrNull()
 
 fun ItemStack.guessContextualSkyBlockId(): SkyblockId? {
-	if (MC.screen?.isBazaarUi() == true) {
+	val screen = MC.screen
+	if (screen?.isBazaarUi() == true) {
 		val name = displayNameAccordingToNbt.unformattedString
 			.replaceFirst("SELL ", "")
 			.replaceFirst("BUY ", "")
@@ -238,6 +241,11 @@ fun ItemStack.guessContextualSkyBlockId(): SkyblockId? {
 			return RepoManager.enchantedBookCache.byName[name]
 		}
 		return ItemNameLookup.guessItemByName(name, false)
+	}
+	if (screen?.isExperimentationRngMeter() == true || screen?.isSuperPairs() == true) {
+		val name = displayNameAccordingToNbt.unformattedString
+		return RepoManager.enchantedBookCache.byName[name]
+			?: ItemNameLookup.guessItemByName(name, false)
 	}
 	return null
 }

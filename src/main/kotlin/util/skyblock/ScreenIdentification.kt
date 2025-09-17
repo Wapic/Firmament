@@ -19,3 +19,11 @@ fun Screen.isBazaarUi(): Boolean {
 				it.unformattedString == "To Bazaar"
 			})
 }
+
+fun Screen.isSuperPairs(): Boolean {
+	return title.unformattedString.startsWith("Superpairs")
+}
+
+fun Screen.isExperimentationRngMeter(): Boolean {
+	return this.title.unformattedString.contains("Experimentation Table RNG")
+}

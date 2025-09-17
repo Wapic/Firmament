@@ -32,3 +32,4 @@ gradle-app.setting
 *.xsd
 *.png~
 *.kra
+.direnv

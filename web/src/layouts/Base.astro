@@ -1,13 +1,16 @@
 ---
-import Head, {type Props as HeadProps} from "./Head.astro";
+import NavBar from "../components/NavBar.astro";
+import Head, { type Props as HeadProps } from "./Head.astro";
 type Props = {
+	navbar?: boolean;
 } & HeadProps;
 ---
 
 <html>
-<Head {...Astro.props}></Head>
-<body class="bg-gray-800 text-white">
-<slot/>
-<footer></footer>
-</body>
+	<Head {...Astro.props} />
+	<body class="bg-gray-800 text-white">
+		{(Astro.props.navbar ?? true) ? <NavBar /> : null}
+		<slot />
+		<footer></footer>
+	</body>
 </html>

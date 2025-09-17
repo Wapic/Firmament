@@ -41,6 +41,12 @@ object SBData {
 	 */
 	val skyblockLocation: SkyBlockIsland? get() = locraw?.skyblockLocation
 	val hasValidLocraw get() = locraw?.server !in listOf("limbo", null)
+
+	/**
+	 * Check if the player is currently on skyblock.
+	 *
+	 * Nota bene: We don't generally disable features outside of SkyBlock unless they could lead to bans.
+	 */
 	val isOnSkyblock get() = locraw?.gametype == "SKYBLOCK"
 	var profileIdCommandDebounce = TimeMark.farPast()
 	fun init() {

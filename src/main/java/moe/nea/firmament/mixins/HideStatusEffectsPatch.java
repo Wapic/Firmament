@@ -18,12 +18,14 @@ public abstract class HideStatusEffectsPatch {
 
 	@Inject(method = "shouldHideStatusEffectHud", at = @At("HEAD"), cancellable = true)
 	private void hideStatusEffects(CallbackInfoReturnable<Boolean> cir) {
-		cir.setReturnValue(!Fixes.TConfig.INSTANCE.getHidePotionEffects() && SBData.INSTANCE.isOnSkyblock());
+		if (Fixes.TConfig.INSTANCE.getHidePotionEffects()) {
+			cir.setReturnValue(false);
+		}
 	}
 
 	@Inject(method = "drawStatusEffects", at = @At("HEAD"), cancellable = true)
 	private void conditionalRenderStatuses(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
-		if (shouldHideStatusEffectHud() || !Fixes.TConfig.INSTANCE.getHidePotionEffects() && SBData.INSTANCE.isOnSkyblock()) {
+		if (Fixes.TConfig.INSTANCE.getHidePotionEffects()) {
 			ci.cancel();
 		}
 	}

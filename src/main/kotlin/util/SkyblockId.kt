@@ -29,11 +29,14 @@ import net.minecraft.util.Identifier
 import moe.nea.firmament.repo.ExpLadders
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
 import moe.nea.firmament.repo.ItemCache.asItemStack
+import moe.nea.firmament.repo.ItemNameLookup
 import moe.nea.firmament.repo.RepoManager
 import moe.nea.firmament.repo.set
 import moe.nea.firmament.util.collections.WeakCache
 import moe.nea.firmament.util.json.DashlessUUIDSerializer
+import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.mc.loreAccordingToNbt
+import moe.nea.firmament.util.skyblock.isBazaarUi
 
 /**
  * A SkyBlock item id, as used by the NEU repo.
@@ -142,7 +145,7 @@ fun ItemStack.modifyExtraAttributes(block: (NbtCompound) -> Unit) {
 	set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(baseNbt))
 }
 
-val ItemStack.skyblockUUIDString: String?
+val ItemStack.skyBlockUUIDString: String?
 	get() = extraAttributes.getString("uuid").getOrNull()?.takeIf { it.isNotBlank() }
 
 private val timestampFormat = //"10/11/21 3:39 PM"
@@ -170,7 +173,7 @@ val ItemStack.timestamp
 			}
 
 val ItemStack.skyblockUUID: UUID?
-	get() = skyblockUUIDString?.let { UUID.fromString(it) }
+	get() = skyBlockUUIDString?.let { UUID.fromString(it) }
 
 private val petDataCache = WeakCache.memoize<ItemStack, Optional<HypixelPetInfo>>("PetInfo") {
 	val jsonString = it.extraAttributes.getString("petInfo")
@@ -219,16 +222,31 @@ fun ItemStack.getLogicalStackSize(): Long {
 		} ?: AMOUNT_REGEX.useMatch(string) {
 			parseShortNumber(group(1)).toLong()
 		} ?: COMPOST_REGEX.useMatch(string) {
-		parseShortNumber(group(1)).toLong()
-	}
+			parseShortNumber(group(1)).toLong()
+		}
 	} ?: count.toLong()
+}
+
+val ItemStack.rawSkyBlockId: String? get() = extraAttributes.getString("id").getOrNull()
+
+fun ItemStack.guessContextualSkyBlockId(): SkyblockId? {
+	if (MC.screen?.isBazaarUi() == true) {
+		val name = displayNameAccordingToNbt.unformattedString
+			.replaceFirst("SELL ", "")
+			.replaceFirst("BUY ", "")
+		if (item == Items.ENCHANTED_BOOK) {
+			return RepoManager.enchantedBookCache.byName[name]
+		}
+		return ItemNameLookup.guessItemByName(name, false)
+	}
+	return null
 }
 
 val ItemStack.skyBlockId: SkyblockId?
 	get() {
-		return when (val id = extraAttributes.getString("id").getOrNull()) {
+		return when (val id = rawSkyBlockId) {
 			"", null -> {
-				null
+				guessContextualSkyBlockId()
 			}
 
 			"PET" -> {

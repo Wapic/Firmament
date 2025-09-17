@@ -25,6 +25,7 @@ import moe.nea.firmament.events.CustomItemModelEvent
 import moe.nea.firmament.events.HandledScreenKeyPressedEvent
 import moe.nea.firmament.events.ItemTooltipEvent
 import moe.nea.firmament.events.ScreenChangeEvent
+import moe.nea.firmament.events.SlotRenderEvents
 import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.events.WorldKeyboardEvent
 import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
@@ -43,7 +44,7 @@ import moe.nea.firmament.util.mc.loreAccordingToNbt
 import moe.nea.firmament.util.skyBlockId
 import moe.nea.firmament.util.tr
 
-object PowerUserTools  {
+object PowerUserTools {
 	val identifier: String
 		get() = "power-user"
 
@@ -63,6 +64,7 @@ object PowerUserTools  {
 		val exportNpcLocation by keyBindingWithDefaultUnbound("export-npc-location")
 		val highlightNonOverlayItems by toggle("highlight-non-overlay") { false }
 		val dontHighlightSemicolonItems by toggle("dont-highlight-semicolon-items") { false }
+		val showSlotNumbers by keyBindingWithDefaultUnbound("slot-numbers")
 	}
 
 	var lastCopiedStack: Pair<ItemStack, Text>? = null
@@ -84,6 +86,20 @@ object PowerUserTools  {
 
 	fun debugFormat(itemStack: ItemStack): Text {
 		return Text.literal(itemStack.skyBlockId?.toString() ?: itemStack.toString())
+	}
+
+	@Subscribe
+	fun onRender(event: SlotRenderEvents.After) {
+		if (TConfig.showSlotNumbers.isPressed()) {
+			event.context.drawText(
+				MC.font,
+				event.slot.id.toString(), event.slot.x, event.slot.y, 0xFF00FF00.toInt(), true
+			)
+			event.context.drawText(
+				MC.font,
+				event.slot.index.toString(), event.slot.x, event.slot.y + MC.font.fontHeight, 0xFFFF0000.toInt(), true
+			)
+		}
 	}
 
 	@Subscribe

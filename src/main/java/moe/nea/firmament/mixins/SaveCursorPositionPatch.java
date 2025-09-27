@@ -14,27 +14,27 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Mouse.class)
 public class SaveCursorPositionPatch {
-    @Shadow
-    private double x;
+	@Shadow
+	private double x;
 
-    @Shadow
-    private double y;
+	@Shadow
+	private double y;
 
-    @Inject(method = "lockCursor", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/client/Mouse;cursorLocked:Z"))
-    public void onLockCursor(CallbackInfo ci) {
-        SaveCursorPosition.saveCursorOriginal(x, y);
-    }
+	@Inject(method = "lockCursor", at = @At(value = "HEAD"))
+	public void onLockCursor(CallbackInfo ci) {
+		SaveCursorPosition.saveCursorOriginal(x, y);
+	}
 
-    @Inject(method = "lockCursor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/Window;getHandle()J"))
-    public void onLockCursorAfter(CallbackInfo ci) {
-        SaveCursorPosition.saveCursorMiddle(x, y);
-    }
+	@Inject(method = "lockCursor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/Window;getHandle()J"))
+	public void onLockCursorAfter(CallbackInfo ci) {
+		SaveCursorPosition.saveCursorMiddle(x, y);
+	}
 
-    @Inject(method = "unlockCursor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/Window;getHandle()J"))
-    public void onUnlockCursor(CallbackInfo ci) {
-        Pair<Double, Double> cursorPosition = SaveCursorPosition.loadCursor(this.x, this.y);
-        if (cursorPosition == null) return;
-        this.x = cursorPosition.getFirst();
-        this.y = cursorPosition.getSecond();
-    }
+	@Inject(method = "unlockCursor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/Window;getHandle()J"))
+	public void onUnlockCursor(CallbackInfo ci) {
+		Pair<Double, Double> cursorPosition = SaveCursorPosition.loadCursor(this.x, this.y);
+		if (cursorPosition == null) return;
+		this.x = cursorPosition.getFirst();
+		this.y = cursorPosition.getSecond();
+	}
 }

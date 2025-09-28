@@ -13,6 +13,7 @@ import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
+import moe.nea.firmament.util.SBData.NULL_UUID
 import moe.nea.firmament.util.data.IConfigProvider
 import moe.nea.firmament.util.data.IDataHolder
 import moe.nea.firmament.util.data.ProfileKeyedConfig
@@ -46,12 +47,15 @@ object FirmamentConfigLoader {
 			loadConfigFromData(configData, Unit, ConfigStorageClass.CONFIG)
 			val storageData = FirstLevelSplitJsonFolder(loadContext, storageFolder).load()
 			loadConfigFromData(storageData, Unit, ConfigStorageClass.STORAGE)
-			val profileData =
-				profilePath.listDirectoryEntries()
-					.filter { it.isDirectory() }
-					.associate {
+			var profileData =
+				profilePath.takeIf { it.exists() }
+					?.listDirectoryEntries()
+					?.filter { it.isDirectory() }
+					?.associate {
 						UUID.fromString(it.name) to FirstLevelSplitJsonFolder(loadContext, it).load()
 					}
+			if (profileData.isNullOrEmpty())
+				profileData = mapOf(NULL_UUID to JsonObject(mapOf()))
 			profileData.forEach { (key, value) ->
 				loadConfigFromData(value, key, ConfigStorageClass.PROFILE)
 			}
@@ -60,12 +64,17 @@ object FirmamentConfigLoader {
 
 	fun <T> loadConfigFromData(
 		configData: JsonObject,
-		key: T,
+		key: T?,
 		storageClass: ConfigStorageClass
 	) {
 		for (holder in allConfigs) {
 			if (holder.storageClass == storageClass) {
-				(holder as IDataHolder<T>).loadFrom(key, configData)
+				val h = (holder as IDataHolder<T>)
+				if (key == null) {
+					h.explicitDefaultLoad()
+				} else {
+					h.loadFrom(key, configData)
+				}
 			}
 		}
 	}
@@ -120,6 +129,7 @@ object FirmamentConfigLoader {
 					FirstLevelSplitJsonFolder(context, profilePath.resolve(profileId.toString()))
 				)
 			}
+			writeConfigVersion()
 		}
 	}
 
@@ -170,8 +180,12 @@ object FirmamentConfigLoader {
 						FirstLevelSplitJsonFolder(loadContext, it)
 					)
 				}
-				configVersionFile.writeText("$currentConfigVersion ${tagLines.random()}")
+				writeConfigVersion()
 			}
+	}
+
+	fun writeConfigVersion() {
+		configVersionFile.writeText("$currentConfigVersion ${tagLines.random()}")
 	}
 
 	private fun updateOneConfig(
@@ -180,6 +194,10 @@ object FirmamentConfigLoader {
 		storageClass: ConfigStorageClass,
 		firstLevelSplitJsonFolder: FirstLevelSplitJsonFolder
 	) {
+		if (startVersion == currentConfigVersion) {
+			loadContext.logDebug("Skipping upgrade to ")
+			return
+		}
 		loadContext.logInfo("Starting upgrade from at ${firstLevelSplitJsonFolder.folder} ($storageClass) to $startVersion")
 		var data = firstLevelSplitJsonFolder.load()
 		for (nextVersion in (startVersion + 1)..currentConfigVersion) {

@@ -79,9 +79,9 @@ object SlotLocking {
 
 	val currentWorldData
 		get() = if (SBData.skyblockLocation == SkyBlockIsland.RIFT)
-			DConfig.data?.rift
+			DConfig.data.rift
 		else
-			DConfig.data?.overworld
+			DConfig.data.overworld
 
 	@Serializable
 	data class BoundSlot(

@@ -32,6 +32,7 @@ object LegacyImporter {
 	)
 
 	fun importFromLegacy() {
+		if (!configFolder.exists()) return
 		configFolder.moveTo(backupPath)
 		configFolder.createDirectories()
 
@@ -50,7 +51,8 @@ object LegacyImporter {
 			}
 
 		backupPath.resolve("profiles")
-			.forEachDirectoryEntry { category ->
+			.takeIf { it.exists() }
+			?.forEachDirectoryEntry { category ->
 				category.forEachDirectoryEntry { profile ->
 					copyIf(
 						profile,
@@ -61,6 +63,6 @@ object LegacyImporter {
 				}
 			}
 
-		configVersionFile.writeText(legacyConfigVersion.toString())
+		configVersionFile.writeText("$legacyConfigVersion LEGACY")
 	}
 }

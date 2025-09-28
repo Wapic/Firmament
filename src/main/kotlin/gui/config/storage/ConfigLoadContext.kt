@@ -3,7 +3,10 @@ package moe.nea.firmament.gui.config.storage
 import java.io.PrintWriter
 import java.nio.file.Path
 import org.apache.commons.io.output.StringBuilderWriter
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.OnErrorResult
 import kotlin.io.path.Path
+import kotlin.io.path.copyToRecursively
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.writeText
 import moe.nea.firmament.Firmament
@@ -11,6 +14,9 @@ import moe.nea.firmament.Firmament
 data class ConfigLoadContext(
 	val loadId: String,
 ) : AutoCloseable {
+	val backupPath = Path("backups").resolve(Firmament.MOD_ID)
+		.resolve("config-$loadId")
+		.toAbsolutePath()
 	val logFile = Path("logs")
 		.resolve(Firmament.MOD_ID)
 		.resolve("config-$loadId.log")
@@ -73,5 +79,20 @@ data class ConfigLoadContext(
 				logError("Could not save config load log", ex)
 			}
 		}
+	}
+
+	@OptIn(ExperimentalPathApi::class)
+	fun createBackup(folder: Path, string: String) {
+		val backupDestination = backupPath.resolve("$string-${System.currentTimeMillis()}")
+		logError("Creating backup of $folder in $backupDestination")
+		folder.copyToRecursively(
+			backupDestination.createParentDirectories(),
+			onError = { source: Path, target: Path, exception: Exception ->
+				logError("Failed to copy subtree $source to $target", exception)
+				OnErrorResult.SKIP_SUBTREE
+			},
+			followLinks = false,
+			overwrite = false
+		)
 	}
 }

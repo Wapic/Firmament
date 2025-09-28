@@ -8,7 +8,9 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
+import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteExisting
+import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.nameWithoutExtension
@@ -19,23 +21,41 @@ class FirstLevelSplitJsonFolder(
 	val context: ConfigLoadContext,
 	val folder: Path
 ) {
+
+	var hasCreatedBackup = false
+
+	fun backup(cause: String) {
+		if (hasCreatedBackup) return
+		hasCreatedBackup = true
+		context.createBackup(folder, cause)
+	}
+
 	fun load(): JsonObject {
 		context.logInfo("Loading FLSJF from $folder")
-		return folder.listDirectoryEntries("*.json")
-			.mapNotNull(::loadIndividualFile)
-			.toMap()
-			.let(::JsonObject)
-			.also { context.logInfo("FLSJF from $folder - Voller Erfolg!") }
+		if (!folder.exists())
+			return JsonObject(mapOf())
+		return try {
+			folder.listDirectoryEntries("*.json")
+				.mapNotNull(::loadIndividualFile)
+				.toMap()
+				.let(::JsonObject)
+				.also { context.logInfo("FLSJF from $folder - Voller Erfolg!") }
+		} catch (ex: Exception) {
+			context.logError("Could not load files from $folder", ex)
+			backup("failed-load")
+			JsonObject(mapOf())
+		}
 	}
 
 	fun loadIndividualFile(path: Path): Pair<String, JsonElement>? {
-		context.logInfo("Loading partial file from $path")
+		context.logDebug("Loading partial file from $path")
 		return try {
 			path.inputStream().use {
 				path.nameWithoutExtension to Firmament.json.decodeFromStream(JsonElement.serializer(), it)
 			}
 		} catch (ex: Exception) {
 			context.logError("Could not load file from $path", ex)
+			backup("failed-load")
 			null
 		}
 	}
@@ -43,6 +63,10 @@ class FirstLevelSplitJsonFolder(
 	fun save(value: JsonObject) {
 		context.logInfo("Saving FLSJF to $folder")
 		context.logDebug("Current value:\n$value")
+		if (!folder.exists()) {
+			context.logInfo("Creating folder $folder")
+			folder.createDirectories()
+		}
 		val entries = folder.listDirectoryEntries("*.json")
 			.toMutableList()
 		for ((name, element) in value) {
@@ -55,7 +79,7 @@ class FirstLevelSplitJsonFolder(
 			context.logInfo("Deleting additional files.")
 			for (path in entries) {
 				context.logInfo("Deleting $path")
-//				context.backup(path)
+				backup("save-deletion")
 				try {
 					path.deleteExisting()
 				} catch (ex: Exception) {
@@ -68,7 +92,7 @@ class FirstLevelSplitJsonFolder(
 
 	fun saveIndividualFile(name: String, element: JsonElement): Path? {
 		try {
-			context.logInfo("Saving partial file with name $name")
+			context.logDebug("Saving partial file with name $name")
 			val path = folder.resolve("$name.json")
 			context.ensureWritable(path)
 			path.outputStream().use {
@@ -77,6 +101,7 @@ class FirstLevelSplitJsonFolder(
 			return path
 		} catch (ex: Exception) {
 			context.logError("Could not save $name with value $element", ex)
+			backup("failed-save")
 			return null
 		}
 	}

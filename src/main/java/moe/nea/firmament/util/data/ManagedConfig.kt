@@ -110,6 +110,11 @@ abstract class ManagedConfig(
 		}
 	}
 
+	override fun explicitDefaultLoad() {
+		val empty = JsonObject(mapOf())
+		sortedOptions.forEach { it.load(empty) }
+	}
+
 	override fun loadFrom(key: Unit, jsonObject: JsonObject) {
 		val unprefixed = jsonObject[name]?.jsonObject ?: JsonObject(mapOf())
 		sortedOptions.forEach {

@@ -60,7 +60,6 @@ object Firmament {
 
 	val DEBUG = System.getProperty("firmament.debug") == "true"
 	val DATA_DIR: Path = Path.of(".firmament").also { Files.createDirectories(it) }
-	val CONFIG_DIR: Path = Path.of("config/firmament").also { Files.createDirectories(it) }
 	val logger: Logger = LogManager.getLogger("Firmament")
 	private val metadata: ModMetadata by lazy {
 		FabricLoader.getInstance().getModContainer(MOD_ID).orElseThrow().metadata

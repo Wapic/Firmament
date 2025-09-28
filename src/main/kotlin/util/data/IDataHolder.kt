@@ -21,6 +21,7 @@ sealed class IDataHolder<T> {
 	abstract fun keys(): Collection<T>
 	abstract fun saveTo(key: T): JsonObject
 	abstract fun loadFrom(key: T, jsonObject: JsonObject)
+	abstract fun explicitDefaultLoad()
 	abstract fun clear()
 	abstract val storageClass: ConfigStorageClass
 }
@@ -28,18 +29,21 @@ sealed class IDataHolder<T> {
 open class ProfileKeyedConfig<T>(
 	val prefix: String,
 	val serializer: KSerializer<T>,
-	val default: () -> T,
+	val default: () -> T & Any,
 ) : IDataHolder<UUID>() {
 
 	override val storageClass: ConfigStorageClass
 		get() = ConfigStorageClass.PROFILE
 	private var _data: MutableMap<UUID, T>? = null
 
-	val data
-		get() = _data!!.let { map ->
-			map[SBData.profileIdOrNil]
-				?: default().also { map[SBData.profileIdOrNil] = it }
-		} ?: error("Config $this not loaded — forgot to register?")
+	val data: T & Any
+		get() {
+			val map = _data ?: error("Config $this not loaded — forgot to register?")
+			map[SBData.profileIdOrNil]?.let { return it }
+			val newValue = default()
+			map[SBData.profileIdOrNil] = newValue
+			return newValue
+		}
 
 	override fun keys(): Collection<UUID> {
 		return _data!!.keys
@@ -53,11 +57,20 @@ open class ProfileKeyedConfig<T>(
 	}
 
 	override fun loadFrom(key: UUID, jsonObject: JsonObject) {
-		(_data ?: mutableMapOf<UUID, T>().also { _data = it })[key] =
+		var map = _data
+		if (map == null) {
+			map = mutableMapOf()
+			_data = map
+		}
+		map[key] =
 			jsonObject[prefix]
 				?.let {
 					Firmament.json.decodeFromJsonElement(serializer, it)
 				} ?: default()
+	}
+
+	override fun explicitDefaultLoad() {
+		_data = mutableMapOf()
 	}
 
 	override fun clear() {
@@ -77,6 +90,10 @@ abstract class GenericConfig<T>(
 
 	override fun keys(): Collection<Unit> {
 		return listOf(Unit)
+	}
+
+	override fun explicitDefaultLoad() {
+		_data = default()
 	}
 
 	open fun onLoad() {

@@ -16,11 +16,11 @@ import moe.nea.firmament.util.ClipboardUtils
 import moe.nea.firmament.util.FirmFormatters
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.TemplateUtil
-import moe.nea.firmament.util.data.MultiFileDataHolder
+import moe.nea.firmament.util.data.DataHolder
 import moe.nea.firmament.util.tr
 
 object FirmWaypointManager {
-	object DataHolder : MultiFileDataHolder<FirmWaypoints>(serializer(), "waypoints")
+	object DConfig : DataHolder<MutableMap<String, FirmWaypoints>>(serializer(), "waypoints", ::mutableMapOf)
 
 	val SHARE_PREFIX = "FIRM_WAYPOINTS/"
 	val ENCODED_SHARE_PREFIX = TemplateUtil.getPrefixComparisonSafeBase64Encoding(SHARE_PREFIX)
@@ -100,7 +100,7 @@ object FirmWaypointManager {
 			}
 			thenLiteral("save") {
 				thenArgument("name", StringArgumentType.string()) { name ->
-					suggestsList { DataHolder.list().keys }
+					suggestsList { DConfig.data.keys }
 					thenExecute {
 						val waypoints = Waypoints.useNonEmptyWaypoints()
 						if (waypoints == null) {
@@ -109,8 +109,8 @@ object FirmWaypointManager {
 						}
 						waypoints.id = get(name)
 						val exportableWaypoints = createExportableCopy(waypoints)
-						DataHolder.insert(get(name), exportableWaypoints)
-						DataHolder.save()
+						DConfig.data[get(name)] = exportableWaypoints
+						DConfig.markDirty()
 						source.sendFeedback(tr("firmament.command.waypoint.saved",
 						                       "Saved waypoints locally as ${get(name)}. Use /firm waypoints load to load them again."))
 					}
@@ -118,10 +118,10 @@ object FirmWaypointManager {
 			}
 			thenLiteral("load") {
 				thenArgument("name", StringArgumentType.string()) { name ->
-					suggestsList { DataHolder.list().keys }
+					suggestsList { DConfig.data.keys }
 					thenExecute {
 						val name = get(name)
-						val waypoints = DataHolder.list()[name]
+						val waypoints = DConfig.data[name]
 						if (waypoints == null) {
 							source.sendError(
 								tr("firmament.command.waypoint.nosaved",

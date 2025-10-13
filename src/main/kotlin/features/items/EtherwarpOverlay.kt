@@ -105,6 +105,7 @@ object EtherwarpOverlay {
 			Blocks.PALE_MOSS_CARPET,
 			Blocks.COCOA,
 			Blocks.LADDER,
+			Blocks.SEA_PICKLE,
 		),
 		setOf(
 			BlockTags.FLOWER_POTS,

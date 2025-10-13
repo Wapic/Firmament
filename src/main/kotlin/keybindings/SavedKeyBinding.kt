@@ -22,6 +22,7 @@ data class SavedKeyBinding(
 		if (!button.isPressed())
 			return false
 		val mods = InputModifiers.current()
+			.without(InputModifiers.ofKey(button))
 		return mods.matches(this.modifiers, atLeast)
 	}
 

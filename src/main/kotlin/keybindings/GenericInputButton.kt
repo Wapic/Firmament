@@ -247,16 +247,42 @@ data class InputModifiers(
 			)
 		}
 
+		fun ofKeyCodes(vararg keys: Int): InputModifiers {
+			var mods = 0
+			for (key in keys) {
+				if (key in superKeys)
+					mods = mods or GLFW.GLFW_MOD_SUPER
+				if (key in controlKeys)
+					mods = mods or GLFW.GLFW_MOD_CONTROL
+				if (key in altKeys)
+					mods = mods or GLFW.GLFW_MOD_ALT
+				if (key in shiftKeys)
+					mods = mods or GLFW.GLFW_MOD_SHIFT
+			}
+			return of(mods)
+		}
+
 		@JvmStatic
 		fun of(modifiers: Int) = InputModifiers(modifiers)
 
 		fun none(): InputModifiers {
 			return InputModifiers(0)
 		}
+
+		fun ofKey(button: GenericInputButton): InputModifiers {
+			return when (button) {
+				is GenericInputButton.KeyCodeButton -> ofKeyCodes(button.keyCode)
+				else -> none()
+			}
+		}
 	}
 
 	fun isAtLeast(other: InputModifiers): Boolean {
 		return this.modifiers and other.modifiers == this.modifiers
+	}
+
+	fun without(other: InputModifiers): InputModifiers {
+		return InputModifiers(this.modifiers and other.modifiers.inv())
 	}
 
 	fun isEmpty() = modifiers == 0

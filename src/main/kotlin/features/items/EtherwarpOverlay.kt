@@ -65,6 +65,7 @@ object EtherwarpOverlay {
 			Blocks.DROPPER,
 			Blocks.BREWING_STAND,
 			Blocks.TRAPPED_CHEST,
+			Blocks.LEVER,
 		),
 		setOf(
 			BlockTags.DOORS,

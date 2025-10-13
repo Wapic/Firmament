@@ -7,7 +7,9 @@ import util.render.CustomRenderLayers
 import kotlin.math.pow
 import net.minecraft.client.render.Camera
 import net.minecraft.client.render.RenderLayer
+import net.minecraft.client.render.RenderLayers
 import net.minecraft.client.render.RenderTickCounter
+import net.minecraft.client.render.TexturedRenderLayers
 import net.minecraft.client.render.VertexConsumer
 import net.minecraft.client.render.VertexConsumerProvider
 import net.minecraft.client.texture.Sprite
@@ -15,6 +17,7 @@ import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Box
 import net.minecraft.util.math.Vec3d
 import moe.nea.firmament.events.WorldRenderLastEvent
 import moe.nea.firmament.util.FirmFormatters
@@ -30,6 +33,14 @@ class RenderInWorldContext private constructor(
 	fun block(blockPos: BlockPos, color: Int) {
 		matrixStack.push()
 		matrixStack.translate(blockPos.x.toFloat(), blockPos.y.toFloat(), blockPos.z.toFloat())
+		buildCube(matrixStack.peek().positionMatrix, vertexConsumers.getBuffer(CustomRenderLayers.COLORED_QUADS), color)
+		matrixStack.pop()
+	}
+
+	fun box(aabb: Box, color: Int) {
+		matrixStack.push()
+		matrixStack.translate(aabb.minX, aabb.minY, aabb.minZ)
+		matrixStack.scale(aabb.lengthX.toFloat(), aabb.lengthY.toFloat(), aabb.lengthZ.toFloat())
 		buildCube(matrixStack.peek().positionMatrix, vertexConsumers.getBuffer(CustomRenderLayers.COLORED_QUADS), color)
 		matrixStack.pop()
 	}

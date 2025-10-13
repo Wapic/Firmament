@@ -124,7 +124,7 @@ object Firmament {
 		@Suppress("UNUSED_PARAMETER")
 		ctx: CommandRegistryAccess
 	) {
-		registerFirmamentCommand(dispatcher)
+		registerFirmamentCommand(dispatcher, ctx)
 		CommandEvent.publish(CommandEvent(dispatcher, ctx, MC.networkHandler?.commandDispatcher))
 	}
 

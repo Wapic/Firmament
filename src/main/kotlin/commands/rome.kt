@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType.string
 import io.ktor.client.statement.bodyAsText
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import kotlinx.coroutines.launch
+import net.minecraft.command.CommandRegistryAccess
 import net.minecraft.nbt.NbtOps
 import net.minecraft.text.Text
 import net.minecraft.text.TextCodecs
@@ -45,7 +46,7 @@ import moe.nea.firmament.util.tr
 import moe.nea.firmament.util.unformattedString
 
 
-fun firmamentCommand() = literal("firmament") {
+fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 	thenLiteral("config") {
 		thenExecute {
 			AllConfigsGui.showAllGuis()
@@ -406,12 +407,12 @@ fun firmamentCommand() = literal("firmament") {
 	thenExecute {
 		AllConfigsGui.showAllGuis()
 	}
-	CommandEvent.SubCommand.publish(CommandEvent.SubCommand(this@literal))
+	CommandEvent.SubCommand.publish(CommandEvent.SubCommand(this@literal, ctx))
 }
 
 
-fun registerFirmamentCommand(dispatcher: CommandDispatcher<FabricClientCommandSource>) {
-	val firmament = dispatcher.register(firmamentCommand())
+fun registerFirmamentCommand(dispatcher: CommandDispatcher<FabricClientCommandSource>, ctx: CommandRegistryAccess) {
+	val firmament = dispatcher.register(firmamentCommand(ctx))
 	dispatcher.register(literal("firm") {
 		redirect(firmament)
 	})

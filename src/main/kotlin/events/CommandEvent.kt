@@ -23,6 +23,7 @@ data class CommandEvent(
      */
     data class SubCommand(
         val builder: CaseInsensitiveLiteralCommandNode.Builder<DefaultSource>,
+		val commandRegistryAccess: CommandRegistryAccess,
     ) : FirmamentEvent() {
         companion object : FirmamentEventBus<SubCommand>()
 

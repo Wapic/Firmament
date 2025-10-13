@@ -41,6 +41,7 @@ import net.minecraft.resource.SinglePreparationResourceReloader
 import net.minecraft.state.StateManager
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Box
 import net.minecraft.util.profiler.Profiler
 import net.minecraft.util.thread.AsyncHelper
 import moe.nea.firmament.Firmament
@@ -48,6 +49,7 @@ import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.EarlyResourceReloadEvent
 import moe.nea.firmament.events.FinalizeResourceManagerEvent
 import moe.nea.firmament.events.SkyblockServerUpdateEvent
+import moe.nea.firmament.features.debug.DebugLogger
 import moe.nea.firmament.features.texturepack.CustomBlockTextures.createBakedModels
 import moe.nea.firmament.features.texturepack.CustomGlobalTextures.logger
 import moe.nea.firmament.util.ErrorUtil
@@ -160,6 +162,17 @@ object CustomBlockTextures {
 			return (blockPos.x in realMin.x..realMax.x) &&
 				(blockPos.y in realMin.y..realMax.y) &&
 				(blockPos.z in realMin.z..realMax.z)
+		}
+
+		fun toBox(): Box {
+			return Box(
+				realMin.x.toDouble(),
+				realMin.y.toDouble(),
+				realMin.z.toDouble(),
+				(realMax.x + 1).toDouble(),
+				(realMax.y + 1).toDouble(),
+				(realMax.z + 1).toDouble()
+			)
 		}
 	}
 

@@ -1,16 +1,13 @@
 package moe.nea.firmament.features.chat
 
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsChannel
-import io.ktor.utils.io.jvm.javaio.toInputStream
 import java.net.URI
-import java.net.URL
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicInteger
 import org.joml.Vector2i
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.future.await
 import kotlin.math.min
 import net.minecraft.client.gui.screen.ChatScreen
 import net.minecraft.client.texture.NativeImage
@@ -29,6 +26,7 @@ import moe.nea.firmament.jarvis.JarvisIntegration
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.data.ManagedConfig
+import moe.nea.firmament.util.net.HttpUtil
 import moe.nea.firmament.util.render.drawTexture
 import moe.nea.firmament.util.transformEachRecursively
 import moe.nea.firmament.util.unformattedString
@@ -73,18 +71,16 @@ object ChatLinks {
 		}
 		imageCache[url] = Firmament.coroutineScope.async {
 			try {
-				val response = Firmament.httpClient.get(URI.create(url).toURL())
-				if (response.status.value == 200) {
-					val inputStream = response.bodyAsChannel().toInputStream(Firmament.globalJob)
-					val image = NativeImage.read(inputStream)
-					val texId = Firmament.identifier("dynamic_image_preview${nextTexId.getAndIncrement()}")
-					MC.textureManager.registerTexture(
-						texId,
-						NativeImageBackedTexture({ texId.path }, image)
-					)
-					Image(texId, image.width, image.height)
-				} else
-					null
+				val inputStream = HttpUtil.request(url)
+					.forInputStream()
+					.await()
+				val image = NativeImage.read(inputStream)
+				val texId = Firmament.identifier("dynamic_image_preview${nextTexId.getAndIncrement()}")
+				MC.textureManager.registerTexture(
+					texId,
+					NativeImageBackedTexture({ texId.path }, image)
+				)
+				Image(texId, image.width, image.height)
 			} catch (exc: Exception) {
 				exc.printStackTrace()
 				null

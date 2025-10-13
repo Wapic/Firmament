@@ -1,9 +1,5 @@
 package moe.nea.firmament.repo
 
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsChannel
-import io.ktor.utils.io.copyTo
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -11,6 +7,7 @@ import java.nio.file.StandardOpenOption
 import java.util.zip.ZipInputStream
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlin.io.path.createDirectories
@@ -23,6 +20,7 @@ import moe.nea.firmament.Firmament
 import moe.nea.firmament.Firmament.logger
 import moe.nea.firmament.repo.RepoDownloadManager.latestSavedVersionHash
 import moe.nea.firmament.util.iterate
+import moe.nea.firmament.util.net.HttpUtil
 
 
 object RepoDownloadManager {
@@ -59,18 +57,17 @@ object RepoDownloadManager {
 			RepoManager.TConfig.branch = "master"
 		}
 		val response =
-			Firmament.httpClient.get("https://api.github.com/repos/${RepoManager.TConfig.username}/${RepoManager.TConfig.reponame}/commits/${branchOverride ?: RepoManager.TConfig.branch}")
-		if (response.status.value != 200) {
-			return null
-		}
-		return response.body<GithubCommitsResponse>().sha
+			HttpUtil.request("https://api.github.com/repos/${RepoManager.TConfig.username}/${RepoManager.TConfig.reponame}/commits/${branchOverride ?: RepoManager.TConfig.branch}")
+				.forJson<GithubCommitsResponse>()
+				.await()
+		return response.sha
 	}
 
 	private suspend fun downloadGithubArchive(url: String): Path = withContext(IO) {
-		val response = Firmament.httpClient.get(url)
+		val response = HttpUtil.request(url)
 		val targetFile = Files.createTempFile("firmament-repo", ".zip")
-		val outputChannel = Files.newByteChannel(targetFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
-		response.bodyAsChannel().copyTo(outputChannel)
+		val outputChannel = Files.newOutputStream(targetFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+		response.forInputStream().await().copyTo(outputChannel)
 		targetFile
 	}
 

@@ -269,14 +269,6 @@ dependencies {
 	(reiSourceSet.modRuntimeOnlyConfigurationName)(reiDeps.fabric)
 	nonModImplentation(libs.repoparser)
 	shadowMe(libs.repoparser)
-	fun ktor(mod: String) = "io.ktor:ktor-$mod-jvm:${libs.versions.ktor.get()}"
-	// TODO: get rid of ktor. lowkey ballooning file size and like not neccessary at all for what i am doing.0
-	transInclude(nonModImplentation(ktor("client-core"))!!)
-	transInclude(nonModImplentation(ktor("client-java"))!!)
-	transInclude(nonModImplentation(ktor("serialization-kotlinx-json"))!!)
-	transInclude(nonModImplentation(ktor("client-content-negotiation"))!!)
-	transInclude(nonModImplentation(ktor("client-encoding"))!!)
-	transInclude(nonModImplentation(ktor("client-logging"))!!)
 
 	// Dev environment preinstalled mods
 	modLocalRuntime(libs.bundles.runtime.required)

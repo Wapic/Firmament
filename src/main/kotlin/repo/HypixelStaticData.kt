@@ -1,11 +1,10 @@
 package moe.nea.firmament.repo
 
-import io.ktor.client.call.body
-import io.ktor.client.request.get
 import org.apache.logging.log4j.LogManager
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -14,6 +13,7 @@ import moe.nea.firmament.Firmament
 import moe.nea.firmament.apis.CollectionResponse
 import moe.nea.firmament.apis.CollectionSkillData
 import moe.nea.firmament.util.SkyblockId
+import moe.nea.firmament.util.net.HttpUtil
 
 object HypixelStaticData {
 	private val logger = LogManager.getLogger("Firmament.HypixelStaticData")
@@ -91,18 +91,19 @@ object HypixelStaticData {
 	}
 
 	private suspend fun fetchPricesFromMoulberry() {
-		lowestBin = Firmament.httpClient.get("$moulberryBaseUrl/lowestbin.json")
-			.body<Map<SkyblockId, Double>>()
-		avg1dlowestBin = Firmament.httpClient.get("$moulberryBaseUrl/auction_averages_lbin/1day.json")
-			.body<Map<SkyblockId, Double>>()
-		avg3dlowestBin = Firmament.httpClient.get("$moulberryBaseUrl/auction_averages_lbin/3day.json")
-			.body<Map<SkyblockId, Double>>()
-		avg7dlowestBin = Firmament.httpClient.get("$moulberryBaseUrl/auction_averages_lbin/7day.json")
-			.body<Map<SkyblockId, Double>>()
+		lowestBin = HttpUtil.request("$moulberryBaseUrl/lowestbin.json")
+			.forJson<Map<SkyblockId, Double>>().await()
+		avg1dlowestBin = HttpUtil.request("$moulberryBaseUrl/auction_averages_lbin/1day.json")
+			.forJson<Map<SkyblockId, Double>>().await()
+		avg3dlowestBin = HttpUtil.request("$moulberryBaseUrl/auction_averages_lbin/3day.json")
+			.forJson<Map<SkyblockId, Double>>().await()
+		avg7dlowestBin = HttpUtil.request("$moulberryBaseUrl/auction_averages_lbin/7day.json")
+			.forJson<Map<SkyblockId, Double>>().await()
 	}
 
 	private suspend fun fetchBazaarPrices() {
-		val response = Firmament.httpClient.get("$hypixelApiBaseUrl/skyblock/bazaar").body<BazaarResponse>()
+		val response = HttpUtil.request("$hypixelApiBaseUrl/skyblock/bazaar").forJson<BazaarResponse>()
+			.await()
 		if (!response.success) {
 			logger.warn("Retrieved unsuccessful bazaar data")
 		}
@@ -111,7 +112,8 @@ object HypixelStaticData {
 
 	private suspend fun updateCollectionData() {
 		val response =
-			Firmament.httpClient.get("$hypixelApiBaseUrl/resources/skyblock/collections").body<CollectionResponse>()
+			HttpUtil.request("$hypixelApiBaseUrl/resources/skyblock/collections").forJson<CollectionResponse>()
+				.await()
 		if (!response.success) {
 			logger.warn("Retrieved unsuccessful collection data")
 		}

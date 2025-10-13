@@ -3,7 +3,7 @@ package moe.nea.firmament.commands
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType.string
-import io.ktor.client.statement.bodyAsText
+import java.net.http.HttpResponse
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import kotlinx.coroutines.launch
 import net.minecraft.command.CommandRegistryAccess
@@ -302,7 +302,7 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 				thenExecute {
 					Firmament.coroutineScope.launch {
 						source.sendFeedback(Text.translatable("firmament.ursa.debugrequest.start"))
-						val text = UrsaManager.request(get(path).split("/")).bodyAsText()
+						val text = UrsaManager.request(get(path).split("/"), HttpResponse.BodyHandlers.ofString())
 						source.sendFeedback(Text.stringifiedTranslatable("firmament.ursa.debugrequest.result", text))
 					}
 				}

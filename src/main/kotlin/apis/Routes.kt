@@ -1,91 +1,54 @@
-
-
 package moe.nea.firmament.apis
 
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.http.isSuccess
-import io.ktor.util.CaseInsensitiveMap
 import java.util.UUID
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import moe.nea.firmament.Firmament
+import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.MinecraftDispatcher
+import moe.nea.firmament.util.net.HttpUtil
 
 object Routes {
-    private val nameToUUID: MutableMap<String, Deferred<UUID?>> = CaseInsensitiveMap()
-    private val profiles: MutableMap<UUID, Deferred<Profiles?>> = mutableMapOf()
-    private val accounts: MutableMap<UUID, Deferred<PlayerData?>> = mutableMapOf()
-    private val UUIDToName: MutableMap<UUID, Deferred<String?>> = mutableMapOf()
+	private val nameToUUID: MutableMap<String, Deferred<UUID?>> = mutableMapOf()
+	private val UUIDToName: MutableMap<UUID, Deferred<String?>> = mutableMapOf()
 
-    suspend fun getPlayerNameForUUID(uuid: UUID): String? {
-        return withContext(MinecraftDispatcher) {
-            UUIDToName.computeIfAbsent(uuid) {
-                async(Firmament.coroutineScope.coroutineContext) {
-                    val response = Firmament.httpClient.get("https://mowojang.matdoes.dev/$uuid")
-                    if (!response.status.isSuccess()) return@async null
-                    val data = response.body<MowojangNameLookup>()
-                    launch(MinecraftDispatcher) {
-                        nameToUUID[data.name] = async { data.id }
-                    }
-                    data.name
-                }
-            }
-        }.await()
-    }
+	suspend fun getPlayerNameForUUID(uuid: UUID): String? {
+		return withContext(MinecraftDispatcher) {
+			UUIDToName.computeIfAbsent(uuid) {
+				async(Firmament.coroutineScope.coroutineContext) {
+					val data = ErrorUtil.catch("could not get name for uuid $uuid") {
+						HttpUtil.request("https://mowojang.matdoes.dev/$uuid")
+							.forJson<MowojangNameLookup>()
+							.await()
+					}.orNull() ?: return@async null
+					launch(MinecraftDispatcher) {
+						nameToUUID[data.name] = async { data.id }
+					}
+					data.name
+				}
+			}
+		}.await()
+	}
 
-    suspend fun getUUIDForPlayerName(name: String): UUID? {
-        return withContext(MinecraftDispatcher) {
-            nameToUUID.computeIfAbsent(name) {
-                async(Firmament.coroutineScope.coroutineContext) {
-                    val response = Firmament.httpClient.get("https://mowojang.matdoes.dev/$name")
-                    if (!response.status.isSuccess()) return@async null
-                    val data = response.body<MowojangNameLookup>()
-                    launch(MinecraftDispatcher) {
-                        UUIDToName[data.id] = async { data.name }
-                    }
-                    data.id
-                }
-            }
-        }.await()
-    }
-
-    suspend fun getAccountData(uuid: UUID): PlayerData? {
-        return withContext(MinecraftDispatcher) {
-            accounts.computeIfAbsent(uuid) {
-                async(Firmament.coroutineScope.coroutineContext) {
-                    val response = UrsaManager.request(listOf("v1", "hypixel","player", uuid.toString()))
-                    if (!response.status.isSuccess()) {
-                        launch(MinecraftDispatcher) {
-                            @Suppress("DeferredResultUnused")
-                            accounts.remove(uuid)
-                        }
-                        return@async null
-                    }
-                    response.body<PlayerResponse>().player
-                }
-            }
-        }.await()
-    }
-
-    suspend fun getProfiles(uuid: UUID): Profiles? {
-        return withContext(MinecraftDispatcher) {
-            profiles.computeIfAbsent(uuid) {
-                async(Firmament.coroutineScope.coroutineContext) {
-                    val response = UrsaManager.request(listOf("v1", "hypixel","profiles", uuid.toString()))
-                    if (!response.status.isSuccess()) {
-                        launch(MinecraftDispatcher) {
-                            @Suppress("DeferredResultUnused")
-                            profiles.remove(uuid)
-                        }
-                        return@async null
-                    }
-                    response.body<Profiles>()
-                }
-            }
-        }.await()
-    }
-
+	suspend fun getUUIDForPlayerName(name: String): UUID? {
+		return withContext(MinecraftDispatcher) {
+			nameToUUID.computeIfAbsent(name) {
+				async(Firmament.coroutineScope.coroutineContext) {
+					val data =
+						ErrorUtil.catch("could not get uuid for name $name") {
+							HttpUtil.request("https://mowojang.matdoes.dev/$name")
+								.forJson<MowojangNameLookup>()
+								.await()
+						}.orNull() ?: return@async null
+					launch(MinecraftDispatcher) {
+						UUIDToName[data.id] = async { data.name }
+					}
+					data.id
+				}
+			}
+		}.await()
+	}
 }

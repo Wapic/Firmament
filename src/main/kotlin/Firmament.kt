@@ -2,14 +2,6 @@ package moe.nea.firmament
 
 import com.google.gson.Gson
 import com.mojang.brigadier.CommandDispatcher
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.UserAgent
-import io.ktor.client.plugins.cache.HttpCache
-import io.ktor.client.plugins.compression.ContentEncoding
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.serialization.kotlinx.json.json
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
@@ -92,27 +84,6 @@ object Firmament {
 		// Reset pretty print indent back to default to prevent getting yelled at by json
 		prettyPrintIndent = DEFAULT_JSON_INDENT
 		explicitNulls = false
-	}
-
-
-	val httpClient by lazy {
-		HttpClient {
-			install(ContentNegotiation) {
-				json(json)
-			}
-			install(ContentEncoding) {
-				gzip()
-				deflate()
-			}
-			install(UserAgent) {
-				agent = "Firmament/$version"
-			}
-			if (DEBUG)
-				install(Logging) {
-					level = LogLevel.INFO
-				}
-			install(HttpCache)
-		}
 	}
 
 	val globalJob = Job()

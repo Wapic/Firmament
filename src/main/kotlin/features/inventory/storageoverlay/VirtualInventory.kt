@@ -1,9 +1,8 @@
 package moe.nea.firmament.features.inventory.storageoverlay
 
-import io.ktor.util.decodeBase64Bytes
-import io.ktor.util.encodeBase64
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.util.Base64
 import java.util.concurrent.CompletableFuture
 import kotlinx.coroutines.async
 import kotlinx.serialization.KSerializer
@@ -22,6 +21,7 @@ import net.minecraft.nbt.NbtOps
 import net.minecraft.nbt.NbtSizeTracker
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.features.inventory.storageoverlay.VirtualInventory.Serializer.writeToByteArray
+import moe.nea.firmament.util.Base64Util
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.mc.TolerantRegistriesOps
@@ -68,7 +68,7 @@ data class VirtualInventory(
 
 		override fun deserialize(decoder: Decoder): VirtualInventory {
 			val s = decoder.decodeString()
-			val n = NbtIo.readCompressed(ByteArrayInputStream(s.decodeBase64Bytes()), NbtSizeTracker.of(100_000_000))
+			val n = NbtIo.readCompressed(ByteArrayInputStream(Base64Util.decodeBytes(s)), NbtSizeTracker.of(100_000_000))
 			val items = n.getList(INVENTORY).getOrNull()
 			val ops = getOps()
 			return VirtualInventory(items?.map {
@@ -83,7 +83,7 @@ data class VirtualInventory(
 		fun getOps() = MC.currentOrDefaultRegistryNbtOps
 
 		override fun serialize(encoder: Encoder, value: VirtualInventory) {
-			encoder.encodeString(value.serializationCache.get().encodeBase64())
+			encoder.encodeString(Base64Util.encodeToString(value.serializationCache.get()))
 		}
 	}
 }

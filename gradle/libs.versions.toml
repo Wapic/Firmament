@@ -56,9 +56,6 @@ jade = "19.0.4+fabric"
 
 devauth = "1.2.1"
 
-# Update from https://ktor.io/docs/
-ktor = "3.2.2"
-
 # Update from https://repo.nea.moe/#/releases/moe/nea/neurepoparser
 neurepoparser = "1.8.0"
 

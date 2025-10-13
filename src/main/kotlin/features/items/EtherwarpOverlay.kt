@@ -10,6 +10,7 @@ import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.hit.HitResult
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
+import net.minecraft.util.shape.VoxelShapes
 import net.minecraft.world.BlockView
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.WorldRenderLastEvent
@@ -139,7 +140,7 @@ object EtherwarpOverlay {
 	}
 
 	sealed interface EtherwarpBlockHit {
-		data class BlockHit(val blockPos: BlockPos) : EtherwarpBlockHit
+		data class BlockHit(val blockPos: BlockPos, val accuratePos: Vec3d?) : EtherwarpBlockHit
 		data object Miss : EtherwarpBlockHit
 	}
 
@@ -159,7 +160,8 @@ object EtherwarpOverlay {
 //				if (world.raycastBlock(start, end, blockPos, hitShape, defaultedState) == null) {
 //					return@raycast null
 //				}
-				return@raycast EtherwarpBlockHit.BlockHit(blockPos)
+				val partialResult = world.raycastBlock(start, end, blockPos, VoxelShapes.fullCube(), world.getBlockState(blockPos).block.defaultState)
+				return@raycast EtherwarpBlockHit.BlockHit(blockPos, partialResult?.pos)
 			},
 			{ EtherwarpBlockHit.Miss })
 	}
@@ -190,7 +192,7 @@ object EtherwarpOverlay {
 			else 1.62
 		val playerEyePos = player.pos.add(0.0, playerEyeHeight, 0.0)
 		val start = playerEyePos
-		val end = player.getRotationVec(0F).multiply(120.0).add(playerEyePos)
+		val end = player.getRotationVec(0F).multiply(160.0).add(playerEyePos)
 		val hitResult = raycastWithEtherwarpTransparency(
 			world,
 			start,
@@ -203,7 +205,7 @@ object EtherwarpOverlay {
 				EtherwarpResult.OCCUPIED
 			else if (!isEtherwarpTransparent(world, blockPos.up(2)))
 				EtherwarpResult.OCCUPIED
-			else if (player.squaredDistanceTo(blockPos.toCenterPos()) > 61 * 61)
+			else if (playerEyePos.squaredDistanceTo(hitResult.accuratePos ?: blockPos.toCenterPos()) > 61 * 61)
 				EtherwarpResult.TOO_DISTANT
 			else if ((MC.instance.crosshairTarget as? BlockHitResult)
 					?.takeIf { it.type == HitResult.Type.BLOCK }

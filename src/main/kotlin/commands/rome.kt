@@ -5,9 +5,11 @@ import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType.string
 import io.ktor.client.statement.bodyAsText
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
+import kotlinx.coroutines.launch
 import net.minecraft.nbt.NbtOps
 import net.minecraft.text.Text
 import net.minecraft.text.TextCodecs
+import moe.nea.firmament.Firmament
 import moe.nea.firmament.apis.UrsaManager
 import moe.nea.firmament.events.CommandEvent
 import moe.nea.firmament.events.FirmamentEventBus
@@ -151,7 +153,7 @@ fun firmamentCommand() = literal("firmament") {
 			}
 			thenExecute {
 				source.sendFeedback(Text.translatable("firmament.repo.reload.disk"))
-				RepoManager.reload()
+				Firmament.coroutineScope.launch { RepoManager.reload() }
 			}
 		}
 	}
@@ -232,11 +234,15 @@ fun firmamentCommand() = literal("firmament") {
 		}
 		thenLiteral("screens") {
 			thenExecute {
-				MC.sendChat(Text.literal("""
+				MC.sendChat(
+					Text.literal(
+						"""
 					|Screen: ${MC.screen} (${MC.screen?.title})
 					|Screen Handler: ${MC.handledScreen?.screenHandler} ${MC.handledScreen?.screenHandler?.syncId}
 					|Player Screen Handler: ${MC.player?.currentScreenHandler} ${MC.player?.currentScreenHandler?.syncId}
-				""".trimMargin()))
+				""".trimMargin()
+					)
+				)
 			}
 		}
 		thenLiteral("blocks") {
@@ -273,8 +279,12 @@ fun firmamentCommand() = literal("firmament") {
 					source.sendFeedback(Text.stringifiedTranslatable("firmament.sbinfo.gametype", locrawInfo.gametype))
 					source.sendFeedback(Text.stringifiedTranslatable("firmament.sbinfo.mode", locrawInfo.mode))
 					source.sendFeedback(Text.stringifiedTranslatable("firmament.sbinfo.map", locrawInfo.map))
-					source.sendFeedback(tr("firmament.sbinfo.custommining",
-					                       "Custom Mining: ${formatBool(locrawInfo.skyblockLocation?.hasCustomMining ?: false)}"))
+					source.sendFeedback(
+						tr(
+							"firmament.sbinfo.custommining",
+							"Custom Mining: ${formatBool(locrawInfo.skyblockLocation?.hasCustomMining ?: false)}"
+						)
+					)
 				}
 			}
 		}
@@ -289,9 +299,11 @@ fun firmamentCommand() = literal("firmament") {
 		thenLiteral("callUrsa") {
 			thenArgument("path", string()) { path ->
 				thenExecute {
-					source.sendFeedback(Text.translatable("firmament.ursa.debugrequest.start"))
-					val text = UrsaManager.request(this[path].split("/")).bodyAsText()
-					source.sendFeedback(Text.stringifiedTranslatable("firmament.ursa.debugrequest.result", text))
+					Firmament.coroutineScope.launch {
+						source.sendFeedback(Text.translatable("firmament.ursa.debugrequest.start"))
+						val text = UrsaManager.request(get(path).split("/")).bodyAsText()
+						source.sendFeedback(Text.stringifiedTranslatable("firmament.ursa.debugrequest.result", text))
+					}
 				}
 			}
 		}
@@ -300,13 +312,19 @@ fun firmamentCommand() = literal("firmament") {
 				source.sendFeedback(tr("firmament.event.start", "Event Bus Readout:"))
 				FirmamentEventBus.allEventBuses.forEach { eventBus ->
 					val prefixName = eventBus.eventType.typeName.removePrefix("moe.nea.firmament")
-					source.sendFeedback(tr(
-						"firmament.event.bustype",
-						"- $prefixName:"))
+					source.sendFeedback(
+						tr(
+							"firmament.event.bustype",
+							"- $prefixName:"
+						)
+					)
 					eventBus.handlers.forEach { handler ->
-						source.sendFeedback(tr(
-							"firmament.event.handler",
-							"   * ${handler.label}"))
+						source.sendFeedback(
+							tr(
+								"firmament.event.handler",
+								"   * ${handler.label}"
+							)
+						)
 					}
 				}
 			}
@@ -330,8 +348,10 @@ fun firmamentCommand() = literal("firmament") {
 					plugin.appliedMixins
 						.map { it.removePrefix(plugin.mixinPackage) }
 						.forEach {
-							source.sendFeedback(Text.literal(" - ").withColor(0xD020F0)
-								                    .append(Text.literal(it).withColor(0xF6BA20)))
+							source.sendFeedback(
+								Text.literal(" - ").withColor(0xD020F0)
+									.append(Text.literal(it).withColor(0xF6BA20))
+							)
 						}
 				}
 			}
@@ -339,21 +359,47 @@ fun firmamentCommand() = literal("firmament") {
 		thenLiteral("repo") {
 			thenExecute {
 				source.sendFeedback(tr("firmament.repo.info.ref", "Repo Upstream: ${RepoManager.getRepoRef()}"))
-				source.sendFeedback(tr("firmament.repo.info.downloadedref",
-				                       "Downloaded ref: ${RepoDownloadManager.latestSavedVersionHash}"))
-				source.sendFeedback(tr("firmament.repo.info.location",
-				                       "Saved location: ${debugPath(RepoDownloadManager.repoSavedLocation)}"))
-				source.sendFeedback(tr("firmament.repo.info.reloadstatus",
-				                       "Incomplete: ${
-					                       formatBool(RepoManager.neuRepo.isIncomplete,
-					                                  trueIsGood = false)
-				                       }, Unstable ${formatBool(RepoManager.neuRepo.isUnstable, trueIsGood = false)}"))
-				source.sendFeedback(tr("firmament.repo.info.items",
-				                       "Loaded items: ${RepoManager.neuRepo.items?.items?.size}"))
-				source.sendFeedback(tr("firmament.repo.info.itemcache",
-				                       "ItemCache flawless: ${formatBool(ItemCache.isFlawless)}"))
-				source.sendFeedback(tr("firmament.repo.info.itemdir",
-				                       "Items on disk: ${debugPath(RepoDownloadManager.repoSavedLocation.resolve("items"))}"))
+				source.sendFeedback(
+					tr(
+						"firmament.repo.info.downloadedref",
+						"Downloaded ref: ${RepoDownloadManager.latestSavedVersionHash}"
+					)
+				)
+				source.sendFeedback(
+					tr(
+						"firmament.repo.info.location",
+						"Saved location: ${debugPath(RepoDownloadManager.repoSavedLocation)}"
+					)
+				)
+				source.sendFeedback(
+					tr(
+						"firmament.repo.info.reloadstatus",
+						"Incomplete: ${
+							formatBool(
+								RepoManager.neuRepo.isIncomplete,
+								trueIsGood = false
+							)
+						}, Unstable ${formatBool(RepoManager.neuRepo.isUnstable, trueIsGood = false)}"
+					)
+				)
+				source.sendFeedback(
+					tr(
+						"firmament.repo.info.items",
+						"Loaded items: ${RepoManager.neuRepo.items?.items?.size}"
+					)
+				)
+				source.sendFeedback(
+					tr(
+						"firmament.repo.info.itemcache",
+						"ItemCache flawless: ${formatBool(ItemCache.isFlawless)}"
+					)
+				)
+				source.sendFeedback(
+					tr(
+						"firmament.repo.info.itemdir",
+						"Items on disk: ${debugPath(RepoDownloadManager.repoSavedLocation.resolve("items"))}"
+					)
+				)
 			}
 		}
 	}

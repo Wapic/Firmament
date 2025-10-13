@@ -30,6 +30,7 @@ import net.minecraft.util.Identifier
 import net.minecraft.util.Util
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
+import moe.nea.firmament.Firmament
 import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.events.WorldReadyEvent
 import moe.nea.firmament.util.mc.TolerantRegistriesOps
@@ -54,6 +55,10 @@ object MC {
 	}
 
 	fun sendChat(text: Text) {
+		if (TestUtil.isInTest) {
+			Firmament.logger.info("CHAT: ${text.string}")
+			return
+		}
 		if (instance.isOnThread && inGameHud.chatHud != null && world != null)
 			inGameHud.chatHud.addMessage(text)
 		else

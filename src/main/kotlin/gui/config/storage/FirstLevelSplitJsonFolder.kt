@@ -17,6 +17,7 @@ import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.outputStream
 import moe.nea.firmament.Firmament
 
+// TODO: make this class write / read async
 class FirstLevelSplitJsonFolder(
 	val context: ConfigLoadContext,
 	val folder: Path

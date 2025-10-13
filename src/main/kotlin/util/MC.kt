@@ -32,6 +32,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.events.WorldReadyEvent
+import moe.nea.firmament.util.mc.TolerantRegistriesOps
 
 object MC {
 
@@ -121,7 +122,7 @@ object MC {
 	val defaultRegistries: RegistryWrapper.WrapperLookup by lazy { BuiltinRegistries.createWrapperLookup() }
 	val defaultRegistryNbtOps by lazy { RegistryOps.of(NbtOps.INSTANCE, defaultRegistries) }
 	inline val currentOrDefaultRegistries get() = currentRegistries ?: defaultRegistries
-	val currentOrDefaultRegistryNbtOps get() = RegistryOps.of(NbtOps.INSTANCE, currentOrDefaultRegistries)
+	val currentOrDefaultRegistryNbtOps get() = TolerantRegistriesOps(NbtOps.INSTANCE, currentOrDefaultRegistries)
 	val defaultItems: RegistryWrapper.Impl<Item> by lazy { defaultRegistries.getOrThrow(RegistryKeys.ITEM) }
 	var currentTick = 0
 	var lastWorld: World? = null

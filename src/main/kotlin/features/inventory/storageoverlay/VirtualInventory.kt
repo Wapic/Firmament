@@ -4,6 +4,8 @@ import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.encodeBase64
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.util.concurrent.CompletableFuture
+import kotlinx.coroutines.async
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -18,6 +20,8 @@ import net.minecraft.nbt.NbtIo
 import net.minecraft.nbt.NbtList
 import net.minecraft.nbt.NbtOps
 import net.minecraft.nbt.NbtSizeTracker
+import moe.nea.firmament.Firmament
+import moe.nea.firmament.features.inventory.storageoverlay.VirtualInventory.Serializer.writeToByteArray
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.mc.TolerantRegistriesOps
@@ -28,6 +32,10 @@ data class VirtualInventory(
 ) {
 	val rows = stacks.size / 9
 
+	val serializationCache = CompletableFuture.supplyAsync {
+		writeToByteArray(this)
+	}
+
 	init {
 		assert(stacks.size % 9 == 0)
 		assert(stacks.size / 9 in 1..5)
@@ -35,6 +43,25 @@ data class VirtualInventory(
 
 
 	object Serializer : KSerializer<VirtualInventory> {
+		fun writeToByteArray(value: VirtualInventory): ByteArray {
+			val list = NbtList()
+			val ops = getOps()
+			value.stacks.forEach {
+				if (it.isEmpty) list.add(NbtCompound())
+				else list.add(ErrorUtil.catch("Could not serialize item") {
+					ItemStack.CODEC.encode(
+						it,
+						ops,
+						NbtCompound()
+					).orThrow
+				}
+					.or { NbtCompound() })
+			}
+			val baos = ByteArrayOutputStream()
+			NbtIo.writeCompressed(NbtCompound().also { it.put(INVENTORY, list) }, baos)
+			return baos.toByteArray()
+		}
+
 		const val INVENTORY = "INVENTORY"
 		override val descriptor: SerialDescriptor
 			get() = PrimitiveSerialDescriptor("VirtualInventory", PrimitiveKind.STRING)
@@ -53,23 +80,10 @@ data class VirtualInventory(
 			} ?: listOf())
 		}
 
-		fun getOps() = TolerantRegistriesOps(NbtOps.INSTANCE, MC.currentOrDefaultRegistries)
+		fun getOps() = MC.currentOrDefaultRegistryNbtOps
 
 		override fun serialize(encoder: Encoder, value: VirtualInventory) {
-			val list = NbtList()
-			val ops = getOps()
-			value.stacks.forEach {
-				if (it.isEmpty) list.add(NbtCompound())
-				else list.add(ErrorUtil.catch("Could not serialize item") {
-					ItemStack.CODEC.encode(it,
-					                       ops,
-					                       NbtCompound()).orThrow
-				}
-					              .or { NbtCompound() })
-			}
-			val baos = ByteArrayOutputStream()
-			NbtIo.writeCompressed(NbtCompound().also { it.put(INVENTORY, list) }, baos)
-			encoder.encodeString(baos.toByteArray().encodeBase64())
+			encoder.encodeString(value.serializationCache.get().encodeBase64())
 		}
 	}
 }

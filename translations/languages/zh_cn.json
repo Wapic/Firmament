@@ -105,8 +105,6 @@
 	"firmament.config.custom-skyblock-textures.cache-forever.description": "完全不清除缓存。若物品数据变化，服务器会向你发送新的物品数据，大概不会有问题。",
 	"firmament.config.custom-skyblock-textures.enabled": "启用自定义物品纹理",
 	"firmament.config.custom-skyblock-textures.enabled.description": "允许为纹理包替换物品。关闭此选项不会禁用自定义纹理匹配",
-	"firmament.config.custom-skyblock-textures.legacy-cit": "启用旧版CIT Resewn兼容性",
-	"firmament.config.custom-skyblock-textures.legacy-cit.description": "允许在更新版本上加载为 1.20.4 编写的CIT resewn纹理包。",
 	"firmament.config.custom-skyblock-textures.legacy-minecraft-path-support": "启用旧版纹理包路径",
 	"firmament.config.custom-skyblock-textures.legacy-minecraft-path-support.description": "允许纹理包以旧版的方式加载纹理。例如：允许在 1.21.4 上加载 1.21.0 的盔甲纹理。",
 	"firmament.config.custom-skyblock-textures.model-overrides": "启用模型覆盖/条件",

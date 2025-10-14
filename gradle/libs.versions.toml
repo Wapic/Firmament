@@ -42,14 +42,9 @@ femalegender = "4.3.4+1.21.7"
 
 shadow = "8.3.8"
 
-# Update from https://modrinth.com/mod/explosive-enhancement/versions?l=fabric
-explosiveenhancement = "1.2.3-1.21.0"
 
 # Update from https://modrinth.com/mod/not-enough-animations/versions?l=fabric
 notenoughanimations = "JTLkasT1"
-
-# Update from https://modrinth.com/mod/cit-resewn/versions?l=fabric lmao yeah sure
-citresewn = "1.2.0+1.21"
 
 # Update from https://modrinth.com/mod/jade/versions?l=fabric
 jade = "19.0.4+fabric"
@@ -76,9 +71,6 @@ moulconfig = "4.1.0-beta"
 
 # Update from https://repo.nea.moe/#/releases/moe/nea/mc-auto-translations/moe.nea.mc-auto-translations.gradle.plugin
 mcAutoTranslations = "0.3.0"
-
-# Update from https://www.curseforge.com/minecraft/mc-mods/configured/files/all?page=1&pageSize=20
-configured = "6023970"
 
 # Update from https://modrinth.com/mod/hypixel-mod-api/versions?l=fabric
 hypixelmodapi = "1.0.1"
@@ -120,12 +112,10 @@ mixinextras = { module = "io.github.llamalad7:mixinextras-fabric", version.ref =
 jarvis_api = { module = "moe.nea.jarvis:jarvis-api", version.ref = "jarvis" }
 jarvis_fabric = { module = "moe.nea.jarvis:jarvis-fabric", version.ref = "jarvis" }
 nealisp = { module = "moe.nea:nealisp", version.ref = "nealisp" }
-explosiveenhancement = { module = "maven.modrinth:explosive-enhancement", version.ref = "explosiveenhancement" }
 manninghamMills = { module = "me.shedaniel:mm", version.ref = "manninghamMills" }
 aaronhmapi = { module = "net.azureaaron:hm-api", version = "1.0.0+1.21" }
 hypixelmodapi = { module = "net.hypixel:mod-api", version.ref = "hypixelmodapi" }
 hypixelmodapi_fabric = { module = "maven.modrinth:hypixel-mod-api", version.ref = "hypixelmodapi_fabric" }
-configured = { module = "curse.maven:configured-457570", version.ref = "configured" }
 # Runtime:
 notenoughanimations = { module = "maven.modrinth:not-enough-animations", version.ref = "notenoughanimations" }
 hotswap = { module = "virtual.github.hotswapagent:hotswap-agent", version.ref = "hotswap_agent" }
@@ -136,7 +126,6 @@ qolify = { module = "maven.modrinth:qolify", version.ref = "qolify" }
 ncr = { module = "maven.modrinth:no-chat-reports", version.ref = "ncr" }
 sodium = { module = "maven.modrinth:sodium", version.ref = "sodium" }
 freecammod = { module = "maven.modrinth:freecam", version.ref = "freecammod" }
-citresewn = { module = "maven.modrinth:cit-resewn", version.ref = "citresewn" }
 femalegender = { module = "maven.modrinth:female-gender", version.ref = "femalegender" }
 jade = { module = "maven.modrinth:jade", version.ref = "jade" }
 yacl = { module = "dev.isxander:yet-another-config-lib", version.ref = "yacl" }
@@ -159,7 +148,6 @@ runtime_optional = [
 	#	"sodium",
 	#	"qolify",
 	#	"ncr",
-	#	"citresewn",
 ]
 
 [plugins]

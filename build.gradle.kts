@@ -196,15 +196,8 @@ val gameTestSourceSet by sourceSets.named("gametest") {
 	configurations.named(runtimeClasspathConfigurationName).extendsFrom(configurations.testRuntimeClasspath)
 }
 
-val configuredSourceSet = createIsolatedSourceSet(
-	"configured",
-	isEnabled = false
-) // Wait for update (also low prio, because configured sucks)
 val sodiumSourceSet = createIsolatedSourceSet("sodium")
-val citResewnSourceSet = createIsolatedSourceSet("citresewn", isEnabled = false) // TODO: Wait for update
 val yaclSourceSet = createIsolatedSourceSet("yacl")
-val explosiveEnhancementSourceSet =
-	createIsolatedSourceSet("explosiveEnhancement", isEnabled = false) // TODO: wait for their port
 val wildfireGenderSourceSet = createIsolatedSourceSet("wildfireGender")
 val jadeSourceSet = createIsolatedSourceSet("jade")
 val modmenuSourceSet = createIsolatedSourceSet("modmenu")
@@ -228,7 +221,6 @@ dependencies {
 	modImplementation(libs.basicMath)
 	include(libs.basicMath)
 	(modmenuSourceSet.modImplementationConfigurationName)(libs.modmenu)
-	(explosiveEnhancementSourceSet.modImplementationConfigurationName)(libs.explosiveenhancement)
 	modImplementation(libs.hypixelmodapi)
 	include(libs.hypixelmodapi.fabric)
 	compileOnly(projects.javaplugin)
@@ -252,15 +244,10 @@ dependencies {
 
 	(wildfireGenderSourceSet.modImplementationConfigurationName)(libs.femalegender)
 	(wildfireGenderSourceSet.implementationConfigurationName)(customTexturesSourceSet.output)
-	(configuredSourceSet.modImplementationConfigurationName)(libs.configured)
 	(sodiumSourceSet.modImplementationConfigurationName)(libs.sodium)
 	(sodiumSourceSet.implementationConfigurationName)(customTexturesSourceSet.output)
 	(jadeSourceSet.modImplementationConfigurationName)(libs.jade)
 
-	(citResewnSourceSet.modImplementationConfigurationName)(
-		innerJarsOf("citresewn", dependencies.create(libs.citresewn.get()))
-	)
-	(citResewnSourceSet.modImplementationConfigurationName)(libs.citresewn)
 	(yaclSourceSet.modImplementationConfigurationName)(libs.yacl)
 
 	// Actual dependencies

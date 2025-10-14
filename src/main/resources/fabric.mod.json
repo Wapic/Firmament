@@ -56,11 +56,6 @@
         "minecraft": ">=${minecraft_version}"
     },
     "custom": {
-        "configured": {
-            "providers": [
-                "moe.nea.firmament.compat.configured.ConfiguredCompat"
-            ]
-        },
         "modmenu": {
             "links": {
                 "modmenu.discord": "https://discord.gg/64pFP94AWA"

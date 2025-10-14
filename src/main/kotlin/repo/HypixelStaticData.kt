@@ -59,7 +59,8 @@ object HypixelStaticData {
 	)
 
 
-	fun getPriceOfItem(item: SkyblockId): Double? = bazaarData[SkyblockId.BazaarStock.fromSkyBlockId(item)]?.quickStatus?.buyPrice ?: lowestBin[item]
+	fun getPriceOfItem(item: SkyblockId): Double? =
+		bazaarData[SkyblockId.BazaarStock.fromSkyBlockId(item)]?.quickStatus?.buyPrice ?: lowestBin[item]
 
 	fun hasBazaarStock(item: SkyblockId.BazaarStock): Boolean {
 		return item in bazaarData
@@ -77,17 +78,17 @@ object HypixelStaticData {
 		Firmament.coroutineScope.launch {
 			while (true) {
 				logger.info("Updating NEU prices")
-				updatePrices()
-				delay(10.minutes)
+				fetchPricesFromMoulberry()
+				delay(5.minutes)
 			}
 		}
-	}
-
-	private suspend fun updatePrices() {
-		awaitAll(
-			Firmament.coroutineScope.async { fetchBazaarPrices() },
-			Firmament.coroutineScope.async { fetchPricesFromMoulberry() },
-		)
+		Firmament.coroutineScope.launch {
+			while (true) {
+				logger.info("Updating bazaar prices")
+				fetchBazaarPrices()
+				delay(2.minutes)
+			}
+		}
 	}
 
 	private suspend fun fetchPricesFromMoulberry() {

@@ -1,4 +1,4 @@
-package moe.nea.firmament.mixins.accessor.sodium;
+package moe.nea.firmament.mixins.sodium.accessor;
 
 import net.caffeinemc.mods.sodium.client.render.SodiumWorldRenderer;
 import net.caffeinemc.mods.sodium.client.render.chunk.RenderSectionManager;

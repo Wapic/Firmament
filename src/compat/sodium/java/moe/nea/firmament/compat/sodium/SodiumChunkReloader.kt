@@ -1,7 +1,7 @@
 package moe.nea.firmament.compat.sodium
 
+import moe.nea.firmament.mixins.sodium.accessor.AccessorSodiumWorldRenderer
 import net.caffeinemc.mods.sodium.client.render.SodiumWorldRenderer
-import moe.nea.firmament.mixins.accessor.sodium.AccessorSodiumWorldRenderer
 
 class SodiumChunkReloader : Runnable {
     override fun run() {

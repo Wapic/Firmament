@@ -1,0 +1,29 @@
+package moe.nea.firmament.mixins.sodium.custommodels;
+
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
+import moe.nea.firmament.features.texturepack.CustomBlockTextures;
+import net.caffeinemc.mods.sodium.client.render.chunk.compile.tasks.ChunkBuilderMeshingTask;
+import net.minecraft.block.BlockState;
+import net.minecraft.client.render.block.BlockModels;
+import net.minecraft.client.render.model.BlockStateModel;
+import net.minecraft.util.math.BlockPos;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+
+@Mixin(ChunkBuilderMeshingTask.class)
+public class PatchBlockModelInSodiumChunkGenerator {
+	@WrapOperation(
+		method = "execute(Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/ChunkBuildContext;Lnet/caffeinemc/mods/sodium/client/util/task/CancellationToken;)Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/ChunkBuildOutput;",
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/block/BlockModels;getModel(Lnet/minecraft/block/BlockState;)Lnet/minecraft/client/render/model/BlockStateModel;"))
+	private BlockStateModel replaceBlockModel(BlockModels instance, BlockState state, Operation<BlockStateModel> original,
+											  @Local(name = "blockPos") BlockPos.Mutable pos) {
+		var replacement = CustomBlockTextures.getReplacementModel(state, pos);
+		if (replacement != null) return replacement;
+		CustomBlockTextures.enterFallbackCall();
+		var fallback = original.call(instance, state);
+		CustomBlockTextures.exitFallbackCall();
+		return fallback;
+	}
+}

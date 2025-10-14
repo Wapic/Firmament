@@ -200,7 +200,7 @@ val configuredSourceSet = createIsolatedSourceSet(
 	"configured",
 	isEnabled = false
 ) // Wait for update (also low prio, because configured sucks)
-val sodiumSourceSet = createIsolatedSourceSet("sodium", isEnabled = false)
+val sodiumSourceSet = createIsolatedSourceSet("sodium")
 val citResewnSourceSet = createIsolatedSourceSet("citresewn", isEnabled = false) // TODO: Wait for update
 val yaclSourceSet = createIsolatedSourceSet("yacl")
 val explosiveEnhancementSourceSet =
@@ -254,6 +254,7 @@ dependencies {
 	(wildfireGenderSourceSet.implementationConfigurationName)(customTexturesSourceSet.output)
 	(configuredSourceSet.modImplementationConfigurationName)(libs.configured)
 	(sodiumSourceSet.modImplementationConfigurationName)(libs.sodium)
+	(sodiumSourceSet.implementationConfigurationName)(customTexturesSourceSet.output)
 	(jadeSourceSet.modImplementationConfigurationName)(libs.jade)
 
 	(citResewnSourceSet.modImplementationConfigurationName)(

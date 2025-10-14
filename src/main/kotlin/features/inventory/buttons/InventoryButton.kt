@@ -5,6 +5,7 @@ import me.shedaniel.math.Dimension
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
 import kotlinx.serialization.Serializable
+import net.minecraft.client.gl.RenderPipelines
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.command.CommandRegistryAccess
 import net.minecraft.command.argument.ItemStackArgumentType
@@ -13,7 +14,9 @@ import net.minecraft.resource.featuretoggle.FeatureFlags
 import net.minecraft.util.Identifier
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
 import moe.nea.firmament.repo.ItemCache.asItemStack
+import moe.nea.firmament.repo.ItemCache.isBroken
 import moe.nea.firmament.repo.RepoManager
+import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SkyblockId
 import moe.nea.firmament.util.collections.memoize
@@ -29,7 +32,11 @@ data class InventoryButton(
 	var anchorBottom: Boolean,
 	var icon: String? = "",
 	var command: String? = "",
+	var isGigantic: Boolean = false,
 ) {
+
+	val myDimension get() = if (isGigantic) bigDimension else dimensions
+
 	companion object {
 		val itemStackParser by lazy {
 			ItemStackArgumentType.itemStack(
@@ -40,7 +47,10 @@ data class InventoryButton(
 			)
 		}
 		val dimensions = Dimension(18, 18)
+		val gap = 2
+		val bigDimension = Dimension(dimensions.width * 2 + gap, dimensions.height * 2 + gap)
 		val getItemForName = ::getItemForName0.memoize(1024)
+
 		@OptIn(ExpensiveItemCacheApi::class)
 		fun getItemForName0(icon: String): ItemStack {
 			val repoItem = RepoManager.getNEUItem(SkyblockId(icon))
@@ -67,20 +77,30 @@ data class InventoryButton(
 					}
 				}
 			}
+			if (itemStack.isBroken)
+				ErrorUtil.logError("created broken itemstack for inventory button $icon: $itemStack")
 			return itemStack
 		}
 	}
 
 	fun render(context: DrawContext) {
 		context.drawGuiTexture(
+			RenderPipelines.GUI_TEXTURED,
+			Identifier.of("firmament:inventory_button_background"),
 			0,
 			0,
-			0,
-			dimensions.width,
-			dimensions.height,
-			Identifier.of("firmament:inventory_button_background")
+			myDimension.width,
+			myDimension.height,
 		)
-		context.drawItem(getItem(), 1, 1)
+		if (isGigantic) {
+			context.matrices.pushMatrix()
+			context.matrices.translate(myDimension.width / 2F, myDimension.height / 2F)
+			context.matrices.scale(2F)
+			context.drawItem(getItem(), -8, -8)
+			context.matrices.popMatrix()
+		} else {
+			context.drawItem(getItem(), 1, 1)
+		}
 	}
 
 	fun isValid() = !icon.isNullOrBlank() && !command.isNullOrBlank()
@@ -93,7 +113,7 @@ data class InventoryButton(
 	}
 
 	fun getBounds(guiRect: Rectangle): Rectangle {
-		return Rectangle(getPosition(guiRect), dimensions)
+		return Rectangle(getPosition(guiRect), myDimension)
 	}
 
 	fun getItem(): ItemStack {

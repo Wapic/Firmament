@@ -32,6 +32,9 @@ class InventoryButtonEditor(
 		@field:Bind
 		var icon: String = originalButton.icon ?: ""
 
+		@field:Bind
+		var isGigantic: Boolean = originalButton.isGigantic
+
 		@Bind
 		fun getItemIcon(): IItemStack {
 			save()
@@ -46,6 +49,7 @@ class InventoryButtonEditor(
 
 		fun save() {
 			originalButton.icon = icon
+			originalButton.isGigantic = isGigantic
 			originalButton.command = command
 		}
 	}
@@ -254,6 +258,14 @@ class InventoryButtonEditor(
 				dragging.y = offsetY
 				dragging.anchorRight = anchorRight
 				dragging.anchorBottom = anchorBottom
+				if (!anchorRight && offsetX > -dragging.myDimension.width
+					&& dragging.getBounds(lastGuiRect).intersects(lastGuiRect)
+				)
+					dragging.x = -dragging.myDimension.width
+				if (!anchorRight && offsetY > -dragging.myDimension.height
+					&& dragging.getBounds(lastGuiRect).intersects(lastGuiRect)
+				)
+					dragging.y = -dragging.myDimension.height
 			}
 		}
 		return false

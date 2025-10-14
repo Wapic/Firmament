@@ -203,6 +203,7 @@ val jadeSourceSet = createIsolatedSourceSet("jade")
 val modmenuSourceSet = createIsolatedSourceSet("modmenu")
 val reiSourceSet = createIsolatedSourceSet("rei")
 val moulconfigSourceSet = createIsolatedSourceSet("moulconfig")
+val irisSourceSet = createIsolatedSourceSet("iris")
 val customTexturesSourceSet = createIsolatedSourceSet("texturePacks", "texturePacks")
 
 dependencies {
@@ -242,6 +243,7 @@ dependencies {
 	modCompileOnly(libs.jarvis.api)
 	include(libs.jarvis.fabric)
 
+	(irisSourceSet.modImplementationConfigurationName)(libs.iris)
 	(wildfireGenderSourceSet.modImplementationConfigurationName)(libs.femalegender)
 	(wildfireGenderSourceSet.implementationConfigurationName)(customTexturesSourceSet.output)
 	(sodiumSourceSet.modImplementationConfigurationName)(libs.sodium)

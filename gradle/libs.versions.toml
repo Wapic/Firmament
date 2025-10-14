@@ -40,6 +40,9 @@ ncr = "Fabric-1.21.7-v2.14.0"
 # Update from https://modrinth.com/mod/female-gender/versions?l=fabric
 femalegender = "4.3.4+1.21.7"
 
+# Update from https://modrinth.com/mod/iris/versions?l=fabric
+iris = "1.9.6+1.21.8-fabric"
+
 shadow = "8.3.8"
 
 
@@ -127,6 +130,7 @@ ncr = { module = "maven.modrinth:no-chat-reports", version.ref = "ncr" }
 sodium = { module = "maven.modrinth:sodium", version.ref = "sodium" }
 freecammod = { module = "maven.modrinth:freecam", version.ref = "freecammod" }
 femalegender = { module = "maven.modrinth:female-gender", version.ref = "femalegender" }
+iris = { module = "maven.modrinth:iris", version.ref = "iris" }
 jade = { module = "maven.modrinth:jade", version.ref = "jade" }
 yacl = { module = "dev.isxander:yet-another-config-lib", version.ref = "yacl" }
 basicMath = { module = "me.shedaniel.cloth:basic-math", version.ref = "basicMath" }

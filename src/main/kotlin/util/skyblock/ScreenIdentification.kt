@@ -20,6 +20,10 @@ fun Screen.isBazaarUi(): Boolean {
 			})
 }
 
+fun Screen.isEnchantmentGuide(): Boolean {
+	return title.unformattedString.endsWith("Enchantments Guide")
+}
+
 fun Screen.isSuperPairs(): Boolean {
 	return title.unformattedString.startsWith("Superpairs")
 }

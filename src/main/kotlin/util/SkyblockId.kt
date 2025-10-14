@@ -38,6 +38,7 @@ import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.mc.loreAccordingToNbt
 import moe.nea.firmament.util.skyblock.isBazaarUi
 import moe.nea.firmament.util.skyblock.isDyeCompendium
+import moe.nea.firmament.util.skyblock.isEnchantmentGuide
 import moe.nea.firmament.util.skyblock.isExperimentationRngMeter
 import moe.nea.firmament.util.skyblock.isSuperPairs
 
@@ -243,7 +244,7 @@ fun ItemStack.guessContextualSkyBlockId(): SkyblockId? {
 		}
 		return ItemNameLookup.guessItemByName(name, false)
 	}
-	if (screen?.isExperimentationRngMeter() == true || screen?.isSuperPairs() == true) {
+	if (screen != null && (screen.isExperimentationRngMeter() || screen.isSuperPairs() || screen.isEnchantmentGuide())) {
 		val name = displayNameAccordingToNbt.unformattedString
 		return RepoManager.enchantedBookCache.byName[name]
 			?: ItemNameLookup.guessItemByName(name, false)

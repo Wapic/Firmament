@@ -17,6 +17,7 @@ import moe.nea.firmament.Firmament
 
 object HttpUtil {
 	val httpClient = HttpClient.newBuilder()
+		.followRedirects(HttpClient.Redirect.NORMAL)
 		.build()
 
 	data class Request(val request: HttpRequest.Builder) {

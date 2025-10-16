@@ -66,8 +66,12 @@ object RepoDownloadManager {
 	private suspend fun downloadGithubArchive(url: String): Path = withContext(IO) {
 		val response = HttpUtil.request(url)
 		val targetFile = Files.createTempFile("firmament-repo", ".zip")
-		val outputChannel = Files.newOutputStream(targetFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
-		response.forInputStream().await().copyTo(outputChannel)
+		Files.newOutputStream(targetFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+			.use { outputStream ->
+				response.forInputStream().await().use { inputStream ->
+					inputStream.copyTo(outputStream)
+				}
+			}
 		targetFile
 	}
 

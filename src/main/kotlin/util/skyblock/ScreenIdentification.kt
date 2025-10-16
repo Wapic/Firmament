@@ -7,31 +7,46 @@ import moe.nea.firmament.util.mc.loreAccordingToNbt
 import moe.nea.firmament.util.unformattedString
 
 
-fun Screen.isBazaarUi(): Boolean {
-	if (this !is GenericContainerScreen) return false
-	return (
-		this.screenHandler.stacks[this.screenHandler.rows * 9 - 4]
-			.displayNameAccordingToNbt
-			.unformattedString == "Manage Orders"
-			|| this.screenHandler.stacks[this.screenHandler.rows * 9 - 5]
-			.loreAccordingToNbt
-			.any {
-				it.unformattedString == "To Bazaar"
-			})
+object ScreenIdentification {
+	private var lastScreen: Screen? = null
+	private var lastScreenType: ScreenType? = null
+
+	fun getType(screen: Screen?): ScreenType? {
+		if (screen == null) return null
+		if (screen !== lastScreen) {
+			lastScreenType = ScreenType.entries
+				.find { it.detector(screen) }
+			lastScreen = screen
+		}
+		return lastScreenType
+	}
 }
 
-fun Screen.isEnchantmentGuide(): Boolean {
-	return title.unformattedString.endsWith("Enchantments Guide")
+enum class ScreenType(val detector: (Screen) -> Boolean) {
+	BAZAAR_ANY({
+		it is GenericContainerScreen && (
+			it.screenHandler.getSlot(it.screenHandler.rows * 9 - 4)
+				.stack
+				.displayNameAccordingToNbt
+				.unformattedString == "Manage Orders"
+				|| it.screenHandler.getSlot(it.screenHandler.rows * 9 - 5)
+				.stack
+				.loreAccordingToNbt
+				.any {
+					it.unformattedString == "To Bazaar"
+				})
+	}),
+	ENCHANTMENT_GUIDE({
+		it.title.unformattedString.endsWith("Enchantments Guide")
+	}),
+	SUPER_PAIRS({
+		it.title.unformattedString.startsWith("Superpairs")
+	}),
+	EXPERIMENTATION_RNG_METER({
+		it.title.unformattedString.contains("Experimentation Table RNG")
+	}),
+	DYE_COMPENDIUM({
+		it.title.unformattedString.contains("Dye Compendium")
+	})
 }
 
-fun Screen.isSuperPairs(): Boolean {
-	return title.unformattedString.startsWith("Superpairs")
-}
-
-fun Screen.isExperimentationRngMeter(): Boolean {
-	return this.title.unformattedString.contains("Experimentation Table RNG")
-}
-
-fun Screen.isDyeCompendium(): Boolean {
-	return this.title.unformattedString.contains("Dye Compendium")
-}

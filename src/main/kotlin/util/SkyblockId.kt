@@ -36,11 +36,8 @@ import moe.nea.firmament.util.collections.WeakCache
 import moe.nea.firmament.util.json.DashlessUUIDSerializer
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.mc.loreAccordingToNbt
-import moe.nea.firmament.util.skyblock.isBazaarUi
-import moe.nea.firmament.util.skyblock.isDyeCompendium
-import moe.nea.firmament.util.skyblock.isEnchantmentGuide
-import moe.nea.firmament.util.skyblock.isExperimentationRngMeter
-import moe.nea.firmament.util.skyblock.isSuperPairs
+import moe.nea.firmament.util.skyblock.ScreenIdentification
+import moe.nea.firmament.util.skyblock.ScreenType
 
 /**
  * A SkyBlock item id, as used by the NEU repo.
@@ -235,7 +232,8 @@ val ItemStack.rawSkyBlockId: String? get() = extraAttributes.getString("id").get
 
 fun ItemStack.guessContextualSkyBlockId(): SkyblockId? {
 	val screen = MC.screen
-	if (screen?.isBazaarUi() == true || screen?.isDyeCompendium() == true) {
+	val screenType = ScreenIdentification.getType(screen)
+	if (screenType == ScreenType.BAZAAR_ANY || screenType == ScreenType.DYE_COMPENDIUM) {
 		val name = displayNameAccordingToNbt.unformattedString
 			.replaceFirst("SELL ", "")
 			.replaceFirst("BUY ", "")
@@ -244,7 +242,7 @@ fun ItemStack.guessContextualSkyBlockId(): SkyblockId? {
 		}
 		return ItemNameLookup.guessItemByName(name, false)
 	}
-	if (screen != null && (screen.isExperimentationRngMeter() || screen.isSuperPairs() || screen.isEnchantmentGuide())) {
+	if (screen != null && (screenType == ScreenType.EXPERIMENTATION_RNG_METER || screenType == ScreenType.SUPER_PAIRS || screenType == ScreenType.ENCHANTMENT_GUIDE)) {
 		val name = displayNameAccordingToNbt.unformattedString
 		return RepoManager.enchantedBookCache.byName[name]
 			?: ItemNameLookup.guessItemByName(name, false)

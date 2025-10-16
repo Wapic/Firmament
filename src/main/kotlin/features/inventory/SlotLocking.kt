@@ -18,9 +18,11 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.serializer
 import net.minecraft.client.gl.RenderPipelines
 import net.minecraft.client.gui.screen.ingame.HandledScreen
+import net.minecraft.client.gui.screen.ingame.InventoryScreen
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.screen.GenericContainerScreenHandler
+import net.minecraft.screen.PlayerScreenHandler
 import net.minecraft.screen.slot.Slot
 import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.util.Identifier
@@ -276,7 +278,7 @@ object SlotLocking {
 			it.actionType == SlotActionType.QUICK_MOVE || (it.actionType == SlotActionType.PICKUP && !TConfig.slotBindRequireShift)
 		if (!isValidAction) return
 		val handler = MC.handledScreen?.screenHandler ?: return
-		if (TConfig.slotBindOnlyInInv && handler.slots.any { it.inventory !is PlayerInventory })
+		if (TConfig.slotBindOnlyInInv && handler !is PlayerScreenHandler)
 			return
 		val slot = it.slot
 		if (slot != null && it.slot.inventory is PlayerInventory) {

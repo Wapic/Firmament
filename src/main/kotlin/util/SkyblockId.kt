@@ -160,7 +160,7 @@ private val timestampFormat = //"10/11/21 3:39 PM"
 		appendLiteral("/")
 		appendValueReduced(ChronoField.YEAR, 2, 2, 1950)
 		appendLiteral(" ")
-		appendValue(ChronoField.HOUR_OF_AMPM, 1, 2, SignStyle.NEVER)
+		appendValue(ChronoField.CLOCK_HOUR_OF_AMPM, 1, 2, SignStyle.NEVER)
 		appendLiteral(":")
 		appendValue(ChronoField.MINUTE_OF_HOUR, 2)
 		appendLiteral(" ")

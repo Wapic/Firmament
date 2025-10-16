@@ -391,6 +391,12 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 				)
 				source.sendFeedback(
 					tr(
+						"firmament.repo.info.overlays",
+						"Overlays: ${RepoManager.overlayData.overlays.size}"
+					)
+				)
+				source.sendFeedback(
+					tr(
 						"firmament.repo.info.itemcache",
 						"ItemCache flawless: ${formatBool(ItemCache.isFlawless)}"
 					)

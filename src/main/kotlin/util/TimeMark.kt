@@ -2,6 +2,7 @@ package moe.nea.firmament.util
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit
 
 class TimeMark private constructor(private val timeMark: Long) : Comparable<TimeMark> {
 	fun passedTime() =
@@ -49,4 +50,8 @@ class TimeMark private constructor(private val timeMark: Long) : Comparable<Time
 	override fun compareTo(other: TimeMark): Int {
 		return this.timeMark.compareTo(other.timeMark)
 	}
+}
+
+fun Duration.toTicks(): Long {
+	return toLong(DurationUnit.MILLISECONDS) / 50
 }

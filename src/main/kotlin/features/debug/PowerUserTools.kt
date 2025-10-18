@@ -65,6 +65,7 @@ object PowerUserTools {
 		val highlightNonOverlayItems by toggle("highlight-non-overlay") { false }
 		val dontHighlightSemicolonItems by toggle("dont-highlight-semicolon-items") { false }
 		val showSlotNumbers by keyBindingWithDefaultUnbound("slot-numbers")
+		val autoCopyAnimatedSkins by toggle("copy-animated-skins") { false }
 	}
 
 	var lastCopiedStack: Pair<ItemStack, Text>? = null

@@ -10,6 +10,7 @@ import net.minecraft.client.gui.DrawContext
 import net.minecraft.command.CommandRegistryAccess
 import net.minecraft.command.argument.ItemStackArgumentType
 import net.minecraft.item.ItemStack
+import net.minecraft.item.Items
 import net.minecraft.resource.featuretoggle.FeatureFlags
 import net.minecraft.util.Identifier
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
@@ -77,7 +78,7 @@ data class InventoryButton(
 					}
 				}
 			}
-			if (itemStack.isBroken)
+			if (itemStack.item == Items.PAINTING)
 				ErrorUtil.logError("created broken itemstack for inventory button $icon: $itemStack")
 			return itemStack
 		}

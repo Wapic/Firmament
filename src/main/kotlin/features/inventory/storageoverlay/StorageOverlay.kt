@@ -8,12 +8,15 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.Items
 import net.minecraft.network.packet.c2s.play.CloseHandledScreenC2SPacket
+import net.minecraft.text.Text
 import moe.nea.firmament.annotations.Subscribe
+import moe.nea.firmament.events.ChestInventoryUpdateEvent
 import moe.nea.firmament.events.ScreenChangeEvent
 import moe.nea.firmament.events.SlotClickEvent
 import moe.nea.firmament.events.SlotRenderEvents
 import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.util.MC
+import moe.nea.firmament.util.async.discard
 import moe.nea.firmament.util.customgui.customGui
 import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.data.ManagedConfig
@@ -90,8 +93,8 @@ object StorageOverlay {
 	var currentHandler: StorageBackingHandle? = null
 
 	@Subscribe
-	fun onTick(event: TickEvent) {
-		rememberContent(currentHandler ?: return)
+	fun onChestContentUpdate(event: ChestInventoryUpdateEvent) {
+		rememberContent(currentHandler)
 	}
 
 	@Subscribe
@@ -149,13 +152,11 @@ object StorageOverlay {
 
 	fun rememberContent(handler: StorageBackingHandle?) {
 		handler ?: return
-		// TODO: Make all of these functions work on deltas / updates instead of the entire contents
-		val data = Data.data?.storageInventories ?: return
+		val data = Data.data.storageInventories
 		when (handler) {
 			is StorageBackingHandle.Overview -> rememberStorageOverview(handler, data)
 			is StorageBackingHandle.Page -> rememberPage(handler, data)
 		}
-		Data.markDirty()
 	}
 
 	private fun rememberStorageOverview(
@@ -176,13 +177,13 @@ object StorageOverlay {
 				data[slot] = StorageData.StorageInventory(slot.defaultName(), slot, null)
 			}
 		}
+		Data.markDirty()
 	}
 
 	private fun rememberPage(
 		handler: StorageBackingHandle.Page,
 		data: SortedMap<StoragePageSlot, StorageData.StorageInventory>
 	) {
-		// TODO: FIXME: FIXME NOW: Definitely don't copy all of this every tick into persistence
 		val newStacks =
 			VirtualInventory(handler.handler.stacks.take(handler.handler.rows * 9).drop(9).map { it.copy() })
 		data.compute(handler.storagePageSlot) { slot, existingInventory ->
@@ -194,5 +195,6 @@ object StorageOverlay {
 				it.inventory = newStacks
 			}
 		}
+		Data.markDirty(newStacks.serializationCache.discard())
 	}
 }

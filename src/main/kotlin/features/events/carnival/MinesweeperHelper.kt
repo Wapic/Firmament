@@ -45,7 +45,6 @@ object MinesweeperHelper {
 
 
     enum class Piece(
-        @get:Bind("fruitName")
         val fruitName: String,
         val points: Int,
         val specialAbility: String,
@@ -118,24 +117,26 @@ object MinesweeperHelper {
         val textureUrl = "http://textures.minecraft.net/texture/$textureHash"
         val itemStack = createSkullItem(UUID.randomUUID(), textureUrl)
             .setSkyBlockFirmamentUiId("MINESWEEPER_$name")
+		@get:Bind("fruitName")
+		val textFruitName = Text.literal(fruitName)
 
         @Bind
         fun getIcon() = MoulConfigPlatform.wrap(itemStack)
 
-        @Bind
-        fun pieceLabel() = fruitColor.formattingCode + fruitName
+        @get:Bind("pieceLabel")
+        val pieceLabel = Text.literal(fruitColor.formattingCode + fruitName)
 
-        @Bind
-        fun boardLabel() = "§a$totalPerBoard§7/§rboard"
+        @get:Bind("boardLabel")
+        val boardLabel = Text.literal("§a$totalPerBoard§7/§rboard")
 
-        @Bind("description")
-        fun getDescription() = buildString {
+        @get:Bind("description")
+        val getDescription = Text.literal(buildString {
             append(specialAbility)
             if (points >= 0) {
                 append(" Default points: $points.")
             }
         }
-    }
+)    }
 
     object TutorialScreen {
         @get:Bind("pieces")

@@ -37,7 +37,7 @@ object AllConfigsGui {
 		val configs = category.configs.map { EntryMapping(it) }.toObservableList()
 
 		@Bind
-		fun name() = category.labelText.string
+		fun name() = category.labelText
 
 		@Bind
 		fun close() {
@@ -46,7 +46,7 @@ object AllConfigsGui {
 
 		class EntryMapping(val config: ManagedConfig) {
 			@Bind
-			fun name() = Text.translatable("firmament.config.${config.name}").string
+			fun name() = Text.translatable("firmament.config.${config.name}")
 
 			@Bind
 			fun openEditor() {
@@ -63,7 +63,7 @@ object AllConfigsGui {
 
 		class CategoryEntry(val category: ManagedConfig.Category) {
 			@Bind
-			fun name() = category.labelText.string
+			fun name() = category.labelText
 
 			@Bind
 			fun open() {

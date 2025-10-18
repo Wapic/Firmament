@@ -6,6 +6,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.decodeFromStream
+import net.minecraft.text.Text
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.thenExecute
@@ -30,17 +31,18 @@ object LicenseViewer {
 		fun hasWebPresence() = webPresence != null
 
 		@Bind
-		fun webPresence() = webPresence ?: "<no web presence>"
+		fun webPresence() = Text.literal(webPresence ?: "<no web presence>")
+
 		@Bind
 		fun open() {
 			MC.openUrl(webPresence ?: return)
 		}
 
 		@Bind
-		fun projectName() = projectName
+		fun projectName() = Text.literal(projectName)
 
 		@Bind
-		fun projectDescription() = projectDescription ?: "<no project description>"
+		fun projectDescription() = Text.literal(projectDescription ?: "<no project description>")
 
 		@get:Bind("developers")
 		@Transient
@@ -53,9 +55,12 @@ object LicenseViewer {
 
 	@Serializable
 	data class Developer(
-		@get:Bind("name") val name: String,
+		val name: String,
 		val webPresence: String? = null
 	) {
+
+		@Bind("name")
+		fun nameT() = Text.literal(name)
 
 		@Bind
 		fun open() {
@@ -66,14 +71,17 @@ object LicenseViewer {
 		fun hasWebPresence() = webPresence != null
 
 		@Bind
-		fun webPresence() = webPresence ?: "<no web presence>"
+		fun webPresence() = Text.literal(webPresence ?: "<no web presence>")
 	}
 
 	@Serializable
 	data class License(
-		@get:Bind("name") val licenseName: String,
+		val licenseName: String,
 		val licenseUrl: String? = null
 	) {
+		@Bind("name")
+		fun nameG() = Text.literal(licenseName)
+
 		@Bind
 		fun open() {
 			MC.openUrl(licenseUrl ?: return)
@@ -83,7 +91,7 @@ object LicenseViewer {
 		fun hasUrl() = licenseUrl != null
 
 		@Bind
-		fun url() = licenseUrl ?: "<no link to license text>"
+		fun url() = Text.literal(licenseUrl ?: "<no link to license text>")
 	}
 
 	data class LicenseList(

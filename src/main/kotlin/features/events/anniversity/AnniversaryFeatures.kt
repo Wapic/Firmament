@@ -5,6 +5,7 @@ import io.github.notenoughupdates.moulconfig.xml.Bind
 import org.joml.Vector2i
 import kotlin.time.Duration.Companion.seconds
 import net.minecraft.entity.passive.PigEntity
+import net.minecraft.text.Text
 import net.minecraft.util.math.BlockPos
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.EntityInteractionEvent
@@ -202,12 +203,12 @@ object AnniversaryFeatures {
 
 			@OptIn(ExpensiveItemCacheApi::class)
 			@Bind
-			fun name(): String {
+			fun name(): Text {
 				return when (backedBy) {
-					is Reward.Coins -> "Coins"
-					is Reward.EXP -> backedBy.skill
-					is Reward.Items -> itemStack.asImmutableItemStack().name.string
-					is Reward.Unknown -> backedBy.text
+					is Reward.Coins -> Text.literal("Coins")
+					is Reward.EXP -> Text.literal(backedBy.skill)
+					is Reward.Items -> itemStack.asImmutableItemStack().name
+					is Reward.Unknown -> Text.literal(backedBy.text)
 				}
 			}
 

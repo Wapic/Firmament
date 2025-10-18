@@ -1,6 +1,7 @@
 package moe.nea.firmament.gui.config.storage
 
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -13,7 +14,12 @@ import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
+import kotlin.time.Duration.Companion.seconds
+import moe.nea.firmament.annotations.Subscribe
+import moe.nea.firmament.events.TickEvent
+import moe.nea.firmament.features.debug.DebugLogger
 import moe.nea.firmament.util.SBData.NULL_UUID
+import moe.nea.firmament.util.TimeMark
 import moe.nea.firmament.util.data.IConfigProvider
 import moe.nea.firmament.util.data.IDataHolder
 import moe.nea.firmament.util.data.ProfileKeyedConfig
@@ -215,8 +221,30 @@ object FirmamentConfigLoader {
 			.data.intoKotlinJson().jsonObject
 	}
 
-	fun markDirty(holder: IDataHolder<*>) {
+	@Subscribe
+	fun onTick(event: TickEvent) {
+		val config = configPromise ?: return
+		val passedTime = saveDebounceStart.passedTime()
+		if (passedTime < 1.seconds)
+			return
+		if (!config.isDone && passedTime < 3.seconds)
+			return
+		debugLogger.log("Performing config save")
+		configPromise = null
 		saveAll()
+	}
+
+	val debugLogger = DebugLogger("config")
+
+	var configPromise: CompletableFuture<Void?>? = null
+	var saveDebounceStart: TimeMark = TimeMark.farPast()
+	fun markDirty(
+		holder: IDataHolder<*>,
+		timeoutPromise: CompletableFuture<Void?>? = null
+	) {
+		debugLogger.log("Config marked dirty")
+		this.saveDebounceStart = TimeMark.now()
+		this.configPromise = timeoutPromise ?: CompletableFuture.completedFuture(null)
 	}
 
 }

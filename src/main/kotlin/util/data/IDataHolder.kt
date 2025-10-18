@@ -1,6 +1,7 @@
 package moe.nea.firmament.util.data
 
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -10,8 +11,8 @@ import moe.nea.firmament.gui.config.storage.FirmamentConfigLoader
 import moe.nea.firmament.util.SBData
 
 sealed class IDataHolder<T> {
-	fun markDirty() {
-		FirmamentConfigLoader.markDirty(this)
+	fun markDirty(future: CompletableFuture<Void?>? = null) {
+		FirmamentConfigLoader.markDirty(this, future)
 	}
 
 	init {

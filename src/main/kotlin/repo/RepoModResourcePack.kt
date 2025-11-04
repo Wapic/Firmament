@@ -89,7 +89,9 @@ class RepoModResourcePack(val basePath: Path) : ModResourcePack {
 			.asSequence()
 			.map { it.relativeTo(basePath) }
 			.forEach {
-				consumer.accept(Identifier.of("neurepo", it.toString()), InputSupplier.create(it))
+				consumer.accept(
+					Identifier.tryParse("neurepo", it.toString()) ?: return@forEach,
+					InputSupplier.create(it))
 			}
 	}
 

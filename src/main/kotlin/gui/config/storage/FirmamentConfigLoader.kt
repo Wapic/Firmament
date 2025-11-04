@@ -57,9 +57,11 @@ object FirmamentConfigLoader {
 				profilePath.takeIf { it.exists() }
 					?.listDirectoryEntries()
 					?.filter { it.isDirectory() }
-					?.associate {
-						UUID.fromString(it.name) to FirstLevelSplitJsonFolder(loadContext, it).load()
+					?.mapNotNull {
+						val uuid= runCatching { UUID.fromString(it.name) }.getOrNull() ?: return@mapNotNull null
+						uuid to FirstLevelSplitJsonFolder(loadContext, it).load()
 					}
+					?.toMap()
 			if (profileData.isNullOrEmpty())
 				profileData = mapOf(NULL_UUID to JsonObject(mapOf()))
 			profileData.forEach { (key, value) ->

@@ -197,7 +197,6 @@ class InventoryButtonEditor(
 	}
 
 	override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
-		super.render(context, mouseX, mouseY, delta)
 		context.matrices.pushMatrix()
 		PanelComponent.DefaultBackgroundRenderer.VANILLA
 			.render(
@@ -206,6 +205,7 @@ class InventoryButtonEditor(
 				lastGuiRect.width, lastGuiRect.height,
 			)
 		context.matrices.popMatrix()
+		super.render(context, mouseX, mouseY, delta)
 		for (button in buttons) {
 			val buttonPosition = button.getBounds(lastGuiRect)
 			context.matrices.pushMatrix()

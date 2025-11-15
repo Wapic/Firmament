@@ -16,6 +16,7 @@ import moe.nea.firmament.features.texturepack.FirmamentModelPredicate
 import moe.nea.firmament.features.texturepack.FirmamentModelPredicateParser
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.mc.NbtPrism
+import moe.nea.firmament.util.mc.unsafeNbt
 
 data class GenericComponentPredicate<T>(
 	val componentType: ComponentType<T>,
@@ -30,7 +31,7 @@ data class GenericComponentPredicate<T>(
 		val component = stack.get(componentType) ?: return false
 		// TODO: cache this
 		val nbt =
-			if (component is NbtComponent) component.nbt
+			if (component is NbtComponent) component.unsafeNbt
 			else codec.encodeStart(NbtOps.INSTANCE, component)
 				.resultOrPartial().getOrNull() ?: return false
 		return path.access(nbt).any { matcher.matches(it) }

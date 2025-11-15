@@ -62,6 +62,7 @@ sealed interface GenericInputButton {
 
 	companion object {
 
+		fun of(event: KeyInput) = ofKeyAndScan(event.keycode, event.scancode)
 		fun escape() = ofKeyCode(GLFW.GLFW_KEY_ESCAPE)
 		fun ofKeyCode(keyCode: Int): GenericInputButton = KeyCodeButton(keyCode)
 		fun ofScanCode(scanCode: Int): GenericInputButton = ScanCodeButton(scanCode)

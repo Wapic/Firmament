@@ -17,11 +17,10 @@ class CustomFakeBlockProvider(val registration: IWailaClientRegistration) : Jade
 	): Accessor<*>? {
 		if (!JadeIntegration.TConfig.blockDetection) return accessor
 		if (accessor !is BlockAccessor) return accessor
-		val customBlock = JadeIntegration.customBlocks[accessor.block]
-		if (customBlock == null) return accessor
+		val customBlock = JadeIntegration.customBlocks[accessor.block] ?: return accessor
 		return registration.blockAccessor()
 			.from(accessor)
-			.fakeBlock(customBlock.getDisplayItem(accessor.block))
+			.serversideRep(customBlock.getDisplayItem(accessor.block))
 			.build()
 	}
 
@@ -33,8 +32,7 @@ class CustomFakeBlockProvider(val registration: IWailaClientRegistration) : Jade
 
 		@JvmStatic
 		fun getCustomBlock(accessor: BlockAccessor): MiningRepoData.CustomMiningBlock? {
-			if (!accessor.isFakeBlock) return null
-			val item = accessor.fakeBlock
+			val item = accessor.serversideRep ?: return null
 			return item.get(FirmamentDataComponentTypes.CUSTOM_MINING_BLOCK_DATA)
 		}
 	}

@@ -14,6 +14,7 @@ import net.minecraft.client.world.ClientWorld
 import net.minecraft.entity.LivingEntity
 import net.minecraft.item.ItemDisplayContext
 import net.minecraft.item.ItemStack
+import net.minecraft.util.HeldItemContext
 import net.minecraft.util.Identifier
 import moe.nea.firmament.features.texturepack.predicates.AndPredicate
 
@@ -33,15 +34,15 @@ class PredicateModel {
 			resolver: ItemModelManager?,
 			displayContext: ItemDisplayContext?,
 			world: ClientWorld?,
-			user: LivingEntity?,
+			heldItemContext: HeldItemContext?,
 			seed: Int
 		) {
 			val model =
 				overrides
-					.findLast { it.predicate.test(stack, user) }
+					.findLast { it.predicate.test(stack, heldItemContext?.entity) }
 					?.model
 					?: fallback
-			model.update(state, stack, resolver, displayContext, world, user, seed)
+			model.update(state, stack, resolver, displayContext, world, heldItemContext, seed)
 		}
 	}
 

@@ -6,6 +6,8 @@ import dev.isxander.yacl3.api.utils.Dimension
 import dev.isxander.yacl3.gui.AbstractWidget
 import dev.isxander.yacl3.gui.YACLScreen
 import dev.isxander.yacl3.gui.controllers.ControllerWidget
+import net.minecraft.client.gui.Click
+import net.minecraft.client.input.KeyInput
 import net.minecraft.text.Text
 import moe.nea.firmament.gui.config.KeyBindingHandler
 import moe.nea.firmament.gui.config.KeyBindingStateManager
@@ -57,12 +59,12 @@ class KeybindingWidget(
 		return sm.label
 	}
 
-	override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-		return sm.keyboardEvent(GenericInputButton.ofKeyAndScan(keyCode, scanCode), true)
+	override fun keyPressed(keyEvent: KeyInput): Boolean {
+		return sm.keyboardEvent(GenericInputButton.of(keyEvent), true)
 	}
 
-	override fun keyReleased(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-		return sm.keyboardEvent(GenericInputButton.ofKeyAndScan(keyCode, scanCode), false)
+	override fun keyReleased(keyEvent: KeyInput): Boolean {
+		return sm.keyboardEvent(GenericInputButton.of(keyEvent), false)
 	}
 
 	override fun unfocus() {
@@ -74,11 +76,11 @@ class KeybindingWidget(
 		if (!focused) sm.onLostFocus()
 	}
 
-	override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+	override fun mouseClicked(mouseButtonEvent: Click, doubleClick: Boolean): Boolean {
 		if (isHovered) {
-			sm.onClick(button)
+			sm.onClick(mouseButtonEvent.button())
 			return true
 		}
-		return super.mouseClicked(mouseX, mouseY, button)
+		return super.mouseClicked(mouseButtonEvent, doubleClick)
 	}
 }

@@ -98,7 +98,7 @@ object CustomSkyBlockTextures {
 	}
 
 	fun getSkullTexture(profile: ProfileComponent): Identifier? {
-		val id = getSkullId(profile.properties["textures"].firstOrNull() ?: return null) ?: return null
+		val id = getSkullId(profile.gameProfile.properties["textures"].firstOrNull() ?: return null) ?: return null
 		return Identifier.of("firmskyblock", "textures/placedskull/$id.png")
 	}
 

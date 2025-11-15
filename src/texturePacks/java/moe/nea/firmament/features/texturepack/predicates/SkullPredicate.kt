@@ -36,13 +36,13 @@ class SkullPredicate(
 	override fun test(stack: ItemStack, holder: LivingEntity?): Boolean {
 		if (!stack.isOf(Items.PLAYER_HEAD)) return false
 		val profile = stack.get(DataComponentTypes.PROFILE) ?: return false
-		val textureProperty = profile.properties["textures"].firstOrNull()
+		val textureProperty = profile.gameProfile.properties["textures"].firstOrNull()
 		val textureMode = lazy(LazyThreadSafetyMode.NONE) {
 			decodeProfileTextureProperty(textureProperty ?: return@lazy null)
 		}
 		when {
 			profileId != null
-				&& profileId != profile.uuid.getOrNull() ->
+				&& profileId != profile.gameProfile.id ->
 				return false
 
 			textureValue != null

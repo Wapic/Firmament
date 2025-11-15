@@ -13,6 +13,7 @@ import net.minecraft.client.world.ClientWorld
 import net.minecraft.entity.LivingEntity
 import net.minecraft.item.ItemDisplayContext
 import net.minecraft.item.ItemStack
+import net.minecraft.util.HeldItemContext
 import net.minecraft.util.Identifier
 
 object HeadModelChooser {
@@ -28,13 +29,14 @@ object HeadModelChooser {
 	}
 
 	data class Baked(val head: ItemModel, val regular: ItemModel) : ItemModel {
+
 		override fun update(
 			state: ItemRenderState,
 			stack: ItemStack?,
 			resolver: ItemModelManager?,
 			displayContext: ItemDisplayContext,
 			world: ClientWorld?,
-			user: LivingEntity?,
+			heldItemContext: HeldItemContext?,
 			seed: Int
 		) {
 			val instance =
@@ -44,7 +46,7 @@ object HeadModelChooser {
 				} else {
 					regular
 				}
-			instance.update(state, stack, resolver, displayContext, world, user, seed)
+			instance.update(state, stack, resolver, displayContext, world, heldItemContext, seed)
 		}
 	}
 

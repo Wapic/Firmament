@@ -18,7 +18,6 @@ import dev.isxander.yacl3.api.controller.StringControllerBuilder
 import dev.isxander.yacl3.api.controller.TickBoxControllerBuilder
 import dev.isxander.yacl3.api.controller.ValueFormatter
 import dev.isxander.yacl3.gui.YACLScreen
-import dev.isxander.yacl3.gui.tab.ListHolderWidget
 import io.github.notenoughupdates.moulconfig.ChromaColour
 import java.awt.Color
 import kotlin.time.Duration
@@ -26,6 +25,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import net.minecraft.client.gui.Element
 import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.gui.widget.ContainerWidget
 import net.minecraft.text.Text
 import moe.nea.firmament.gui.config.BooleanHandler
 import moe.nea.firmament.gui.config.ChoiceHandler
@@ -208,7 +208,7 @@ class YaclIntegration : FirmamentConfigScreenProvider {
 		return object : YACLScreen(buildConfig(), parent) {
 			override fun setFocused(focused: Element?) {
 				if (this.focused is KeybindingWidget &&
-					focused is ListHolderWidget<*>
+					focused is ContainerWidget
 				) {
 					return
 				}

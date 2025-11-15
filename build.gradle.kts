@@ -201,7 +201,7 @@ val yaclSourceSet = createIsolatedSourceSet("yacl")
 val wildfireGenderSourceSet = createIsolatedSourceSet("wildfireGender")
 val jadeSourceSet = createIsolatedSourceSet("jade")
 val modmenuSourceSet = createIsolatedSourceSet("modmenu")
-val reiSourceSet = createIsolatedSourceSet("rei")
+val reiSourceSet = createIsolatedSourceSet("rei", isEnabled = false)
 val moulconfigSourceSet = createIsolatedSourceSet("moulconfig")
 val irisSourceSet = createIsolatedSourceSet("iris")
 val customTexturesSourceSet = createIsolatedSourceSet("texturePacks", "texturePacks")
@@ -254,7 +254,7 @@ dependencies {
 
 	// Actual dependencies
 
-	val reiDeps = libs.rei.dev
+	val reiDeps = libs.rei
 	(reiSourceSet.modImplementationConfigurationName)(reiDeps.api)
 	(reiSourceSet.modRuntimeOnlyConfigurationName)(reiDeps.fabric)
 	nonModImplentation(libs.repoparser)

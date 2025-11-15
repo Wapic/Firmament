@@ -18,6 +18,7 @@ import me.shedaniel.rei.api.client.gui.widgets.Widgets
 import me.shedaniel.rei.api.client.registry.display.DisplayCategory
 import me.shedaniel.rei.api.common.category.CategoryIdentifier
 import kotlin.time.Duration.Companion.seconds
+import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.Element
 import net.minecraft.item.Items
@@ -175,56 +176,50 @@ fun wrapWidget(bounds: Rectangle, component: GuiComponent): Widget {
 			)
 		}
 
-		override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-			val mouseXInt = mouseX.toInt()
-			val mouseYInt = mouseY.toInt()
+		override fun mouseClicked(click: Click, doubled: Boolean): Boolean {
+			val mouseXInt = click.x.toInt()
+			val mouseYInt = click.y.toInt()
 			return component.mouseEvent(
-				MouseEvent.Click(button, true),
+				MouseEvent.Click(click.button(), true),
 				GuiImmediateContext(
 					IMinecraft.INSTANCE.provideTopLevelRenderContext(),
 					bounds.minX, bounds.minY,
 					bounds.width, bounds.height,
 					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
 					mouseXInt, mouseYInt,
-					mouseX.toFloat(), mouseY.toFloat()
+					click.x.toFloat(), click.y.toFloat()
 				)
 			)
 		}
 
-		override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
-			val mouseXInt = mouseX.toInt()
-			val mouseYInt = mouseY.toInt()
+		override fun mouseReleased(click: Click): Boolean {
+			val mouseXInt = click.x.toInt()
+			val mouseYInt = click.y.toInt()
 			return component.mouseEvent(
-				MouseEvent.Click(button, false),
+				MouseEvent.Click(click.button(), false),
 				GuiImmediateContext(
 					IMinecraft.INSTANCE.provideTopLevelRenderContext(),
 					bounds.minX, bounds.minY,
 					bounds.width, bounds.height,
 					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
 					mouseXInt, mouseYInt,
-					mouseX.toFloat(), mouseY.toFloat()
+					click.x.toFloat(), click.y.toFloat()
 				)
 			)
 		}
 
-		override fun mouseDragged(
-			mouseX: Double,
-			mouseY: Double,
-			button: Int,
-			deltaX: Double,
-			deltaY: Double
-		): Boolean {
-			val mouseXInt = mouseX.toInt()
-			val mouseYInt = mouseY.toInt()
+		override fun mouseDragged(click: Click, offsetX: Double, offsetY: Double): Boolean {
+			val mouseXInt = click.x.toInt()
+			val mouseYInt = click.y.toInt()
 			return component.mouseEvent(
-				MouseEvent.Move(deltaX.toFloat(), deltaY.toFloat()),
+				MouseEvent.Move(offsetX.toFloat(), offsetY.toFloat()),
 				GuiImmediateContext(
 					IMinecraft.INSTANCE.provideTopLevelRenderContext(),
 					bounds.minX, bounds.minY,
 					bounds.width, bounds.height,
 					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
 					mouseXInt, mouseYInt,
-					mouseX.toFloat(), mouseY.toFloat()
+					click.x.toFloat(), click.y.toFloat()
 				)
 			)
 

@@ -6,6 +6,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import net.minecraft.client.network.AbstractClientPlayerEntity
 import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.util.AssetInfo
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HandledScreenKeyPressedEvent
@@ -67,7 +68,7 @@ object ExportRecipe {
 			val id = generateName(reply)
 			ItemExporter.exportStub(id, "§9$reply") {
 				val playerEntity = entity as? AbstractClientPlayerEntity
-				val textureUrl = playerEntity?.skinTextures?.textureUrl
+				val textureUrl = (playerEntity?.skin?.body as? AssetInfo.SkinAssetInfo)?.url
 				if (textureUrl != null)
 					it.setSkullOwner(playerEntity.uuid, textureUrl)
 			}

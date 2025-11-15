@@ -6,8 +6,11 @@ import io.github.notenoughupdates.moulconfig.gui.GuiContext
 import me.shedaniel.math.Dimension
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
+import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.input.CharInput
+import net.minecraft.client.input.KeyInput
 import net.minecraft.text.Text
 
 abstract class FragmentGuiScreen(
@@ -29,15 +32,15 @@ abstract class FragmentGuiScreen(
         return true
     }
 
-    override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+	override fun keyPressed(input: KeyInput): Boolean {
         return ifPopup {
-            it.keyPressed(keyCode, scanCode, modifiers)
+            it.keyPressed(input)
         }
     }
 
-    override fun keyReleased(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+	override fun keyReleased(input: KeyInput): Boolean {
         return ifPopup {
-            it.keyReleased(keyCode, scanCode, modifiers)
+            it.keyReleased(input)
         }
     }
 
@@ -45,35 +48,35 @@ abstract class FragmentGuiScreen(
         ifPopup { it.mouseMoved(mouseX, mouseY) }
     }
 
-    override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
+	override fun mouseReleased(click: Click): Boolean {
         return ifPopup {
-            it.mouseReleased(mouseX, mouseY, button)
+            it.mouseReleased(click)
         }
     }
 
-    override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double): Boolean {
+	override fun mouseDragged(click: Click, offsetX: Double, offsetY: Double): Boolean {
         return ifPopup {
-            it.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)
+            it.mouseDragged(click, offsetX, offsetY)
         }
     }
 
-    override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+	override fun mouseClicked(click: Click, doubled: Boolean): Boolean {
         return ifPopup {
             if (!Rectangle(
                     it.position,
                     Dimension(it.guiContext.root.width, it.guiContext.root.height)
-                ).contains(Point(mouseX, mouseY))
+                ).contains(Point(click.x, click.y))
                 && dismissOnOutOfBounds
             ) {
                 popup = null
             } else {
-                it.mouseClicked(mouseX, mouseY, button)
+                it.mouseClicked(click, doubled)
             }
-        }|| super.mouseClicked(mouseX, mouseY, button)
+        }|| super.mouseClicked(click, doubled)
     }
 
-    override fun charTyped(chr: Char, modifiers: Int): Boolean {
-        return ifPopup { it.charTyped(chr, modifiers) }
+	override fun charTyped(input: CharInput): Boolean {
+        return ifPopup { it.charTyped(input) }
     }
 
     override fun mouseScrolled(

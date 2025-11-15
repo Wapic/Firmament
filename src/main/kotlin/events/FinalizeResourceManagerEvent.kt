@@ -14,13 +14,13 @@ data class FinalizeResourceManagerEvent(
 	inline fun registerOnApply(name: String, crossinline function: () -> Unit) {
 		resourceManager.registerReloader(object : ResourceReloader {
 			override fun reload(
-				synchronizer: ResourceReloader.Synchronizer,
-				manager: ResourceManager,
+				store: ResourceReloader.Store,
 				prepareExecutor: Executor,
+				reloadSynchronizer: ResourceReloader.Synchronizer,
 				applyExecutor: Executor
 			): CompletableFuture<Void> {
 				return CompletableFuture.completedFuture(Unit)
-					.thenCompose(synchronizer::whenPrepared)
+					.thenCompose(reloadSynchronizer::whenPrepared)
 					.thenAcceptAsync({ function() }, applyExecutor)
 			}
 

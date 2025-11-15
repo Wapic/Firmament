@@ -4,7 +4,6 @@ package moe.nea.firmament.mixins;
 
 import moe.nea.firmament.events.WorldReadyEvent;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.DownloadingTerrainScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

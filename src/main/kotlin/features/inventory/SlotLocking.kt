@@ -393,12 +393,12 @@ object SlotLocking {
 					hotX + sx, hotY + sy,
 					color(anyHovered)
 				)
-			event.context.drawBorder(
+			event.context.drawStrokedRectangle(
 				hotbarSlot.x + sx,
 				hotbarSlot.y + sy,
 				16, 16, color(hotbarSlot in highlitSlots).color
 			)
-			event.context.drawBorder(
+			event.context.drawStrokedRectangle( // TODO: 1.21.10
 				inventorySlot.x + sx,
 				inventorySlot.y + sy,
 				16, 16, color(inventorySlot in highlitSlots).color
@@ -416,7 +416,7 @@ object SlotLocking {
 		val sx = accScreen.x_Firmament
 		val sy = accScreen.y_Firmament
 		val (borderX, borderY) = draggingSlot.lineCenter()
-		event.context.drawBorder(draggingSlot.x + sx, draggingSlot.y + sy, 16, 16, 0xFF00FF00u.toInt())
+		event.context.drawStrokedRectangle(draggingSlot.x + sx, draggingSlot.y + sy, 16, 16, 0xFF00FF00u.toInt()) // TODO: 1.21.10
 		if (hoveredSlot == null) {
 			event.context.drawLine(
 				borderX + sx, borderY + sy,
@@ -430,7 +430,7 @@ object SlotLocking {
 				hovX + sx, hovY + sy,
 				me.shedaniel.math.Color.ofOpaque(0x00FF00)
 			)
-			event.context.drawBorder(
+			event.context.drawStrokedRectangle(
 				hoveredSlot.x + sx,
 				hoveredSlot.y + sy,
 				16, 16, 0xFF00FF00u.toInt()

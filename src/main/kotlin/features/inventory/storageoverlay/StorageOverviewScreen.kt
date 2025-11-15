@@ -5,8 +5,10 @@ package moe.nea.firmament.features.inventory.storageoverlay
 import org.lwjgl.glfw.GLFW
 import kotlin.math.max
 import net.minecraft.block.Blocks
+import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.input.KeyInput
 import net.minecraft.item.Item
 import net.minecraft.item.Items
 import net.minecraft.text.Text
@@ -72,10 +74,10 @@ class StorageOverviewScreen() : Screen(Text.empty()) {
         lastRenderedHeight = totalHeight + currentMaxHeight
     }
 
-    override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+	override fun mouseClicked(click: Click, doubled: Boolean): Boolean {
         layoutedForEach { (k, p), x, y ->
-            val rx = mouseX - x
-            val ry = mouseY - y
+            val rx = click.x - x
+            val ry = click.y - y
             if (rx in (0.0..pageWidth.toDouble()) && ry in (0.0..getStorePageHeight(p).toDouble())) {
                 close()
                 StorageOverlay.lastStorageOverlay = this
@@ -83,7 +85,7 @@ class StorageOverviewScreen() : Screen(Text.empty()) {
                 return true
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button)
+        return super.mouseClicked(click, doubled)
     }
 
     fun getStorePageHeight(page: StorageData.StorageInventory): Int {
@@ -127,9 +129,9 @@ class StorageOverviewScreen() : Screen(Text.empty()) {
         }
     }
 
-    override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE)
+	override fun keyPressed(input: KeyInput): Boolean {
+        if (input.keycode == GLFW.GLFW_KEY_ESCAPE)
             isClosing = true
-        return super.keyPressed(keyCode, scanCode, modifiers)
+        return super.keyPressed(input)
     }
 }

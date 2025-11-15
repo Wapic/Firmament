@@ -4,6 +4,7 @@ import me.shedaniel.math.Rectangle
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration.Companion.seconds
 import net.minecraft.block.Blocks
+import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.entity.player.PlayerInventory
@@ -99,14 +100,14 @@ object HotmPresets {
 		var hasScrolled = false
 		var hasAll = false
 
-		override fun mouseClick(mouseX: Double, mouseY: Double, button: Int): Boolean {
+		override fun mouseClick(click: Click, doubled: Boolean): Boolean {
 			if (!hasScrolled) {
 				val slot = screen.screenHandler.getSlot(8)
 				println("Clicking ${slot.stack}")
 				slot.clickRightMouseButton(screen.screenHandler)
 			}
 			hasScrolled = true
-			return super.mouseClick(mouseX, mouseY, button)
+			return super.mouseClick(click, doubled)
 		}
 
 		override fun shouldDrawForeground(): Boolean {

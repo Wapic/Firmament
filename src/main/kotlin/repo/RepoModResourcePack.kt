@@ -91,7 +91,8 @@ class RepoModResourcePack(val basePath: Path) : ModResourcePack {
 			.forEach {
 				consumer.accept(
 					Identifier.tryParse("neurepo", it.toString()) ?: return@forEach,
-					InputSupplier.create(it))
+					InputSupplier.create(it)
+				)
 			}
 	}
 
@@ -109,7 +110,7 @@ class RepoModResourcePack(val basePath: Path) : ModResourcePack {
         "description": "NEU Repo Resources"
     }
 }
-""".trimIndent().byteInputStream()
+""".trimIndent().byteInputStream(), info
 		)
 	}
 

@@ -41,6 +41,7 @@ import moe.nea.firmament.util.mc.SNbtFormatter.Companion.toPrettyString
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.mc.iterableArmorItems
 import moe.nea.firmament.util.mc.loreAccordingToNbt
+import moe.nea.firmament.util.mc.unsafeNbt
 import moe.nea.firmament.util.skyBlockId
 import moe.nea.firmament.util.tr
 
@@ -166,7 +167,7 @@ object PowerUserTools {
 				Pair(item, Text.stringifiedTranslatable("firmament.tooltip.copied.modelid", model.toString()))
 		} else if (it.matches(TConfig.copyNbtData)) {
 			// TODO: copy full nbt
-			val nbt = item.get(DataComponentTypes.CUSTOM_DATA)?.nbt?.toPrettyString() ?: "<empty>"
+			val nbt = item.get(DataComponentTypes.CUSTOM_DATA)?.unsafeNbt?.toPrettyString() ?: "<empty>"
 			ClipboardUtils.setTextContent(nbt)
 			lastCopiedStack = Pair(item, Text.translatable("firmament.tooltip.copied.nbt"))
 		} else if (it.matches(TConfig.copyLoreData)) {

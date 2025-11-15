@@ -1,7 +1,10 @@
 package moe.nea.firmament.util.customgui
 
 import me.shedaniel.math.Rectangle
+import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
+import net.minecraft.client.input.CharInput
+import net.minecraft.client.input.KeyInput
 import net.minecraft.screen.slot.Slot
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HandledScreenPushREIEvent
@@ -30,7 +33,7 @@ abstract class CustomGui {
 	) {
 	}
 
-	open fun mouseClick(mouseX: Double, mouseY: Double, button: Int): Boolean {
+	open fun mouseClick(click: Click, doubled: Boolean): Boolean {
 		return false
 	}
 
@@ -69,23 +72,23 @@ abstract class CustomGui {
 		return true
 	}
 
-	open fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
+	open fun mouseReleased(click: Click): Boolean {
 		return false
 	}
 
-	open fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double): Boolean {
+	open fun mouseDragged(click: Click, offsetX: Double, offsetY: Double): Boolean {
 		return false
 	}
 
-	open fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+	open fun keyPressed(input: KeyInput): Boolean {
 		return false
 	}
 
-	open fun charTyped(chr: Char, modifiers: Int): Boolean {
+	open fun charTyped(input: CharInput): Boolean {
 		return false
 	}
 
-	open fun keyReleased(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+	open fun keyReleased(input: KeyInput): Boolean {
 		return false
 	}
 }

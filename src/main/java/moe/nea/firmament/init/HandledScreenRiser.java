@@ -3,6 +3,10 @@ package moe.nea.firmament.init;
 
 import me.shedaniel.mm.api.ClassTinkerers;
 import net.minecraft.client.gui.Element;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.input.CharInput;
+import net.minecraft.client.input.KeyInput;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
@@ -19,23 +23,28 @@ import java.lang.reflect.Modifier;
 import java.util.function.Consumer;
 
 public class HandledScreenRiser extends RiserUtils {
-	@IntermediaryName(net.minecraft.client.gui.screen.Screen.class)
+	@IntermediaryName(Screen.class)
 	String Screen;
-	@IntermediaryName(net.minecraft.client.gui.screen.ingame.HandledScreen.class)
+	@IntermediaryName(KeyInput.class)
+	String KeyInput;
+	@IntermediaryName(CharInput.class)
+	String CharInput;
+	@IntermediaryName(HandledScreen.class)
 	String HandledScreen;
 	Type mouseScrolledDesc = Type.getMethodType(Type.BOOLEAN_TYPE, Type.DOUBLE_TYPE, Type.DOUBLE_TYPE, Type.DOUBLE_TYPE, Type.DOUBLE_TYPE);
-	String mouseScrolled = remapper.mapMethodName("intermediary", "net.minecraft.class_364", "method_25401",
-	                                              mouseScrolledDesc.getDescriptor());
+	String mouseScrolled = remapper.mapMethodName("intermediary", Intermediary.<Element>className(),
+		Intermediary.methodName(Element::mouseScrolled),
+		mouseScrolledDesc.getDescriptor());
 	// boolean keyReleased(int keyCode, int scanCode, int modifiers)
-	Type keyReleasedDesc = Type.getMethodType(Type.BOOLEAN_TYPE, Type.INT_TYPE, Type.INT_TYPE, Type.INT_TYPE);
+	Type keyReleasedDesc = Type.getMethodType(Type.BOOLEAN_TYPE, getTypeForClassName(KeyInput));
 	String keyReleased = remapper.mapMethodName("intermediary", Intermediary.<Element>className(),
-	                                            Intermediary.methodName(Element::keyReleased),
-	                                            keyReleasedDesc.getDescriptor());
+		Intermediary.methodName(Element::keyReleased),
+		keyReleasedDesc.getDescriptor());
 	// public boolean charTyped(char chr, int modifiers)
-	Type charTypedDesc = Type.getMethodType(Type.BOOLEAN_TYPE, Type.CHAR_TYPE, Type.INT_TYPE);
+	Type charTypedDesc = Type.getMethodType(Type.BOOLEAN_TYPE, getTypeForClassName(CharInput));
 	String charTyped = remapper.mapMethodName("intermediary", Intermediary.<Element>className(),
-	                                          Intermediary.methodName(Element::charTyped),
-	                                          charTypedDesc.getDescriptor());
+		Intermediary.methodName(Element::charTyped),
+		charTypedDesc.getDescriptor());
 
 
 	@Override
@@ -56,8 +65,8 @@ public class HandledScreenRiser extends RiserUtils {
 	 * @param insertInvoke insert the invokevirtual/invokestatic call
 	 */
 	void insertTrueHandler(MethodNode node,
-	                       Consumer<InsnList> insertLoads,
-	                       Consumer<InsnList> insertInvoke) {
+						   Consumer<InsnList> insertLoads,
+						   Consumer<InsnList> insertInvoke) {
 
 		var insns = new InsnList();
 		insertLoads.accept(insns);
@@ -80,10 +89,8 @@ public class HandledScreenRiser extends RiserUtils {
 			insns -> {
 				// ALOAD 0, load this
 				insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
-				// ILOAD 1-3, load args
-				insns.add(new VarInsnNode(Opcodes.ILOAD, 1));
-				insns.add(new VarInsnNode(Opcodes.ILOAD, 2));
-				insns.add(new VarInsnNode(Opcodes.ILOAD, 3));
+				// ALOAD 1, load args
+				insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
 			});
 	}
 
@@ -93,9 +100,8 @@ public class HandledScreenRiser extends RiserUtils {
 			insns -> {
 				// ALOAD 0, load this
 				insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
-				// ILOAD 1-2, load args. chars = ints
-				insns.add(new VarInsnNode(Opcodes.ILOAD, 1));
-				insns.add(new VarInsnNode(Opcodes.ILOAD, 2));
+				// ALOAD 1, load args
+				insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
 			});
 	}
 
@@ -119,7 +125,7 @@ public class HandledScreenRiser extends RiserUtils {
 			loadArgs.accept(insns);
 			// INVOKESPECIAL call super method
 			insns.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, getTypeForClassName(Screen).getInternalName(),
-			                             name, desc.getDescriptor()));
+				name, desc.getDescriptor()));
 			// IRETURN return int on stack (booleans are int at runtime)
 			insns.add(new InsnNode(Opcodes.IRETURN));
 			classNode.methods.add(keyReleasedNode);
@@ -127,9 +133,9 @@ public class HandledScreenRiser extends RiserUtils {
 		insertTrueHandler(keyReleasedNode, loadArgs, insns -> {
 			// INVOKEVIRTUAL call custom handler
 			insns.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL,
-			                             getTypeForClassName(HandledScreen).getInternalName(),
-			                             firmamentName,
-			                             desc.getDescriptor()));
+				getTypeForClassName(HandledScreen).getInternalName(),
+				firmamentName,
+				desc.getDescriptor()));
 		});
 
 	}

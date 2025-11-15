@@ -11,6 +11,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.OptionalDouble
 import java.util.OptionalInt
+import org.joml.Vector3f
 import org.joml.Vector4f
 import net.minecraft.client.gl.Framebuffer
 import net.minecraft.client.render.BufferBuilder
@@ -67,7 +68,7 @@ class CustomRenderPassHelper(
 				.write(
 					RenderSystem.getModelViewMatrix(),
 					Vector4f(1.0F, 1.0F, 1.0F, 1.0F),
-					RenderSystem.getModelOffset(),
+					Vector3f(), // TODO: 1.21.10
 					RenderSystem.getTextureMatrix(),
 					RenderSystem.getShaderLineWidth()
 				)

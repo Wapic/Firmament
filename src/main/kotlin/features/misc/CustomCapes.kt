@@ -8,8 +8,9 @@ import net.minecraft.client.render.RenderLayer
 import net.minecraft.client.render.VertexConsumer
 import net.minecraft.client.render.VertexConsumerProvider
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState
-import net.minecraft.client.util.SkinTextures
 import net.minecraft.client.util.math.MatrixStack
+import net.minecraft.entity.player.SkinTextures
+import net.minecraft.util.AssetInfo
 import net.minecraft.util.Identifier
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.util.MC
@@ -144,28 +145,11 @@ object CustomCapes {
 		).flatten().flatMap { (dev, cape) -> dev.uuids.map { it to cape.cape } }.toMap()
 
 	@JvmStatic
-	fun render(
-		playerEntityRenderState: PlayerEntityRenderState,
-		vertexConsumer: VertexConsumer,
-		renderLayer: RenderLayer,
-		vertexConsumerProvider: VertexConsumerProvider,
-		matrixStack: MatrixStack,
-		model: (VertexConsumer) -> Unit
-	) {
-		val capeStorage = CapeStorage.cast(playerEntityRenderState)
-		val firmCape = capeStorage.cape_firmament
-		if (firmCape != null) {
-			firmCape.render.replaceRender(renderLayer, vertexConsumerProvider, matrixStack, model)
-		} else {
-			model(vertexConsumer)
-		}
-	}
-
-	@JvmStatic
 	fun addCapeData(
 		player: AbstractClientPlayerEntity,
 		playerEntityRenderState: PlayerEntityRenderState
 	) {
+		if (true) return // TODO: see capefeaturerenderer mixin
 		val cape = if (TConfig.showCapes) byUuid[player.uuid] else null
 		val capeStorage = CapeStorage.cast(playerEntityRenderState)
 		if (cape == null) {
@@ -173,10 +157,9 @@ object CustomCapes {
 		} else {
 			capeStorage.cape_firmament = cape
 			playerEntityRenderState.skinTextures = SkinTextures(
-				playerEntityRenderState.skinTextures.texture,
-				playerEntityRenderState.skinTextures.textureUrl,
-				Firmament.identifier("placeholder/fake_cape"),
-				playerEntityRenderState.skinTextures.elytraTexture,
+				playerEntityRenderState.skinTextures.body,
+				AssetInfo.TextureAssetInfo(Firmament.identifier("placeholder/fake_cape"), Firmament.identifier("placeholder/fake_cape")),
+				playerEntityRenderState.skinTextures.elytra,
 				playerEntityRenderState.skinTextures.model,
 				playerEntityRenderState.skinTextures.secure,
 			)

@@ -36,6 +36,7 @@ import moe.nea.firmament.util.collections.WeakCache
 import moe.nea.firmament.util.json.DashlessUUIDSerializer
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.mc.loreAccordingToNbt
+import moe.nea.firmament.util.mc.unsafeNbt
 import moe.nea.firmament.util.skyblock.ScreenIdentification
 import moe.nea.firmament.util.skyblock.ScreenType
 
@@ -137,7 +138,7 @@ var ItemStack.extraAttributes: NbtCompound
 			set(DataComponentTypes.CUSTOM_DATA, component)
 			component
 		}
-		return customData.nbt
+		return customData.unsafeNbt
 	}
 
 fun ItemStack.modifyExtraAttributes(block: (NbtCompound) -> Unit) {

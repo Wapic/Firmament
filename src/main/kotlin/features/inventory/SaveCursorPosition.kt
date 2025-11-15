@@ -44,7 +44,7 @@ object SaveCursorPosition {
 			(lastPosition.middle.second - middleY).absoluteValue < 1
 		) {
 			InputUtil.setCursorParameters(
-				MC.window.handle,
+				MC.window,
 				InputUtil.GLFW_CURSOR_NORMAL,
 				lastPosition.cursor.first,
 				lastPosition.cursor.second

@@ -14,7 +14,9 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.put
 import net.minecraft.client.MinecraftClient
+import net.minecraft.client.input.KeyInput
 import net.minecraft.client.util.InputUtil
+import net.minecraft.client.util.MacWindowUtil
 import net.minecraft.text.Text
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.mc.InitLevel
@@ -107,7 +109,7 @@ sealed interface GenericInputButton {
 		}
 
 		override fun isPressed(): Boolean {
-			return InputUtil.isKeyPressed(MC.window.handle, keyCode)
+			return InputUtil.isKeyPressed(MC.window, keyCode)
 		}
 
 		override fun isCtrl(): Boolean {
@@ -188,6 +190,9 @@ sealed interface GenericInputAction {
 		fun mouse(mouseButton: Int): GenericInputAction = MouseInput(mouseButton)
 
 		@JvmStatic
+		fun of(input: KeyInput): GenericInputAction = key(input.keycode, input.scancode)
+
+		@JvmStatic
 		fun key(keyCode: Int, scanCode: Int): GenericInputAction = KeyboardInput(keyCode, scanCode)
 	}
 }
@@ -199,8 +204,8 @@ data class InputModifiers(
 	companion object {
 		@JvmStatic
 		fun current(): InputModifiers {
-			val h = MC.window.handle
-			val ctrl = if (MinecraftClient.IS_SYSTEM_MAC) {
+			val h = MC.window
+			val ctrl = if (MacWindowUtil.IS_MAC) {
 				InputUtil.isKeyPressed(h, GLFW.GLFW_KEY_LEFT_SUPER)
 					|| InputUtil.isKeyPressed(h, GLFW.GLFW_KEY_RIGHT_SUPER)
 			} else InputUtil.isKeyPressed(h, GLFW.GLFW_KEY_LEFT_CONTROL)
@@ -223,7 +228,7 @@ data class InputModifiers(
 
 
 		val superKeys = listOf(GLFW.GLFW_KEY_LEFT_SUPER, GLFW.GLFW_KEY_RIGHT_SUPER)
-		val controlKeys = if (MinecraftClient.IS_SYSTEM_MAC) {
+		val controlKeys = if (MacWindowUtil.IS_MAC) {
 			listOf(GLFW.GLFW_KEY_LEFT_SUPER, GLFW.GLFW_KEY_RIGHT_SUPER)
 		} else {
 			listOf(GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_RIGHT_CONTROL)
@@ -264,6 +269,9 @@ data class InputModifiers(
 
 		@JvmStatic
 		fun of(modifiers: Int) = InputModifiers(modifiers)
+
+		@JvmStatic
+		fun of(input: KeyInput) = InputModifiers(input.modifiers)
 
 		fun none(): InputModifiers {
 			return InputModifiers(0)

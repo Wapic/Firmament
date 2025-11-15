@@ -41,20 +41,20 @@ object TemporaryWaypoints {
 			}
 			temporaryPlayerWaypointList.forEach { (player, waypoint) ->
 				val skin =
-					MC.networkHandler?.listedPlayerListEntries?.find { it.profile.name == player }?.skinTextures?.texture
+					MC.networkHandler?.listedPlayerListEntries?.find { it.profile.name == player }?.skinTextures?.body
 				withFacingThePlayer(waypoint.pos.toCenterPos()) {
 					waypoint(waypoint.pos, Text.stringifiedTranslatable("firmament.waypoint.temporary", player))
 					if (skin != null) {
 						matrixStack.translate(0F, -20F, 0F)
 						// Head front
 						texture(
-							skin, 16, 16,
+							skin.id(), 16, 16, // TODO: 1.21.10 test
 							1 / 8f, 1 / 8f,
 							2 / 8f, 2 / 8f,
 						)
 						// Head overlay
 						texture(
-							skin, 16, 16,
+							skin.id(), 16, 16, // TODO: 1.21.10
 							5 / 8f, 1 / 8f,
 							6 / 8f, 2 / 8f,
 						)

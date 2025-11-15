@@ -1,5 +1,6 @@
 package moe.nea.firmament.features.debug
 
+import com.mojang.authlib.GameProfile
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -35,18 +36,7 @@ object SkinPreviews {
 			return
 		val entity = event.entity as? LivingEntity ?: return
 		val stack = entity.getEquippedStack(EquipmentSlot.HEAD) ?: return
-		val profile = stack.get(DataComponentTypes.PROFILE) ?: return
-		if (!profile.isCompleted) {
-			lastDiscard = TimeMark.now()
-			animation.clear()
-			MC.sendChat(
-				tr(
-					"firmament.dev.skinpreviews.discarding",
-					"Encountered unloaded skin, discarding all previews skin frames."
-				)
-			)
-			return
-		}
+		val profile = stack.get(DataComponentTypes.PROFILE)?.gameProfile ?: return
 		if (profile == animation.lastOrNull()) return
 		animation.add(profile)
 		val shortened = animation.shortenCycle()
@@ -59,7 +49,7 @@ object SkinPreviews {
 					put(
 						"textures",
 						shortened.map {
-							it.gameProfile().id.toString() + ":" + it.properties()["textures"].first().value()
+							it.id.toString() + ":" + it.properties()["textures"].first().value()
 						}.toJsonArray()
 					)
 				}
@@ -74,7 +64,7 @@ object SkinPreviews {
 		}
 	}
 
-	var animation = mutableListOf<ProfileComponent>()
+	var animation = mutableListOf<GameProfile>()
 	var pos = Vec3d(-1.0, 72.0, -101.25)
 	var isRecording = false
 	var skinColor: String? = null

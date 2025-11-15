@@ -3,8 +3,11 @@ package moe.nea.firmament.features.inventory.storageoverlay
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
 import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import net.minecraft.client.input.CharInput
+import net.minecraft.client.input.KeyInput
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.screen.slot.Slot
 import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
@@ -60,39 +63,41 @@ class StorageOverlayCustom(
 		return false
 	}
 
-	override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
-		return overview.mouseReleased(mouseX, mouseY, button)
+	override fun mouseReleased(click: Click): Boolean {
+		return overview.mouseReleased(click)
 	}
 
-	override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double): Boolean {
-		return overview.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)
+	override fun mouseDragged(click: Click, offsetX: Double, offsetY: Double): Boolean {
+		return overview.mouseDragged(click, offsetX, offsetY)
 	}
 
-	override fun keyReleased(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-		return overview.keyReleased(keyCode, scanCode, modifiers)
+	override fun keyReleased(input: KeyInput): Boolean {
+		return overview.keyReleased(input)
 	}
 
-	override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-		return overview.keyPressed(keyCode, scanCode, modifiers)
+	override fun keyPressed(input: KeyInput): Boolean {
+		return overview.keyPressed(input)
 	}
 
-	override fun charTyped(chr: Char, modifiers: Int): Boolean {
-		return overview.charTyped(chr, modifiers)
+	override fun charTyped(input: CharInput): Boolean {
+		return overview.charTyped(input)
 	}
 
-	override fun mouseClick(mouseX: Double, mouseY: Double, button: Int): Boolean {
-		return overview.mouseClicked(mouseX, mouseY, button, (handler as? StorageBackingHandle.Page)?.storagePageSlot)
+	override fun mouseClick(click: Click, doubled: Boolean): Boolean {
+		return overview.mouseClicked(click, doubled, (handler as? StorageBackingHandle.Page)?.storagePageSlot)
 	}
 
 	override fun render(drawContext: DrawContext, delta: Float, mouseX: Int, mouseY: Int) {
 		overview.drawBackgrounds(drawContext)
-		overview.drawPages(drawContext,
-		                   mouseX,
-		                   mouseY,
-		                   delta,
-		                   (handler as? StorageBackingHandle.Page)?.storagePageSlot,
-		                   screen.screenHandler.slots.take(screen.screenHandler.rows * 9).drop(9),
-		                   Point((screen as AccessorHandledScreen).x_Firmament, screen.y_Firmament))
+		overview.drawPages(
+			drawContext,
+			mouseX,
+			mouseY,
+			delta,
+			(handler as? StorageBackingHandle.Page)?.storagePageSlot,
+			screen.screenHandler.slots.take(screen.screenHandler.rows * 9).drop(9),
+			Point((screen as AccessorHandledScreen).x_Firmament, screen.y_Firmament)
+		)
 		overview.drawScrollBar(drawContext)
 		overview.drawControls(drawContext, mouseX, mouseY)
 	}

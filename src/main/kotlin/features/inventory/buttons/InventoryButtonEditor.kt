@@ -9,9 +9,12 @@ import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
 import org.lwjgl.glfw.GLFW
 import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.widget.ButtonWidget
+import net.minecraft.client.gui.widget.MultilineTextWidget
 import net.minecraft.client.gui.widget.TextWidget
+import net.minecraft.client.input.KeyInput
 import net.minecraft.client.util.InputUtil
 import net.minecraft.text.Text
 import net.minecraft.util.math.MathHelper
@@ -74,24 +77,20 @@ class InventoryButtonEditor(
 	override fun init() {
 		super.init()
 		addDrawableChild(
-			TextWidget(
+			MultilineTextWidget(
 				lastGuiRect.minX,
 				25,
-				lastGuiRect.width,
-				9,
 				Text.translatable("firmament.inventory-buttons.delete"),
 				MC.font
-			).alignCenter()
+			).setCentered(true).setMaxWidth(lastGuiRect.width)
 		)
 		addDrawableChild(
-			TextWidget(
+			MultilineTextWidget(
 				lastGuiRect.minX,
 				40,
-				lastGuiRect.width,
-				9,
 				Text.translatable("firmament.inventory-buttons.info"),
 				MC.font
-			).alignCenter()
+			).setCentered(true).setMaxWidth(lastGuiRect.width)
 		)
 		addDrawableChild(
 			ButtonWidget.builder(Text.translatable("firmament.inventory-buttons.reset")) {
@@ -216,27 +215,27 @@ class InventoryButtonEditor(
 		renderPopup(context, mouseX, mouseY, delta)
 	}
 
-	override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-		if (super.keyPressed(keyCode, scanCode, modifiers)) return true
-		if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+	override fun keyPressed(input: KeyInput): Boolean {
+		if (super.keyPressed(input)) return true
+		if (input.keycode == GLFW.GLFW_KEY_ESCAPE) {
 			close()
 			return true
 		}
 		return false
 	}
 
-	override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
-		if (super.mouseReleased(mouseX, mouseY, button)) return true
-		val clickedButton = buttons.firstOrNull { it.getBounds(lastGuiRect).contains(Point(mouseX, mouseY)) }
+	override fun mouseReleased(click: Click): Boolean {
+		if (super.mouseReleased(click)) return true
+		val clickedButton = buttons.firstOrNull { it.getBounds(lastGuiRect).contains(Point(click.x, click.y)) }
 		if (clickedButton != null && !justPerformedAClickAction) {
 			if (InputUtil.isKeyPressed(
-					MC.window.handle,
+					MC.window,
 					InputUtil.GLFW_KEY_LEFT_CONTROL
 				)
 			) Editor(clickedButton).delete()
 			else createPopup(
 				MoulConfigUtils.loadGui("button_editor_fragment", Editor(clickedButton)),
-				Point(mouseX, mouseY)
+				Point(click.x, click.y)
 			)
 			return true
 		}
@@ -245,14 +244,14 @@ class InventoryButtonEditor(
 		return false
 	}
 
-	override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double): Boolean {
-		if (super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)) return true
+	override fun mouseDragged(click: Click, offsetX: Double, offsetY: Double): Boolean {
+		if (super.mouseDragged(click, offsetX, offsetY)) return true
 
-		if (initialDragMousePosition.distanceSquared(Vec2f(mouseX.toFloat(), mouseY.toFloat())) >= 4 * 4) {
+		if (initialDragMousePosition.distanceSquared(Vec2f(click.x.toFloat(), click.y.toFloat())) >= 4 * 4) {
 			initialDragMousePosition = Vec2f(-10F, -10F)
 			lastDraggedButton?.let { dragging ->
 				justPerformedAClickAction = true
-				val (anchorRight, anchorBottom, offsetX, offsetY) = getCoordsForMouse(mouseX.toInt(), mouseY.toInt())
+				val (anchorRight, anchorBottom, offsetX, offsetY) = getCoordsForMouse(click.x.toInt(), click.y.toInt())
 					?: return true
 				dragging.x = offsetX
 				dragging.y = offsetY
@@ -287,7 +286,7 @@ class InventoryButtonEditor(
 		val anchorBottom = my > lastGuiRect.maxY
 		var offsetX = mx - if (anchorRight) lastGuiRect.maxX else lastGuiRect.minX
 		var offsetY = my - if (anchorBottom) lastGuiRect.maxY else lastGuiRect.minY
-		if (InputUtil.isKeyPressed(MC.window.handle, InputUtil.GLFW_KEY_LEFT_SHIFT)) {
+		if (InputUtil.isKeyPressed(MC.window, InputUtil.GLFW_KEY_LEFT_SHIFT)) {
 			offsetX = MathHelper.floor(offsetX / 20F) * 20
 			offsetY = MathHelper.floor(offsetY / 20F) * 20
 		}
@@ -297,16 +296,16 @@ class InventoryButtonEditor(
 		return anchoredCoords
 	}
 
-	override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-		if (super.mouseClicked(mouseX, mouseY, button)) return true
-		val clickedButton = buttons.firstOrNull { it.getBounds(lastGuiRect).contains(Point(mouseX, mouseY)) }
+	override fun mouseClicked(click: Click, doubled: Boolean): Boolean {
+		if (super.mouseClicked(click, doubled)) return true
+		val clickedButton = buttons.firstOrNull { it.getBounds(lastGuiRect).contains(click.x, click.y) }
 		if (clickedButton != null) {
 			lastDraggedButton = clickedButton
-			initialDragMousePosition = Vec2f(mouseX.toFloat(), mouseY.toFloat())
+			initialDragMousePosition = Vec2f(click.y.toFloat(), click.y.toFloat())
 			return true
 		}
-		val mx = mouseX.toInt()
-		val my = mouseY.toInt()
+		val mx = click.x.toInt()
+		val my = click.y.toInt()
 		val (anchorRight, anchorBottom, offsetX, offsetY) = getCoordsForMouse(mx, my) ?: return true
 		buttons.add(InventoryButton(offsetX, offsetY, anchorRight, anchorBottom, null, null))
 		justPerformedAClickAction = true

@@ -10,9 +10,12 @@ import moe.nea.firmament.keybindings.InputModifiers;
 import moe.nea.firmament.util.customgui.CoordRememberingSlot;
 import moe.nea.firmament.util.customgui.CustomGui;
 import moe.nea.firmament.util.customgui.HasCustomGui;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.input.CharInput;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
@@ -75,17 +78,17 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 		return override != null && override.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
 	}
 
-	public boolean keyReleased_firmament(int keyCode, int scanCode, int modifiers) {
+	public boolean keyReleased_firmament(KeyInput input) {
 		if (HandledScreenKeyReleasedEvent.Companion.publish(new HandledScreenKeyReleasedEvent(
 			(HandledScreen<?>) (Object) this,
-			GenericInputAction.key(keyCode, scanCode),
-			InputModifiers.of(modifiers))).getCancelled())
+			GenericInputAction.of(input),
+			InputModifiers.of(input))).getCancelled())
 			return true;
-		return override != null && override.keyReleased(keyCode, scanCode, modifiers);
+		return override != null && override.keyReleased(input);
 	}
 
-	public boolean charTyped_firmament(char chr, int modifiers) {
-		return override != null && override.charTyped(chr, modifiers);
+	public boolean charTyped_firmament(CharInput input) {
+		return override != null && override.charTyped(input);
 	}
 
 	@Inject(method = "init", at = @At("TAIL"))
@@ -118,7 +121,9 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 	}
 
 	@Inject(method = "isClickOutsideBounds", at = @At("HEAD"), cancellable = true)
-	public void onIsClickOutsideBounds(double mouseX, double mouseY, int left, int top, int button, CallbackInfoReturnable<Boolean> cir) {
+	public void onIsClickOutsideBounds(
+		double mouseX, double mouseY, int left, int top,
+		CallbackInfoReturnable<Boolean> cir) {
 		if (override != null) {
 			cir.setReturnValue(override.isClickOutsideBounds(mouseX, mouseY));
 		}
@@ -176,28 +181,27 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 
 	@WrapOperation(
 		method = "mouseClicked",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;mouseClicked(DDI)Z"))
-	public boolean overrideMouseClicks(HandledScreen instance, double mouseX, double mouseY, int button,
-									   Operation<Boolean> original) {
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;mouseClicked(Lnet/minecraft/client/gui/Click;Z)Z"))
+	public boolean overrideMouseClicks(HandledScreen instance, Click click, boolean doubled, Operation<Boolean> original) {
 		if (override != null) {
-			if (override.mouseClick(mouseX, mouseY, button))
+			if (override.mouseClick(click, doubled))
 				return true;
 		}
-		return original.call(instance, mouseX, mouseY, button);
+		return original.call(instance, click, doubled);
 	}
 
 	@Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
-	public void overrideMouseDrags(double mouseX, double mouseY, int button, double deltaX, double deltaY, CallbackInfoReturnable<Boolean> cir) {
+	public void overrideMouseDrags(Click click, double offsetX, double offsetY, CallbackInfoReturnable<Boolean> cir) {
 		if (override != null) {
-			if (override.mouseDragged(mouseX, mouseY, button, deltaX, deltaY))
+			if (override.mouseDragged(click, offsetX, offsetY))
 				cir.setReturnValue(true);
 		}
 	}
 
 	@Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-	private void overrideKeyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+	private void overrideKeyPressed(KeyInput input, CallbackInfoReturnable<Boolean> cir) {
 		if (override != null) {
-			if (override.keyPressed(keyCode, scanCode, modifiers)) {
+			if (override.keyPressed(input)) {
 				cir.setReturnValue(true);
 			}
 		}
@@ -207,9 +211,9 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 	@Inject(
 		method = "mouseReleased",
 		at = @At("HEAD"), cancellable = true)
-	public void overrideMouseReleases(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
+	public void overrideMouseReleases(Click click, CallbackInfoReturnable<Boolean> cir) {
 		if (override != null) {
-			if (override.mouseReleased(mouseX, mouseY, button))
+			if (override.mouseReleased(click))
 				cir.setReturnValue(true);
 		}
 	}

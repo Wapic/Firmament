@@ -13,9 +13,12 @@ import io.github.notenoughupdates.moulconfig.observer.Property
 import java.util.TreeSet
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
+import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.HandledScreen
+import net.minecraft.client.input.CharInput
+import net.minecraft.client.input.KeyInput
 import net.minecraft.item.ItemStack
 import net.minecraft.screen.slot.Slot
 import net.minecraft.text.Text
@@ -307,11 +310,11 @@ class StorageOverlayScreen : Screen(Text.literal("")) {
 		get() = guiContext.focusedElement == knobStub
 		set(value) = knobStub.setFocus(value)
 
-	override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-		return mouseClicked(mouseX, mouseY, button, null)
+	override fun mouseClicked(click: Click, doubled: Boolean): Boolean {
+		return mouseClicked(click, doubled, null)
 	}
 
-	override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
+	override fun mouseReleased(click: Click): Boolean {
 		if (knobGrabbed) {
 			knobGrabbed = false
 			return true
@@ -320,30 +323,32 @@ class StorageOverlayScreen : Screen(Text.literal("")) {
 				controlComponent,
 				measurements.controlX, measurements.controlY,
 				CONTROL_WIDTH, CONTROL_HEIGHT,
-				mouseX.toInt(), mouseY.toInt(),
-				MouseEvent.Click(button, false)
+				click.x.toInt(), click.y.toInt(),
+				MouseEvent.Click(click.button(), false)
 			)
 		) return true
-		return super.mouseReleased(mouseX, mouseY, button)
+		return super.mouseReleased(click)
 	}
 
-	override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double): Boolean {
+	override fun mouseDragged(click: Click, offsetX: Double, offsetY: Double): Boolean {
 		if (knobGrabbed) {
 			val sbRect = getScrollBarRect()
-			val percentage = (mouseY - sbRect.getY()) / sbRect.getHeight()
+			val percentage = (click.x - sbRect.getY()) / sbRect.getHeight()
 			scroll = (getMaxScroll() * percentage).toFloat()
 			mouseScrolled(0.0, 0.0, 0.0, 0.0)
 			return true
 		}
-		return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)
+		return super.mouseDragged(click, offsetX, offsetY)
 	}
 
-	fun mouseClicked(mouseX: Double, mouseY: Double, button: Int, activePage: StoragePageSlot?): Boolean {
+	fun mouseClicked(click: Click, doubled: Boolean, activePage: StoragePageSlot?): Boolean {
 		guiContext.setFocusedElement(null) // Blur all elements. They will be refocused by clickMCComponentInPlace if in doubt, and we don't have any double click components.
+		val mouseX = click.x
+		val mouseY = click.y
 		if (getScrollPanelInner().contains(mouseX, mouseY)) {
-			val data = StorageOverlay.Data.data ?: StorageData()
+			val data = StorageOverlay.Data.data
 			layoutedForEach(data) { rect, page, _ ->
-				if (rect.contains(mouseX, mouseY) && activePage != page && button == 0) {
+				if (rect.contains(mouseX, mouseY) && activePage != page && click.button() == 0) {
 					page.navigateTo()
 					return true
 				}
@@ -363,53 +368,53 @@ class StorageOverlayScreen : Screen(Text.literal("")) {
 				measurements.controlX, measurements.controlY,
 				CONTROL_WIDTH, CONTROL_HEIGHT,
 				mouseX.toInt(), mouseY.toInt(),
-				MouseEvent.Click(button, true)
+				MouseEvent.Click(click.button(), true)
 			)
 		) return true
 		return false
 	}
 
-	override fun charTyped(chr: Char, modifiers: Int): Boolean {
+	override fun charTyped(input: CharInput): Boolean {
 		if (typeMCComponentInPlace(
 				controlComponent,
 				measurements.controlX, measurements.controlY,
 				CONTROL_WIDTH, CONTROL_HEIGHT,
-				KeyboardEvent.CharTyped(chr)
+				KeyboardEvent.CharTyped(input.asString().first()) // TODO: i dont like this .first()
 			)
 		) {
 			return true
 		}
-		return super.charTyped(chr, modifiers)
+		return super.charTyped(input)
 	}
 
-	override fun keyReleased(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+	override fun keyReleased(input: KeyInput): Boolean {
 		if (typeMCComponentInPlace(
 				controlComponent,
 				measurements.controlX, measurements.controlY,
 				CONTROL_WIDTH, CONTROL_HEIGHT,
-				KeyboardEvent.KeyPressed(keyCode, scanCode, false)
+				KeyboardEvent.KeyPressed(input.keycode, input.scancode, false)
 			)
 		) {
 			return true
 		}
-		return super.keyReleased(keyCode, scanCode, modifiers)
+		return super.keyReleased(input)
 	}
 
 	override fun shouldCloseOnEsc(): Boolean {
 		return this === MC.screen // Fixes this UI closing the handled screen on Escape press.
 	}
 
-	override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+	override fun keyPressed(input: KeyInput): Boolean {
 		if (typeMCComponentInPlace(
 				controlComponent,
 				measurements.controlX, measurements.controlY,
 				CONTROL_WIDTH, CONTROL_HEIGHT,
-				KeyboardEvent.KeyPressed(keyCode, scanCode, true)
+				KeyboardEvent.KeyPressed(input.keycode, input.scancode, true)
 			)
 		) {
 			return true
 		}
-		return super.keyPressed(keyCode, scanCode, modifiers)
+		return super.keyPressed(input)
 	}
 
 
@@ -506,7 +511,7 @@ class StorageOverlayScreen : Screen(Text.literal("")) {
 		val name = inventory.title
 		val pageHeight = inv.rows * SLOT_SIZE + 8 + textRenderer.fontHeight
 		if (slots != null && StorageOverlay.TConfig.outlineActiveStoragePage)
-			context.drawBorder(
+			context.drawStrokedRectangle(
 				x,
 				y + 3 + textRenderer.fontHeight,
 				PAGE_WIDTH,

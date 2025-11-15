@@ -1,38 +1,19 @@
 package moe.nea.firmament.gui.entity
 
-import com.mojang.authlib.GameProfile
-import java.util.UUID
-import net.minecraft.client.network.AbstractClientPlayerEntity
+import net.minecraft.client.network.ClientMannequinEntity
 import net.minecraft.client.util.DefaultSkinHelper
-import net.minecraft.client.util.SkinTextures
-import net.minecraft.client.util.SkinTextures.Model
 import net.minecraft.client.world.ClientWorld
-import net.minecraft.util.Identifier
-import net.minecraft.util.math.Vec3d
+import net.minecraft.entity.player.SkinTextures
 import net.minecraft.world.World
+import moe.nea.firmament.util.MC
 
-/**
- * @see moe.nea.firmament.init.EarlyRiser
- */
 fun makeGuiPlayer(world: World): GuiPlayer {
-	val constructor = GuiPlayer::class.java.getDeclaredConstructor(ClientWorld::class.java, GameProfile::class.java)
-	val player = constructor.newInstance(world, GameProfile(UUID.randomUUID(), "Linnea"))
-	player.postInit()
+	val player = GuiPlayer(MC.instance.world!!)
 	return player
 }
 
-class GuiPlayer(world: ClientWorld?, profile: GameProfile?) : AbstractClientPlayerEntity(world, profile) {
+class GuiPlayer(world: ClientWorld?) : ClientMannequinEntity(world, MC.instance.playerSkinCache) {
 	override fun isSpectator(): Boolean {
-		return false
-	}
-
-	fun postInit() {
-		skinTexture = DefaultSkinHelper.getSkinTextures(this.getUuid()).texture
-		lastVelocity = Vec3d.ZERO
-		model = Model.WIDE
-	}
-
-	override fun isCreative(): Boolean {
 		return false
 	}
 
@@ -40,17 +21,8 @@ class GuiPlayer(world: ClientWorld?, profile: GameProfile?) : AbstractClientPlay
 		return false
 	}
 
-	lateinit var skinTexture: Identifier
-	var capeTexture: Identifier? = null
-	var model: Model = Model.WIDE
-	override fun getSkinTextures(): SkinTextures {
-		return SkinTextures(
-			skinTexture,
-			null,
-			capeTexture,
-			null,
-			model,
-			true
-		)
+	var skinTextures: SkinTextures = DefaultSkinHelper.getSkinTextures(this.getUuid()) // TODO: 1.21.10
+	override fun getSkin(): SkinTextures {
+		return skinTextures
 	}
 }

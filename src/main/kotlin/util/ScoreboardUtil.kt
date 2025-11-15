@@ -22,7 +22,7 @@ object ScoreboardUtil {
 	}
 
 	private fun getScoreboardLinesUncached(): List<Text> {
-		val scoreboard = MC.player?.scoreboard ?: return listOf()
+		val scoreboard = MC.instance.world?.scoreboard ?: return listOf()
 		val activeObjective = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR) ?: return listOf()
 		return scoreboard.getScoreboardEntries(activeObjective)
 			.filter { !it.hidden() }

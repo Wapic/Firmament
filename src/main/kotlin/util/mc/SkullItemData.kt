@@ -46,7 +46,7 @@ fun ItemStack.setEncodedSkullOwner(uuid: UUID, encodedData: String) {
     assert(this.item == Items.PLAYER_HEAD)
     val gameProfile = GameProfile(uuid, "LameGuy123")
     gameProfile.properties.put(propertyTextures, Property(propertyTextures, encodedData.padToValidBase64()))
-    this.set(DataComponentTypes.PROFILE, ProfileComponent(gameProfile))
+    this.set(DataComponentTypes.PROFILE, ProfileComponent.ofStatic(gameProfile))
 }
 
 val arbitraryUUID = UUID.fromString("d3cb85e2-3075-48a1-b213-a9bfb62360c1")
@@ -63,7 +63,7 @@ fun ItemStack.setSkullOwner(uuid: UUID, url: String) {
             profileName = "nea89",
         )
     )
-    this.set(DataComponentTypes.PROFILE, ProfileComponent(gameProfile))
+    this.set(DataComponentTypes.PROFILE, ProfileComponent.ofStatic(gameProfile))
 }
 
 

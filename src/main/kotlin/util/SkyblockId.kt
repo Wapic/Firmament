@@ -151,6 +151,7 @@ val ItemStack.skyBlockUUIDString: String?
 
 private val timestampFormat = //"10/11/21 3:39 PM"
 	DateTimeFormatterBuilder().apply {
+		parseCaseInsensitive()
 		appendValue(ChronoField.MONTH_OF_YEAR, 1, 2, SignStyle.NOT_NEGATIVE)
 		appendLiteral("/")
 		appendValue(ChronoField.DAY_OF_MONTH, 1, 2, SignStyle.NOT_NEGATIVE)

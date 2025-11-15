@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(SkullBlockEntityRenderer.class)
 public class UseOverlayableSkullBlockEntityRenderer {
-	@ModifyExpressionValue(method = "renderSkull",
+	@ModifyExpressionValue(method = "render(Lnet/minecraft/util/math/Direction;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/client/render/block/entity/SkullBlockEntityModel;Lnet/minecraft/client/render/RenderLayer;ILnet/minecraft/client/render/command/ModelCommandRenderer$CrumblingOverlayCommand;)V",
 		at = @At(value = "FIELD", target = "Lnet/minecraft/client/render/OverlayTexture;DEFAULT_UV:I"))
 	private static int replaceUvIndex(int original) {
 		if (EntityRenderTintEvent.overlayOverride != null)

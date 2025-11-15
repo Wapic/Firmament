@@ -8,11 +8,6 @@ import moe.nea.firmament.init.MixinPlugin
 
 class MixinTest {
 	@Test
-	fun mixinAudit() {
-		// Moved to GameTest
-	}
-
-	@Test
 	fun hasInstalledMixinTransformer() {
 		Assertions.assertInstanceOf(
 			IMixinTransformer::class.java,

@@ -4,6 +4,7 @@ import moe.nea.firmament.features.chat.CopyChat;
 import moe.nea.firmament.mixins.accessor.AccessorChatHud;
 import moe.nea.firmament.util.ClipboardUtils;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.hud.ChatHudLine;
 import net.minecraft.client.gui.screen.ChatScreen;
@@ -20,11 +21,11 @@ import java.util.List;
 @Mixin(ChatScreen.class)
 public class CopyChatPatch {
 	@Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-	private void onRightClick(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) throws NoSuchFieldException, IllegalAccessException {
-		if (button != 1 || !CopyChat.TConfig.INSTANCE.getCopyChat()) return;
+	private void onRightClick(Click click, boolean doubled, CallbackInfoReturnable<Boolean> cir) throws NoSuchFieldException, IllegalAccessException {
+		if (click.button() != 1 || !CopyChat.TConfig.INSTANCE.getCopyChat()) return;
 		MinecraftClient client = MinecraftClient.getInstance();
 		ChatHud chatHud = client.inGameHud.getChatHud();
-		int lineIndex = getChatLineIndex(chatHud, mouseY);
+		int lineIndex = getChatLineIndex(chatHud, click.y());
 		if (lineIndex < 0) return;
 		List<ChatHudLine.Visible> visible = ((AccessorChatHud) chatHud).getVisibleMessages_firmament();
 		if (lineIndex >= visible.size()) return;

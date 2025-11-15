@@ -14,6 +14,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.put
 import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gui.Click
 import net.minecraft.client.input.KeyInput
 import net.minecraft.client.util.InputUtil
 import net.minecraft.client.util.MacWindowUtil
@@ -189,6 +190,9 @@ sealed interface GenericInputAction {
 	companion object {
 		@JvmStatic
 		fun mouse(mouseButton: Int): GenericInputAction = MouseInput(mouseButton)
+
+		@JvmStatic
+		fun mouse(click: Click): GenericInputAction = mouse(click.button())
 
 		@JvmStatic
 		fun of(input: KeyInput): GenericInputAction = key(input.keycode, input.scancode)

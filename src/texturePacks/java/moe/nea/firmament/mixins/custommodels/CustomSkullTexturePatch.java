@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(SkullBlockEntityRenderer.class)
 public class CustomSkullTexturePatch {
 	@Inject(
-		method = "getRenderLayer",
+		method = "getCutoutRenderLayer",
 		at = @At("HEAD"),
 		cancellable = true
 	)

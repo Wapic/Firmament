@@ -8,8 +8,10 @@ import moe.nea.firmament.events.*;
 import moe.nea.firmament.events.HandledScreenClickEvent;
 import moe.nea.firmament.keybindings.GenericInputAction;
 import moe.nea.firmament.keybindings.InputModifiers;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
@@ -47,29 +49,29 @@ public abstract class MixinHandledScreen<T extends ScreenHandler> {
 		this.playerInventory = inventory;
 	}
 
-	@Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;handleHotbarKeyPressed(II)Z", shift = At.Shift.BEFORE), cancellable = true)
-	public void onKeyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+	@Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;keyPressed(Lnet/minecraft/client/input/KeyInput;)Z", shift = At.Shift.BEFORE), cancellable = true)
+	public void onKeyPressed(KeyInput input, CallbackInfoReturnable<Boolean> cir) {
 		if (HandledScreenKeyPressedEvent.Companion.publish(new HandledScreenKeyPressedEvent(
 			(HandledScreen<?>) (Object) this,
-			GenericInputAction.key(keyCode, scanCode),
-			InputModifiers.of(modifiers))).getCancelled()) {
+			GenericInputAction.of(input),
+			InputModifiers.of(input))).getCancelled()) {
 			cir.setReturnValue(true);
 		}
 	}
 
 	@Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-	public void onMouseClicked(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
+	public void onMouseClicked(Click click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
 		if (HandledScreenKeyPressedEvent.Companion.publish(new HandledScreenKeyPressedEvent((HandledScreen<?>) (Object) this,
-			GenericInputAction.mouse(button), InputModifiers.current())).getCancelled()) {
+			GenericInputAction.mouse(click), InputModifiers.current())).getCancelled()) {
 			cir.setReturnValue(true);
 		}
 	}
 
 	@Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
-	private void onMouseReleased(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
+	private void onMouseReleased(Click click, CallbackInfoReturnable<Boolean> cir) {
 		var self = (HandledScreen<?>) (Object) this;
-		var clickEvent = new HandledScreenClickEvent(self, mouseX, mouseY, button);
-		var keyEvent = new HandledScreenKeyReleasedEvent(self, GenericInputAction.mouse(button), InputModifiers.current());
+		var clickEvent = new HandledScreenClickEvent(self, click.x(), click.y(), click.button());
+		var keyEvent = new HandledScreenKeyReleasedEvent(self, GenericInputAction.mouse(click), InputModifiers.current());
 		if (HandledScreenClickEvent.Companion.publish(clickEvent).getCancelled()
 			|| HandledScreenKeyReleasedEvent.Companion.publish(keyEvent).getCancelled()) {
 			cir.setReturnValue(true);

@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin({HandledScreen.class, RecipeBookScreen.class})
 public class ExpandScreenBoundaries {
 	@Inject(method = "isClickOutsideBounds", at = @At("HEAD"), cancellable = true)
-	private void onClickOutsideBounds(double mouseX, double mouseY, int left, int top, int button, CallbackInfoReturnable<Boolean> cir) {
+	private void onClickOutsideBounds(double mouseX, double mouseY, int left, int top, CallbackInfoReturnable<Boolean> cir) {
 		var background = CustomScreenLayouts.getMover(CustomScreenLayouts.CustomScreenLayout::getBackground);
 		if (background == null) return;
 		var x = background.getX() + left;

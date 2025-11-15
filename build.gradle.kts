@@ -294,7 +294,7 @@ loom {
 					File(it.output.classesDirs.asPath).absolutePath
 				})
 			property("mixin.debug.export", "true")
-			property("mixin.debug", "true")
+//			property("mixin.debug", "true")
 
 			parseEnvFile(file(".env")).forEach { (t, u) ->
 				environmentVariable(t, u)

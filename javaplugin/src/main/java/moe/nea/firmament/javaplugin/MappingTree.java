@@ -18,15 +18,21 @@ public class MappingTree {
 		if (sourceIndex < 0)
 			throw new RuntimeException("Could not find source namespace " + sourceNamespace + " in mappings file.");
 		this.classLookup = tinyV2File
-			                   .getClassEntries()
-			                   .stream()
-			                   .collect(Collectors.toMap(it -> it.getClassNames().get(sourceIndex), it -> it));
+			.getClassEntries()
+			.stream()
+			.collect(Collectors.toMap(it -> it.getClassNames().get(sourceIndex), it -> it));
 		targetIndex = tinyV2File.getHeader().getNamespaces().indexOf(targetNamespace);
 		if (targetIndex < 0)
 			throw new RuntimeException("Could not find target namespace " + targetNamespace + " in mappings file.");
 	}
 
-	public String resolveMethodToIntermediary(String className, String methodName) {
+	public record MethodCoordinate(
+		String interClassName,
+		String interMethodName
+	) {
+	}
+
+	public MethodCoordinate resolveMethodToIntermediary(String className, String methodName) {
 		var classData = classLookup.get(className.replace(".", "/"));
 		TinyMethod candidate = null;
 		for (TinyMethod method : classData.getMethods()) {
@@ -37,7 +43,11 @@ public class MappingTree {
 				candidate = method;
 			}
 		}
-		return candidate.getMethodNames().get(targetIndex);
+		if (candidate == null)
+			throw new RuntimeException("Couldd not find candidate for method " + className + "." + methodName);
+		return new MethodCoordinate(
+			classData.getClassNames().get(targetIndex),
+			candidate.getMethodNames().get(targetIndex));
 	}
 
 	public String resolveClassToIntermediary(String className) {
@@ -46,6 +56,6 @@ public class MappingTree {
 			return null;
 		}
 		return cls.getClassNames().get(targetIndex)
-		          .replace("/", ".");
+			.replace("/", ".");
 	}
 }

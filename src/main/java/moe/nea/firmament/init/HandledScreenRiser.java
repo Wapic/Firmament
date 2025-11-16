@@ -23,35 +23,36 @@ import java.lang.reflect.Modifier;
 import java.util.function.Consumer;
 
 public class HandledScreenRiser extends RiserUtils {
-	@IntermediaryName(Screen.class)
-	String Screen;
-	@IntermediaryName(KeyInput.class)
-	String KeyInput;
-	@IntermediaryName(CharInput.class)
-	String CharInput;
-	@IntermediaryName(HandledScreen.class)
-	String HandledScreen;
-	Type mouseScrolledDesc = Type.getMethodType(Type.BOOLEAN_TYPE, Type.DOUBLE_TYPE, Type.DOUBLE_TYPE, Type.DOUBLE_TYPE, Type.DOUBLE_TYPE);
-	String mouseScrolled = remapper.mapMethodName("intermediary", Intermediary.<Element>className(),
-		Intermediary.methodName(Element::mouseScrolled),
-		mouseScrolledDesc.getDescriptor());
-	// boolean keyReleased(int keyCode, int scanCode, int modifiers)
-	Type keyReleasedDesc = Type.getMethodType(Type.BOOLEAN_TYPE, getTypeForClassName(KeyInput));
-	String keyReleased = remapper.mapMethodName("intermediary", Intermediary.<Element>className(),
-		Intermediary.methodName(Element::keyReleased),
-		keyReleasedDesc.getDescriptor());
-	// public boolean charTyped(char chr, int modifiers)
-	Type charTypedDesc = Type.getMethodType(Type.BOOLEAN_TYPE, getTypeForClassName(CharInput));
-	String charTyped = remapper.mapMethodName("intermediary", Intermediary.<Element>className(),
-		Intermediary.methodName(Element::charTyped),
-		charTypedDesc.getDescriptor());
+	Intermediary.InterClass Screen = Intermediary.<Screen>intermediaryClass();
+	Intermediary.InterClass KeyInput = Intermediary.<KeyInput>intermediaryClass();
+	Intermediary.InterClass CharInput = Intermediary.<CharInput>intermediaryClass();
+	Intermediary.InterClass HandledScreen = Intermediary.<HandledScreen>intermediaryClass();
+	Intermediary.InterMethod mouseScrolled = Intermediary.intermediaryMethod(
+		Element::mouseScrolled,
+		Intermediary.ofClass(boolean.class),
+		Intermediary.ofClass(double.class),
+		Intermediary.ofClass(double.class),
+		Intermediary.ofClass(double.class),
+		Intermediary.ofClass(double.class)
+	);
+	Intermediary.InterMethod keyReleased = Intermediary.intermediaryMethod(
+		Element::keyReleased,
+		Intermediary.ofClass(boolean.class),
+		KeyInput
+	);
+	Intermediary.InterMethod charTyped = Intermediary.intermediaryMethod(
+		Element::charTyped,
+		Intermediary.ofClass(boolean.class),
+		CharInput
+	);
+
 
 
 	@Override
 	public void addTinkerers() {
-		ClassTinkerers.addTransformation(HandledScreen, this::addMouseScroll, true);
-		ClassTinkerers.addTransformation(HandledScreen, this::addKeyReleased, true);
-		ClassTinkerers.addTransformation(HandledScreen, this::addCharTyped, true);
+		addTransformation(HandledScreen, this::addMouseScroll, true);
+		addTransformation(HandledScreen, this::addKeyReleased, true);
+		addTransformation(HandledScreen, this::addCharTyped, true);
 	}
 
 	/**
@@ -85,7 +86,7 @@ public class HandledScreenRiser extends RiserUtils {
 
 	void addKeyReleased(ClassNode classNode) {
 		addSuperInjector(
-			classNode, keyReleased, keyReleasedDesc, "keyReleased_firmament",
+			classNode, keyReleased.mapped(), keyReleased.mappedDesc(), "keyReleased_firmament",
 			insns -> {
 				// ALOAD 0, load this
 				insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
@@ -96,7 +97,7 @@ public class HandledScreenRiser extends RiserUtils {
 
 	void addCharTyped(ClassNode classNode) {
 		addSuperInjector(
-			classNode, charTyped, charTypedDesc, "charTyped_firmament",
+			classNode, charTyped.mapped(), charTyped.mappedDesc(), "charTyped_firmament",
 			insns -> {
 				// ALOAD 0, load this
 				insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
@@ -124,7 +125,7 @@ public class HandledScreenRiser extends RiserUtils {
 			var insns = keyReleasedNode.instructions;
 			loadArgs.accept(insns);
 			// INVOKESPECIAL call super method
-			insns.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, getTypeForClassName(Screen).getInternalName(),
+			insns.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, Screen.mapped().getInternalName(),
 				name, desc.getDescriptor()));
 			// IRETURN return int on stack (booleans are int at runtime)
 			insns.add(new InsnNode(Opcodes.IRETURN));
@@ -133,7 +134,7 @@ public class HandledScreenRiser extends RiserUtils {
 		insertTrueHandler(keyReleasedNode, loadArgs, insns -> {
 			// INVOKEVIRTUAL call custom handler
 			insns.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL,
-				getTypeForClassName(HandledScreen).getInternalName(),
+				HandledScreen.mapped().getInternalName(),
 				firmamentName,
 				desc.getDescriptor()));
 		});
@@ -142,7 +143,7 @@ public class HandledScreenRiser extends RiserUtils {
 
 	void addMouseScroll(ClassNode classNode) {
 		addSuperInjector(
-			classNode, mouseScrolled, mouseScrolledDesc, "mouseScrolled_firmament",
+			classNode, mouseScrolled.mapped(), mouseScrolled.mappedDesc(), "mouseScrolled_firmament",
 			insns -> {
 				// ALOAD 0, load this
 				insns.add(new VarInsnNode(Opcodes.ALOAD, 0));

@@ -31,7 +31,7 @@ public class IntermediaryMethodReplacer extends TreeScanner<Void, Void> {
     public void replaceMethodName(JCTree.JCMethodInvocation node) {
         var select = node.getMethodSelect();
         if (!(select instanceof JCTree.JCFieldAccess fieldAccess)) return;
-        if (!fieldAccess.name.contentEquals("methodName")) return;
+        if (!fieldAccess.name.contentEquals("intermediaryMethod")) return;
         if (!(node.args.head instanceof JCTree.JCMemberReference methodReference)) {
             plugin.utils.reportError(sourceFile, node, "Please provide a Class::method reference directly (and nothing else)");
             return;
@@ -43,14 +43,17 @@ public class IntermediaryMethodReplacer extends TreeScanner<Void, Void> {
             type.tsym.flatName().toString(),
             clearName
         );
-        fieldAccess.name = plugin.names.fromString("id");
-        node.args = List.of(plugin.treeMaker.Literal(intermediaryName));
+        fieldAccess.name = plugin.names.fromString("ofMethod");
+		var args = List.<JCTree.JCExpression>of(plugin.treeMaker.Literal(intermediaryName.interMethodName()));
+		args.tail = List.of(plugin.treeMaker.Literal(intermediaryName.interClassName()));
+		args.tail.tail = node.args.tail;
+        node.args = args;
     }
 
     public void replaceClassName(JCTree.JCMethodInvocation node) {
         var select = node.getMethodSelect();
         if (!(select instanceof JCTree.JCFieldAccess fieldAccess)) return;
-        if (!fieldAccess.name.contentEquals("className")) return;
+        if (!fieldAccess.name.contentEquals("intermediaryClass")) return;
         if (node.getTypeArguments().size() != 1) {
             plugin.utils.reportError(sourceFile, node, "You need to explicitly provide the class you want the intermediary name for");
             return;
@@ -63,7 +66,7 @@ public class IntermediaryMethodReplacer extends TreeScanner<Void, Void> {
 			plugin.utils.reportError(sourceFile, node, "Unknown class name " + sourceName);
 			return;
 		}
-        fieldAccess.name = plugin.names.fromString("id");
+        fieldAccess.name = plugin.names.fromString("ofIntermediaryClass");
         node.typeargs = List.nil();
         node.args = List.of(plugin.treeMaker.Literal(mappedName));
     }

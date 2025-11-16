@@ -1,6 +1,5 @@
 package moe.nea.firmament.init;
 
-import me.shedaniel.mm.api.ClassTinkerers;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.block.BlockRenderManager;
@@ -19,36 +18,24 @@ import org.objectweb.asm.tree.VarInsnNode;
 
 public class SectionBuilderRiser extends RiserUtils {
 
-	@IntermediaryName(SectionBuilder.class)
-	String SectionBuilder;
-	@IntermediaryName(BlockPos.class)
-	String BlockPos;
-	@IntermediaryName(BlockRenderManager.class)
-	String BlockRenderManager;
-	@IntermediaryName(BlockState.class)
-	String BlockState;
-	@IntermediaryName(BlockStateModel.class)
-	String BlockStateModel;
+	Intermediary.InterClass SectionBuilder = Intermediary.<SectionBuilder>intermediaryClass();
+	Intermediary.InterClass BlockPos = Intermediary.<BlockPos>intermediaryClass();
+	Intermediary.InterClass BlockRenderManager = Intermediary.<BlockRenderManager>intermediaryClass();
+	Intermediary.InterClass BlockState = Intermediary.<BlockState>intermediaryClass();
+	Intermediary.InterClass BlockStateModel = Intermediary.<BlockStateModel>intermediaryClass();
 	String CustomBlockTextures = "moe.nea.firmament.features.texturepack.CustomBlockTextures";
 
-	Type getModelDesc = Type.getMethodType(
-		getTypeForClassName(BlockRenderManager),
-		getTypeForClassName(BlockState)
-	);
-	String getModel = remapper.mapMethodName(
-		"intermediary",
-		Intermediary.<BlockRenderManager>className(),
-		Intermediary.methodName(net.minecraft.client.render.block.BlockRenderManager::getModel),
-		Type.getMethodDescriptor(
-            getTypeForClassName(Intermediary.<BlockStateModel>className()),
-			getTypeForClassName(Intermediary.<BlockState>className())
-		)
-	);
+	Intermediary.InterMethod getModel =
+		Intermediary.intermediaryMethod(
+			net.minecraft.client.render.block.BlockRenderManager::getModel,
+			BlockStateModel,
+			BlockState
+		);
 
 	@Override
 	public void addTinkerers() {
 		if (FabricLoader.getInstance().isModLoaded("fabric-renderer-indigo"))
-			ClassTinkerers.addTransformation(SectionBuilder, this::handle, true);
+			addTransformation(SectionBuilder, this::handle, true);
 	}
 
 	private void handle(ClassNode classNode) {
@@ -67,10 +54,10 @@ public class SectionBuilderRiser extends RiserUtils {
 	private void handleIndigo(MethodNode method) {
 		LocalVariableNode blockPosVar = null, blockStateVar = null;
 		for (LocalVariableNode localVariable : method.localVariables) {
-			if (Type.getType(localVariable.desc).equals(getTypeForClassName(BlockPos))) {
+			if (Type.getType(localVariable.desc).equals(BlockPos.mapped())) {
 				blockPosVar = localVariable;
 			}
-			if (Type.getType(localVariable.desc).equals(getTypeForClassName(BlockState))) {
+			if (Type.getType(localVariable.desc).equals(BlockState.mapped())) {
 				blockStateVar = localVariable;
 			}
 		}
@@ -81,7 +68,8 @@ public class SectionBuilderRiser extends RiserUtils {
 		for (AbstractInsnNode instruction : method.instructions) {
 			if (instruction.getOpcode() != Opcodes.INVOKEVIRTUAL) continue;
 			var methodInsn = (MethodInsnNode) instruction;
-			if (!(methodInsn.name.equals(getModel) && Type.getObjectType(methodInsn.owner).equals(getTypeForClassName(BlockRenderManager))))
+			if (!(methodInsn.name.equals(getModel.mapped()) &&
+				Type.getObjectType(methodInsn.owner).equals(BlockRenderManager.mapped())))
 				continue;
 			method.instructions.insertBefore(
 				methodInsn,
@@ -106,10 +94,10 @@ public class SectionBuilderRiser extends RiserUtils {
 				getTypeForClassName(CustomBlockTextures).getInternalName(),
 				"patchIndigo",
 				Type.getMethodDescriptor(
-					getTypeForClassName(BlockStateModel),
-					getTypeForClassName(BlockStateModel),
-					getTypeForClassName(BlockPos),
-					getTypeForClassName(BlockState)),
+					(BlockStateModel).mapped(),
+					(BlockStateModel).mapped(),
+					(BlockPos).mapped(),
+					(BlockState).mapped()),
 				false
 			));
 			method.instructions.insert(methodInsn, insnList);

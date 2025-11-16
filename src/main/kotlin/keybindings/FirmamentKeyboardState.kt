@@ -2,6 +2,7 @@ package moe.nea.firmament.keybindings
 
 import java.util.BitSet
 import org.lwjgl.glfw.GLFW
+import net.minecraft.client.input.KeyInput
 
 object FirmamentKeyboardState {
 
@@ -14,10 +15,10 @@ object FirmamentKeyboardState {
 	}
 
 	@Synchronized
-	fun maintainState(key: Int, scancode: Int, action: Int, modifiers: Int) {
+	fun maintainState(keyInput: KeyInput, action: Int) {
 		when (action) {
-			GLFW.GLFW_PRESS -> pressedScancodes.set(scancode)
-			GLFW.GLFW_RELEASE -> pressedScancodes.clear(scancode)
+			GLFW.GLFW_PRESS -> pressedScancodes.set(keyInput.scancode)
+			GLFW.GLFW_RELEASE -> pressedScancodes.clear(keyInput.scancode)
 		}
 	}
 }

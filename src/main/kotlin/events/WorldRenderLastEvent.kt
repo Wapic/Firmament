@@ -5,6 +5,7 @@ package moe.nea.firmament.events
 import net.minecraft.client.render.Camera
 import net.minecraft.client.render.RenderTickCounter
 import net.minecraft.client.render.VertexConsumerProvider
+import net.minecraft.client.render.state.CameraRenderState
 import net.minecraft.client.util.math.MatrixStack
 
 /**
@@ -12,8 +13,8 @@ import net.minecraft.client.util.math.MatrixStack
  */
 data class WorldRenderLastEvent(
     val matrices: MatrixStack,
-    val tickCounter: RenderTickCounter,
-    val camera: Camera,
+    val tickCounter: Int,
+    val camera: CameraRenderState,
     val vertexConsumers: VertexConsumerProvider.Immediate,
 ) : FirmamentEvent() {
     companion object : FirmamentEventBus<WorldRenderLastEvent>()

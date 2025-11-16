@@ -25,12 +25,12 @@ public class SaveCursorPositionPatch {
 		SaveCursorPosition.saveCursorOriginal(x, y);
 	}
 
-	@Inject(method = "lockCursor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/Window;getHandle()J"))
+	@Inject(method = "lockCursor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/MinecraftClient;getWindow()Lnet/minecraft/client/util/Window;", ordinal = 2))
 	public void onLockCursorAfter(CallbackInfo ci) {
 		SaveCursorPosition.saveCursorMiddle(x, y);
 	}
 
-	@Inject(method = "unlockCursor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/Window;getHandle()J"))
+	@Inject(method = "unlockCursor", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/MinecraftClient;getWindow()Lnet/minecraft/client/util/Window;", ordinal = 2))
 	public void onUnlockCursor(CallbackInfo ci) {
 		Pair<Double, Double> cursorPosition = SaveCursorPosition.loadCursor(this.x, this.y);
 		if (cursorPosition == null) return;

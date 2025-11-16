@@ -4,6 +4,7 @@ package moe.nea.firmament.mixins.custommodels;
 
 import moe.nea.firmament.features.texturepack.CustomSkyBlockTextures;
 import net.minecraft.block.SkullBlock;
+import net.minecraft.block.entity.SkullBlockEntity;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer;
 import net.minecraft.component.type.ProfileComponent;
@@ -16,11 +17,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(SkullBlockEntityRenderer.class)
 public class CustomSkullTexturePatch {
 	@Inject(
-		method = "getCutoutRenderLayer",
+		method = "renderSkull",
 		at = @At("HEAD"),
 		cancellable = true
 	)
-	private static void onGetRenderLayer(SkullBlock.SkullType type, ProfileComponent profile, CallbackInfoReturnable<RenderLayer> cir) {
-		CustomSkyBlockTextures.INSTANCE.modifySkullTexture(type, profile, cir);
+	private void onGetRenderLayer(SkullBlock.SkullType skullType, SkullBlockEntity blockEntity, CallbackInfoReturnable<RenderLayer> cir) {
+		CustomSkyBlockTextures.INSTANCE.modifySkullTexture(skullType, blockEntity.getOwner(), cir);
 	}
 }

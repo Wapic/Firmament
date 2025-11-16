@@ -58,7 +58,7 @@ hotswap_agent = "1.4.2-SNAPSHOT"
 mixinextras = "0.5.0"
 
 # Update from https://repo.nea.moe/#/releases/moe/nea/jarvis/
-jarvis = "2.0.0"
+jarvis = "2.1.0"
 
 nealisp = "1.1.0"
 

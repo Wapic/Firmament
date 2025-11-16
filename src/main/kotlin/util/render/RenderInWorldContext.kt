@@ -12,6 +12,7 @@ import net.minecraft.client.render.RenderTickCounter
 import net.minecraft.client.render.TexturedRenderLayers
 import net.minecraft.client.render.VertexConsumer
 import net.minecraft.client.render.VertexConsumerProvider
+import net.minecraft.client.render.state.CameraRenderState
 import net.minecraft.client.texture.Sprite
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.text.Text
@@ -26,8 +27,7 @@ import moe.nea.firmament.util.MC
 @RenderContextDSL
 class RenderInWorldContext private constructor(
 	val matrixStack: MatrixStack,
-	private val camera: Camera,
-	private val tickCounter: RenderTickCounter,
+	private val camera: CameraRenderState,
 	val vertexConsumers: VertexConsumerProvider.Immediate,
 ) {
 	fun block(blockPos: BlockPos, color: Int) {
@@ -105,7 +105,7 @@ class RenderInWorldContext private constructor(
 		val distanceToMoveTowardsCamera = if (actualCameraDistance < 10) 0.0 else -(actualCameraDistance - 10.0)
 		val vec = position.subtract(camera.pos).multiply(distanceToMoveTowardsCamera / actualCameraDistance)
 		matrixStack.translate(vec.x, vec.y, vec.z)
-		matrixStack.multiply(camera.rotation)
+		matrixStack.multiply(camera.orientation)
 		matrixStack.scale(0.025F, -0.025F, 1F)
 
 		FacingThePlayerContext(this).run(block)
@@ -176,7 +176,7 @@ class RenderInWorldContext private constructor(
 	}
 
 	fun tracer(toWhere: Vec3d, color: Int, lineWidth: Float = 3f) {
-		val cameraForward = Vector3f(0f, 0f, -1f).rotate(camera.rotation)
+		val cameraForward = Vector3f(0f, 0f, -1f).rotate(camera.orientation)
 		line(camera.pos.add(Vec3d(cameraForward)), toWhere, color = color, lineWidth = lineWidth)
 	}
 
@@ -301,7 +301,6 @@ class RenderInWorldContext private constructor(
 			val ctx = RenderInWorldContext(
 				event.matrices,
 				event.camera,
-				event.tickCounter,
 				event.vertexConsumers
 			)
 

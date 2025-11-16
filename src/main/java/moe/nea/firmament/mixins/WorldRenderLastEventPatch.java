@@ -6,9 +6,12 @@ import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import moe.nea.firmament.events.WorldRenderLastEvent;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.fog.FogRenderer;
+import net.minecraft.client.render.state.WorldRenderState;
 import net.minecraft.client.util.Handle;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.profiler.Profiler;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,14 +33,20 @@ public abstract class WorldRenderLastEventPatch {
 	@Shadow
 	protected abstract void checkEmpty(MatrixStack matrices);
 
+	@Shadow
+	private @Nullable ClientWorld world;
+
+	@Shadow
+	private int ticks;
+
 	@Inject(method = "method_62214", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiler/Profiler;pop()V", shift = At.Shift.AFTER))
-	public void onWorldRenderLast(GpuBufferSlice gpuBufferSlice, RenderTickCounter renderTickCounter, Camera camera, Profiler profiler, Matrix4f matrix4f, Handle handle, Handle handle2, boolean bl, Frustum frustum, Handle handle3, Handle handle4, CallbackInfo ci) {
+	public void onWorldRenderLast(GpuBufferSlice gpuBufferSlice, WorldRenderState worldRenderState, Profiler profiler, Matrix4f matrix4f, Handle handle, Handle handle2, boolean bl, Frustum frustum, Handle handle3, Handle handle4, CallbackInfo ci) {
 		var imm = this.bufferBuilders.getEntityVertexConsumers();
 		var stack = new MatrixStack();
 		// TODO: pre-cancel this event if F1 is active
 		var event = new WorldRenderLastEvent(
-			stack, renderTickCounter,
-			camera,
+			stack, ticks,
+			worldRenderState.cameraRenderState,
 			imm
 		);
 		WorldRenderLastEvent.Companion.publish(event);

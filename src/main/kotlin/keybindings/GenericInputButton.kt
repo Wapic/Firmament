@@ -15,7 +15,9 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.put
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.Click
+import net.minecraft.client.input.AbstractInput
 import net.minecraft.client.input.KeyInput
+import net.minecraft.client.input.MouseInput
 import net.minecraft.client.util.InputUtil
 import net.minecraft.client.util.MacWindowUtil
 import net.minecraft.text.Text
@@ -195,6 +197,8 @@ sealed interface GenericInputAction {
 		fun mouse(click: Click): GenericInputAction = mouse(click.button())
 
 		@JvmStatic
+		fun of(input: net.minecraft.client.input.MouseInput): GenericInputAction = mouse(input.button)
+		@JvmStatic
 		fun of(input: KeyInput): GenericInputAction = key(input.keycode, input.scancode)
 
 		@JvmStatic
@@ -276,7 +280,7 @@ data class InputModifiers(
 		fun of(modifiers: Int) = InputModifiers(modifiers)
 
 		@JvmStatic
-		fun of(input: KeyInput) = InputModifiers(input.modifiers)
+		fun of(input: AbstractInput) = InputModifiers(input.modifiers())
 
 		fun none(): InputModifiers {
 			return InputModifiers(0)

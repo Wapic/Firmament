@@ -14,7 +14,7 @@ import java.util.List;
 
 @Mixin(HarvestToolProvider.class)
 public class EnforceToolDisplayForCustomBlocksInHarvestToolProvider {
-	@ModifyExpressionValue(method = "getText", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;isToolRequired()Z"))
+	@ModifyExpressionValue(method = "getText", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;requiresCorrectToolForDrops()Z"))
 	private boolean overwriteRequiresTool(boolean original, @Local(argsOnly = true) BlockAccessor accessor) {
 		if (CustomFakeBlockProvider.hasCustomBlock(accessor))
 			return true;

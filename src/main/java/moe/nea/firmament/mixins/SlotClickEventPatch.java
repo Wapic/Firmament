@@ -20,14 +20,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(MultiPlayerGameMode.class)
 public class SlotClickEventPatch {
 
-    @Inject(method = "handleInventoryMouseClick", at = @At(value = "FIELD", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;slots:Lnet/minecraft/core/NonNullList;", opcode = Opcodes.GETFIELD))
-    private void onSlotClickSaveSlot(int syncId, int slotId, int button, ClickType actionType, Player player, CallbackInfo ci, @Local AbstractContainerMenu handler, @Share("slotContent") LocalRef<ItemStack> slotContent) {
+    @Inject(method = "handleInventoryMouseClick", at = @At(value = "FIELD", target =
+		"Lnet/minecraft/world/inventory/AbstractContainerMenu;slots:Lnet/minecraft/core/NonNullList;", opcode = Opcodes.GETFIELD))
+    private void onSlotClickSaveSlot(int containerId, int slotId, int mouseButton, ClickType clickType, Player player, CallbackInfo ci, @Local AbstractContainerMenu handler, @Share("slotContent") LocalRef<ItemStack> slotContent) {
         if (0 <= slotId && slotId < handler.slots.size()) {
             slotContent.set(handler.getSlot(slotId).getItem().copy());
         }
     }
 
-    @Inject(method = "handleInventoryMouseClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;sendPacket(Lnet/minecraft/network/protocol/Packet;)V"))
+    @Inject(method = "handleInventoryMouseClick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V"))
     private void onSlotClick(int syncId, int slotId, int button, ClickType actionType, Player player, CallbackInfo ci, @Local AbstractContainerMenu handler, @Share("slotContent") LocalRef<ItemStack> slotContent) {
         if (0 <= slotId && slotId < handler.slots.size()) {
             SlotClickEvent.Companion.publish(new SlotClickEvent(

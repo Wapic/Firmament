@@ -129,14 +129,14 @@ public class PatchHandledScreen<T extends AbstractContainerMenu> extends Screen 
 		}
 	}
 
-	@Inject(method = "isHovering", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "isHovering(IIIIDD)Z", at = @At("HEAD"), cancellable = true)
 	public void onIsPointWithinBounds(int x, int y, int width, int height, double pointX, double pointY, CallbackInfoReturnable<Boolean> cir) {
 		if (override != null) {
 			cir.setReturnValue(override.isPointWithinBounds(x + this.leftPos, y + this.topPos, width, height, pointX, pointY));
 		}
 	}
 
-	@Inject(method = "isHovering", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "isHovering(Lnet/minecraft/world/inventory/Slot;DD)Z", at = @At("HEAD"), cancellable = true)
 	public void onIsPointOverSlot(Slot slot, double pointX, double pointY, CallbackInfoReturnable<Boolean> cir) {
 		if (override != null) {
 			cir.setReturnValue(override.isPointOverSlot(slot, this.leftPos, this.topPos, pointX, pointY));

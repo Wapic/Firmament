@@ -18,7 +18,7 @@ public class PatchBreakingBarSpeedJade {
 	}
 
 	@ModifyExpressionValue(method = "drawBreakingProgress",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;calcBlockBreakingDelta(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)F"))
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getDestroyProgress(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)F"))
 	private static float replacePlayerSpecificBreakingProgress(float original) {
 		return CustomMiningHardnessProvider.replaceBlockBreakSpeed(original);
 	}

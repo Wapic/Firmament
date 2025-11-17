@@ -27,8 +27,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlin.coroutines.EmptyCoroutineContext
-import net.minecraft.command.CommandRegistryAccess
-import net.minecraft.util.Identifier
+import net.minecraft.commands.CommandBuildContext
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.commands.registerFirmamentCommand
 import moe.nea.firmament.events.ClientInitEvent
 import moe.nea.firmament.events.ClientStartedEvent
@@ -93,10 +93,10 @@ object Firmament {
 	private fun registerCommands(
 		dispatcher: CommandDispatcher<FabricClientCommandSource>,
 		@Suppress("UNUSED_PARAMETER")
-		ctx: CommandRegistryAccess
+		ctx: CommandBuildContext
 	) {
 		registerFirmamentCommand(dispatcher, ctx)
-		CommandEvent.publish(CommandEvent(dispatcher, ctx, MC.networkHandler?.commandDispatcher))
+		CommandEvent.publish(CommandEvent(dispatcher, ctx, MC.networkHandler?.commands))
 	}
 
 	@JvmStatic
@@ -142,7 +142,7 @@ object Firmament {
 	}
 
 
-	fun identifier(path: String) = Identifier.of(MOD_ID, path)
+	fun identifier(path: String) = ResourceLocation.fromNamespaceAndPath(MOD_ID, path)
 	inline fun <reified T : Any> tryDecodeJsonFromStream(inputStream: InputStream): Result<T> {
 		return runCatching {
 			json.decodeFromStream<T>(inputStream)

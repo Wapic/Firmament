@@ -5,32 +5,32 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import moe.nea.firmament.features.texturepack.CustomScreenLayouts;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.client.gui.screen.ingame.RecipeBookScreen;
-import net.minecraft.client.gui.screen.recipebook.RecipeBookWidget;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractRecipeBookScreen;
+import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.function.Function;
 
 @Mixin(InventoryScreen.class)
-public abstract class ReplacePlayerBackgrounds extends RecipeBookScreen<PlayerScreenHandler> {
-	public ReplacePlayerBackgrounds(PlayerScreenHandler handler, RecipeBookWidget<?> recipeBook, PlayerInventory inventory, Text title) {
+public abstract class ReplacePlayerBackgrounds extends AbstractRecipeBookScreen<InventoryMenu> {
+	public ReplacePlayerBackgrounds(InventoryMenu handler, RecipeBookComponent<?> recipeBook, Inventory inventory, Component title) {
 		super(handler, recipeBook, inventory, title);
 	}
 
 
-	@WrapOperation(method = "drawForeground",
+	@WrapOperation(method = "renderLabels",
 		allow = 1,
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawText(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;IIIZ)V"))
-	private void onDrawForegroundText(DrawContext instance, TextRenderer textRenderer, Text text, int x, int y, int color, boolean shadow, Operation<Void> original) {
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;IIIZ)V"))
+	private void onDrawForegroundText(GuiGraphics instance, Font textRenderer, Component text, int x, int y, int color, boolean shadow, Operation<Void> original) {
 		var textOverride = CustomScreenLayouts.getTextMover(CustomScreenLayouts.CustomScreenLayout::getContainerTitle);
 		original.call(instance, textRenderer,
 			textOverride.replaceText(text),
@@ -40,8 +40,8 @@ public abstract class ReplacePlayerBackgrounds extends RecipeBookScreen<PlayerSc
 			shadow);
 	}
 
-	@WrapWithCondition(method = "drawBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/util/Identifier;IIFFIIII)V"))
-	private boolean onDrawBackground(DrawContext instance, RenderPipeline pipeline, Identifier sprite, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight) {
+	@WrapWithCondition(method = "renderBg", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIFFIIII)V"))
+	private boolean onDrawBackground(GuiGraphics instance, RenderPipeline pipeline, ResourceLocation sprite, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight) {
 		final var override = CustomScreenLayouts.getActiveScreenOverride();
 		if (override == null || override.getBackground() == null) return true;
 		override.getBackground().renderGeneric(instance, this);

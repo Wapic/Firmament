@@ -8,16 +8,16 @@ import moe.nea.firmament.events.*;
 import moe.nea.firmament.events.HandledScreenClickEvent;
 import moe.nea.firmament.keybindings.GenericInputAction;
 import moe.nea.firmament.keybindings.InputModifiers;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.input.KeyInput;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.text.Text;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -27,32 +27,32 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(value = HandledScreen.class, priority = 990)
-public abstract class MixinHandledScreen<T extends ScreenHandler> {
+@Mixin(value = AbstractContainerScreen.class, priority = 990)
+public abstract class MixinHandledScreen<T extends AbstractContainerMenu> {
 
 	@Shadow
 	@Final
-	protected T handler;
+	protected T menu;
 
 	@Shadow
-	public abstract T getScreenHandler();
+	public abstract T getMenu();
 
 	@Shadow
-	protected int y;
+	protected int topPos;
 	@Shadow
-	protected int x;
+	protected int leftPos;
 	@Unique
-	PlayerInventory playerInventory;
+	Inventory playerInventory;
 
 	@Inject(method = "<init>", at = @At("TAIL"))
-	public void savePlayerInventory(ScreenHandler handler, PlayerInventory inventory, Text title, CallbackInfo ci) {
+	public void savePlayerInventory(AbstractContainerMenu handler, Inventory inventory, Component title, CallbackInfo ci) {
 		this.playerInventory = inventory;
 	}
 
-	@Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;keyPressed(Lnet/minecraft/client/input/KeyInput;)Z", shift = At.Shift.BEFORE), cancellable = true)
-	public void onKeyPressed(KeyInput input, CallbackInfoReturnable<Boolean> cir) {
+	@Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;keyPressed(Lnet/minecraft/client/input/KeyEvent;)Z", shift = At.Shift.BEFORE), cancellable = true)
+	public void onKeyPressed(KeyEvent input, CallbackInfoReturnable<Boolean> cir) {
 		if (HandledScreenKeyPressedEvent.Companion.publish(new HandledScreenKeyPressedEvent(
-			(HandledScreen<?>) (Object) this,
+			(AbstractContainerScreen<?>) (Object) this,
 			GenericInputAction.of(input),
 			InputModifiers.of(input))).getCancelled()) {
 			cir.setReturnValue(true);
@@ -60,16 +60,16 @@ public abstract class MixinHandledScreen<T extends ScreenHandler> {
 	}
 
 	@Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-	public void onMouseClicked(Click click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
-		if (HandledScreenKeyPressedEvent.Companion.publish(new HandledScreenKeyPressedEvent((HandledScreen<?>) (Object) this,
+	public void onMouseClicked(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
+		if (HandledScreenKeyPressedEvent.Companion.publish(new HandledScreenKeyPressedEvent((AbstractContainerScreen<?>) (Object) this,
 			GenericInputAction.mouse(click), InputModifiers.current())).getCancelled()) {
 			cir.setReturnValue(true);
 		}
 	}
 
 	@Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
-	private void onMouseReleased(Click click, CallbackInfoReturnable<Boolean> cir) {
-		var self = (HandledScreen<?>) (Object) this;
+	private void onMouseReleased(MouseButtonEvent click, CallbackInfoReturnable<Boolean> cir) {
+		var self = (AbstractContainerScreen<?>) (Object) this;
 		var clickEvent = new HandledScreenClickEvent(self, click.x(), click.y(), click.button());
 		var keyEvent = new HandledScreenKeyReleasedEvent(self, GenericInputAction.mouse(click), InputModifiers.current());
 		if (HandledScreenClickEvent.Companion.publish(clickEvent).getCancelled()
@@ -78,16 +78,16 @@ public abstract class MixinHandledScreen<T extends ScreenHandler> {
 		}
 	}
 
-	@Inject(method = "renderMain", at = @At("HEAD"))
-	public void onAfterRenderForeground(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-		HandledScreenForegroundEvent.Companion.publish(new HandledScreenForegroundEvent((HandledScreen<?>) (Object) this, context, mouseX, mouseY, delta));
+	@Inject(method = "renderContents", at = @At("HEAD"))
+	public void onAfterRenderForeground(GuiGraphics context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+		HandledScreenForegroundEvent.Companion.publish(new HandledScreenForegroundEvent((AbstractContainerScreen<?>) (Object) this, context, mouseX, mouseY, delta));
 	}
 
-	@Inject(method = "onMouseClick(Lnet/minecraft/screen/slot/Slot;IILnet/minecraft/screen/slot/SlotActionType;)V", at = @At("HEAD"), cancellable = true)
-	public void onMouseClickedSlot(Slot slot, int slotId, int button, SlotActionType actionType, CallbackInfo ci) {
-		if (slotId == -999 && getScreenHandler() != null && actionType == SlotActionType.PICKUP) { // -999 is code for "clicked outside the main window"
-			ItemStack cursorStack = getScreenHandler().getCursorStack();
-			if (cursorStack != null && IsSlotProtectedEvent.shouldBlockInteraction(slot, SlotActionType.THROW, IsSlotProtectedEvent.MoveOrigin.INVENTORY_MOVE, cursorStack)) {
+	@Inject(method = "slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ClickType;)V", at = @At("HEAD"), cancellable = true)
+	public void onMouseClickedSlot(Slot slot, int slotId, int button, ClickType actionType, CallbackInfo ci) {
+		if (slotId == -999 && getMenu() != null && actionType == ClickType.PICKUP) { // -999 is code for "clicked outside the main window"
+			ItemStack cursorStack = getMenu().getCarried();
+			if (cursorStack != null && IsSlotProtectedEvent.shouldBlockInteraction(slot, ClickType.THROW, IsSlotProtectedEvent.MoveOrigin.INVENTORY_MOVE, cursorStack)) {
 				ci.cancel();
 				return;
 			}
@@ -96,7 +96,7 @@ public abstract class MixinHandledScreen<T extends ScreenHandler> {
 			ci.cancel();
 			return;
 		}
-		if (actionType == SlotActionType.SWAP && 0 <= button && button < 9) {
+		if (actionType == ClickType.SWAP && 0 <= button && button < 9) {
 			if (IsSlotProtectedEvent.shouldBlockInteraction(new Slot(playerInventory, button, 0, 0), actionType, IsSlotProtectedEvent.MoveOrigin.INVENTORY_MOVE)) {
 				ci.cancel();
 			}
@@ -104,8 +104,8 @@ public abstract class MixinHandledScreen<T extends ScreenHandler> {
 	}
 
 
-	@WrapOperation(method = "drawSlots", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V"))
-	public void onDrawSlots(HandledScreen instance, DrawContext context, Slot slot, Operation<Void> original) {
+	@WrapOperation(method = "renderSlots", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderSlot(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/world/inventory/Slot;)V"))
+	public void onDrawSlots(AbstractContainerScreen instance, GuiGraphics context, Slot slot, Operation<Void> original) {
 		var before = new SlotRenderEvents.Before(context, slot);
 		SlotRenderEvents.Before.Companion.publish(before);
 		original.call(instance, context, slot);

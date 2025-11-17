@@ -1,8 +1,8 @@
 package moe.nea.firmament.features.misc
 
 import org.joml.Vector2i
-import net.minecraft.client.network.PlayerListEntry
-import net.minecraft.text.Text
+import net.minecraft.client.multiplayer.PlayerInfo
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HudRenderEvent
 import moe.nea.firmament.util.MC
@@ -27,49 +27,49 @@ object Hud {
 	@Subscribe
 	fun onRenderHud(it: HudRenderEvent) {
 		if (TConfig.dayCount) {
-			it.context.matrices.pushMatrix()
-			TConfig.dayCountHud.applyTransformations(it.context.matrices)
-			val day = (MC.world?.timeOfDay ?: 0L) / 24000
-			it.context.drawText(
+			it.context.pose().pushMatrix()
+			TConfig.dayCountHud.applyTransformations(it.context.pose())
+			val day = (MC.world?.dayTime ?: 0L) / 24000
+			it.context.drawString(
 				MC.font,
-				Text.literal(String.format(tr("firmament.config.hud.day-count-hud.display", "Day: %s").string, day)),
+				Component.literal(String.format(tr("firmament.config.hud.day-count-hud.display", "Day: %s").string, day)),
 				36,
-				MC.font.fontHeight,
+				MC.font.lineHeight,
 				-1,
 				true
 			)
-			it.context.matrices.popMatrix()
+			it.context.pose().popMatrix()
 		}
 
 		if (TConfig.fpsCount) {
-			it.context.matrices.pushMatrix()
-			TConfig.fpsCountHud.applyTransformations(it.context.matrices)
-			it.context.drawText(
-				MC.font, Text.literal(
+			it.context.pose().pushMatrix()
+			TConfig.fpsCountHud.applyTransformations(it.context.pose())
+			it.context.drawString(
+				MC.font, Component.literal(
 					String.format(
-						tr("firmament.config.hud.fps-count-hud.display", "FPS: %s").string, MC.instance.currentFps
+						tr("firmament.config.hud.fps-count-hud.display", "FPS: %s").string, MC.instance.fps
 					)
-				), 36, MC.font.fontHeight, -1, true
+				), 36, MC.font.lineHeight, -1, true
 			)
-			it.context.matrices.popMatrix()
+			it.context.pose().popMatrix()
 		}
 
 		if (TConfig.pingCount) {
-			it.context.matrices.pushMatrix()
-			TConfig.pingCountHud.applyTransformations(it.context.matrices)
+			it.context.pose().pushMatrix()
+			TConfig.pingCountHud.applyTransformations(it.context.pose())
 			val ping = MC.player?.let {
-				val entry: PlayerListEntry? = MC.networkHandler?.getPlayerListEntry(it.uuid)
+				val entry: PlayerInfo? = MC.networkHandler?.getPlayerInfo(it.uuid)
 				entry?.latency ?: -1
 			} ?: -1
-			it.context.drawText(
-				MC.font, Text.literal(
+			it.context.drawString(
+				MC.font, Component.literal(
 					String.format(
 						tr("firmament.config.hud.ping-count-hud.display", "Ping: %s ms").string, ping
 					)
-				), 36, MC.font.fontHeight, -1, true
+				), 36, MC.font.lineHeight, -1, true
 			)
 
-			it.context.matrices.popMatrix()
+			it.context.pose().popMatrix()
 		}
 	}
 }

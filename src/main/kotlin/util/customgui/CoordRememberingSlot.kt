@@ -1,7 +1,7 @@
 
 package moe.nea.firmament.util.customgui
 
-import net.minecraft.screen.slot.Slot
+import net.minecraft.world.inventory.Slot
 
 interface CoordRememberingSlot {
     fun rememberCoords_firmament()

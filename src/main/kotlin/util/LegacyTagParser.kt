@@ -3,17 +3,17 @@
 package moe.nea.firmament.util
 
 import java.util.Stack
-import net.minecraft.nbt.AbstractNbtNumber
-import net.minecraft.nbt.NbtByte
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtDouble
-import net.minecraft.nbt.NbtElement
-import net.minecraft.nbt.NbtFloat
-import net.minecraft.nbt.NbtInt
-import net.minecraft.nbt.NbtList
-import net.minecraft.nbt.NbtLong
-import net.minecraft.nbt.NbtShort
-import net.minecraft.nbt.NbtString
+import net.minecraft.nbt.NumericTag
+import net.minecraft.nbt.ByteTag
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.DoubleTag
+import net.minecraft.nbt.Tag
+import net.minecraft.nbt.FloatTag
+import net.minecraft.nbt.IntTag
+import net.minecraft.nbt.ListTag
+import net.minecraft.nbt.LongTag
+import net.minecraft.nbt.ShortTag
+import net.minecraft.nbt.StringTag
 
 class LegacyTagParser private constructor(string: String) {
     data class TagParsingException(val baseString: String, val offset: Int, val mes0: String) :
@@ -93,7 +93,7 @@ class LegacyTagParser private constructor(string: String) {
 
     companion object {
         val digitRange = "0123456789-"
-        fun parse(string: String): NbtCompound {
+        fun parse(string: String): CompoundTag {
             return LegacyTagParser(string).baseTag
         }
     }
@@ -102,11 +102,11 @@ class LegacyTagParser private constructor(string: String) {
         racer.consumeWhile { Character.isWhitespace(it.last()) } // Only check last since other chars are always checked before.
     }
 
-    fun parseTag(): NbtCompound {
+    fun parseTag(): CompoundTag {
         skipWhitespace()
         racer.expect("{", "Expected '{’ at start of tag")
         skipWhitespace()
-        val tag = NbtCompound()
+        val tag = CompoundTag()
         while (!racer.tryConsume("}")) {
             skipWhitespace()
             val lhs = parseIdentifier()
@@ -121,7 +121,7 @@ class LegacyTagParser private constructor(string: String) {
         return tag
     }
 
-    private fun parseAny(): NbtElement {
+    private fun parseAny(): Tag {
         skipWhitespace()
         val nextChar = racer.peekReq(1) ?: racer.error("Expected new object, found EOF")
         return when {
@@ -133,11 +133,11 @@ class LegacyTagParser private constructor(string: String) {
         }
     }
 
-    fun parseList(): NbtList {
+    fun parseList(): ListTag {
         skipWhitespace()
         racer.expect("[", "Expected '[' at start of tag")
         skipWhitespace()
-        val list = NbtList()
+        val list = ListTag()
         while (!racer.tryConsume("]")) {
             skipWhitespace()
             racer.pushState()
@@ -183,8 +183,8 @@ class LegacyTagParser private constructor(string: String) {
         return sb.toString()
     }
 
-    fun parseStringTag(): NbtString {
-        return NbtString.of(parseQuotedString())
+    fun parseStringTag(): StringTag {
+        return StringTag.valueOf(parseQuotedString())
     }
 
     object Patterns {
@@ -198,7 +198,7 @@ class LegacyTagParser private constructor(string: String) {
         val ROUGH_PATTERN = "[-+]?[0-9]*\\.?[0-9]*[dDbBfFlLsS]?".toRegex()
     }
 
-    fun parseNumericTag(): AbstractNbtNumber {
+    fun parseNumericTag(): NumericTag {
         skipWhitespace()
         val textForm = racer.consumeWhile { Patterns.ROUGH_PATTERN.matchEntire(it) != null }
         if (textForm.isEmpty()) {
@@ -206,27 +206,27 @@ class LegacyTagParser private constructor(string: String) {
         }
         val floatMatch = Patterns.FLOAT.matchEntire(textForm)
         if (floatMatch != null) {
-            return NbtFloat.of(floatMatch.groups[1]!!.value.toFloat())
+            return FloatTag.valueOf(floatMatch.groups[1]!!.value.toFloat())
         }
         val byteMatch = Patterns.BYTE.matchEntire(textForm)
         if (byteMatch != null) {
-            return NbtByte.of(byteMatch.groups[1]!!.value.toByte())
+            return ByteTag.valueOf(byteMatch.groups[1]!!.value.toByte())
         }
         val longMatch = Patterns.LONG.matchEntire(textForm)
         if (longMatch != null) {
-            return NbtLong.of(longMatch.groups[1]!!.value.toLong())
+            return LongTag.valueOf(longMatch.groups[1]!!.value.toLong())
         }
         val shortMatch = Patterns.SHORT.matchEntire(textForm)
         if (shortMatch != null) {
-            return NbtShort.of(shortMatch.groups[1]!!.value.toShort())
+            return ShortTag.valueOf(shortMatch.groups[1]!!.value.toShort())
         }
         val integerMatch = Patterns.INTEGER.matchEntire(textForm)
         if (integerMatch != null) {
-            return NbtInt.of(integerMatch.groups[1]!!.value.toInt())
+            return IntTag.valueOf(integerMatch.groups[1]!!.value.toInt())
         }
         val doubleMatch = Patterns.DOUBLE.matchEntire(textForm) ?: Patterns.DOUBLE_UNTYPED.matchEntire(textForm)
         if (doubleMatch != null) {
-            return NbtDouble.of(doubleMatch.groups[1]!!.value.toDouble())
+            return DoubleTag.valueOf(doubleMatch.groups[1]!!.value.toDouble())
         }
         throw IllegalStateException("Could not properly parse numeric tag '$textForm', despite passing rough verification. This is a bug in the LegacyTagParser")
     }

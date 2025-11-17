@@ -4,9 +4,9 @@ import com.mojang.brigadier.arguments.IntegerArgumentType
 import me.shedaniel.math.Color
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.command.argument.BlockPosArgumentType
-import net.minecraft.text.Text
-import net.minecraft.util.math.Vec3d
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument
+import net.minecraft.network.chat.Component
+import net.minecraft.world.phys.Vec3
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.get
 import moe.nea.firmament.commands.thenArgument
@@ -46,14 +46,14 @@ object Waypoints {
 			if (!w.isOrdered) {
 				w.waypoints.withIndex().forEach {
 					block(it.value.blockPos, Color.ofRGBA(0, 80, 160, 128).color)
-					if (TConfig.showIndex) withFacingThePlayer(it.value.blockPos.toCenterPos()) {
-						text(Text.literal(it.index.toString()))
+					if (TConfig.showIndex) withFacingThePlayer(it.value.blockPos.center) {
+						text(Component.literal(it.index.toString()))
 					}
 				}
 			} else {
 				orderedIndex %= w.waypoints.size
 				val firstColor = Color.ofRGBA(0, 200, 40, 180)
-				tracer(w.waypoints[orderedIndex].blockPos.toCenterPos(), color = firstColor.color, lineWidth = 3f)
+				tracer(w.waypoints[orderedIndex].blockPos.center, color = firstColor.color, lineWidth = 3f)
 				w.waypoints.withIndex().toList().wrappingWindow(orderedIndex, 3).zip(
 					listOf(
 						firstColor,
@@ -63,8 +63,8 @@ object Waypoints {
 				).reversed().forEach { (waypoint, col) ->
 					val (index, pos) = waypoint
 					block(pos.blockPos, col.color)
-					if (TConfig.showIndex) withFacingThePlayer(pos.blockPos.toCenterPos()) {
-						text(Text.literal(index.toString()))
+					if (TConfig.showIndex) withFacingThePlayer(pos.blockPos.center) {
+						text(Component.literal(index.toString()))
 					}
 				}
 			}
@@ -76,13 +76,13 @@ object Waypoints {
 		val w = useNonEmptyWaypoints() ?: return
 		if (!w.isOrdered) return
 		orderedIndex %= w.waypoints.size
-		val p = MC.player?.pos ?: return
+		val p = MC.player?.position ?: return
 		if (TConfig.skipToNearest) {
 			orderedIndex =
-				(w.waypoints.withIndex().minBy { it.value.blockPos.getSquaredDistance(p) }.index + 1) % w.waypoints.size
+				(w.waypoints.withIndex().minBy { it.value.blockPos.distToCenterSqr(p) }.index + 1) % w.waypoints.size
 
 		} else {
-			if (w.waypoints[orderedIndex].blockPos.isWithinDistance(p, 3.0)) {
+			if (w.waypoints[orderedIndex].blockPos.closerToCenterThan(p, 3.0)) {
 				orderedIndex = (orderedIndex + 1) % w.waypoints.size
 			}
 		}
@@ -117,14 +117,14 @@ object Waypoints {
 	@Subscribe
 	fun onCommand(event: CommandEvent.SubCommand) {
 		event.subcommand("waypoint") {
-			thenArgument("pos", BlockPosArgumentType.blockPos()) { pos ->
+			thenArgument("pos", BlockPosArgument.blockPos()) { pos ->
 				thenExecute {
 					source
-					val position = pos.get(this).toAbsoluteBlockPos(source.asFakeServer())
+					val position = pos.get(this).getBlockPos(source.asFakeServer())
 					val w = useEditableWaypoints()
 					w.waypoints.add(FirmWaypoints.Waypoint.from(position))
 					source.sendFeedback(
-						Text.stringifiedTranslatable(
+						Component.translatableEscape(
 							"firmament.command.waypoint.added",
 							position.x,
 							position.y,
@@ -180,7 +180,7 @@ object Waypoints {
 			thenLiteral("clear") {
 				thenExecute {
 					waypoints = null
-					source.sendFeedback(Text.translatable("firmament.command.waypoint.clear"))
+					source.sendFeedback(Component.translatable("firmament.command.waypoint.clear"))
 				}
 			}
 			thenLiteral("toggleordered") {
@@ -188,11 +188,11 @@ object Waypoints {
 					val w = useEditableWaypoints()
 					w.isOrdered = !w.isOrdered
 					if (w.isOrdered) {
-						val p = MC.player?.pos ?: Vec3d.ZERO
+						val p = MC.player?.position ?: Vec3.ZERO
 						orderedIndex = // TODO: this should be extracted to a utility method
-							w.waypoints.withIndex().minByOrNull { it.value.blockPos.getSquaredDistance(p) }?.index ?: 0
+							w.waypoints.withIndex().minByOrNull { it.value.blockPos.distToCenterSqr(p) }?.index ?: 0
 					}
-					source.sendFeedback(Text.translatable("firmament.command.waypoint.ordered.toggle.${w.isOrdered}"))
+					source.sendFeedback(Component.translatable("firmament.command.waypoint.ordered.toggle.${w.isOrdered}"))
 				}
 			}
 			thenLiteral("skip") {
@@ -200,9 +200,9 @@ object Waypoints {
 					val w = useNonEmptyWaypoints()
 					if (w != null && w.isOrdered) {
 						orderedIndex = (orderedIndex + 1) % w.size
-						source.sendFeedback(Text.translatable("firmament.command.waypoint.skip"))
+						source.sendFeedback(Component.translatable("firmament.command.waypoint.skip"))
 					} else {
-						source.sendError(Text.translatable("firmament.command.waypoint.skip.error"))
+						source.sendError(Component.translatable("firmament.command.waypoint.skip.error"))
 					}
 				}
 			}
@@ -214,13 +214,13 @@ object Waypoints {
 						if (w != null && index in w.waypoints.indices) {
 							w.waypoints.removeAt(index)
 							source.sendFeedback(
-								Text.stringifiedTranslatable(
+								Component.translatableEscape(
 									"firmament.command.waypoint.remove",
 									index
 								)
 							)
 						} else {
-							source.sendError(Text.stringifiedTranslatable("firmament.command.waypoint.remove.error"))
+							source.sendError(Component.translatableEscape("firmament.command.waypoint.remove.error"))
 						}
 					}
 				}
@@ -234,7 +234,7 @@ object Waypoints {
 			"Invalid index $index provided."
 		)
 
-	fun textNothingToExport(): Text =
+	fun textNothingToExport(): Component =
 		tr(
 			"firmament.command.waypoint.export.nowaypoints",
 			"No waypoints to export found. Add some with /firm waypoint ~ ~ ~."

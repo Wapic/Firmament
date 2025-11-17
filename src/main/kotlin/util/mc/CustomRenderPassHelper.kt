@@ -13,22 +13,22 @@ import java.util.OptionalDouble
 import java.util.OptionalInt
 import org.joml.Vector3f
 import org.joml.Vector4f
-import net.minecraft.client.gl.Framebuffer
-import net.minecraft.client.render.BufferBuilder
-import net.minecraft.client.render.BuiltBuffer
-import net.minecraft.client.texture.AbstractTexture
-import net.minecraft.client.util.BufferAllocator
-import net.minecraft.util.Identifier
-import net.minecraft.util.math.MathHelper
+import com.mojang.blaze3d.pipeline.RenderTarget
+import com.mojang.blaze3d.vertex.BufferBuilder
+import com.mojang.blaze3d.vertex.MeshData
+import net.minecraft.client.renderer.texture.AbstractTexture
+import com.mojang.blaze3d.vertex.ByteBufferBuilder
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.Mth
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.MC
 
 
 class CustomRenderPassHelper(
 	val labelSupplier: () -> String,
-	val drawMode: VertexFormat.DrawMode,
+	val drawMode: VertexFormat.Mode,
 	val vertexFormat: VertexFormat,
-	val frameBuffer: Framebuffer,
+	val frameBuffer: RenderTarget,
 	val hasDepth: Boolean,
 ) : AutoCloseable {
 	private val scope = mutableListOf<AutoCloseable>()
@@ -45,12 +45,12 @@ class CustomRenderPassHelper(
 		}
 	}
 
-	fun bindSampler(name: String, texture: Identifier) {
+	fun bindSampler(name: String, texture: ResourceLocation) {
 		bindSampler(name, MC.textureManager.getTexture(texture))
 	}
 
 	fun bindSampler(name: String, texture: AbstractTexture) {
-		queueAction { it.bindSampler(name, texture.glTextureView) }
+		queueAction { it.bindSampler(name, texture.textureView) }
 	}
 
 
@@ -65,7 +65,7 @@ class CustomRenderPassHelper(
 		}
 		setUniform(
 			"DynamicTransforms", RenderSystem.getDynamicUniforms()
-				.write(
+				.writeTransform(
 					RenderSystem.getModelViewMatrix(),
 					Vector4f(1.0F, 1.0F, 1.0F, 1.0F),
 					Vector3f(), // TODO: 1.21.10
@@ -83,25 +83,25 @@ class CustomRenderPassHelper(
 		setUniform(name, buffer)
 	}
 
-	var vertices: BuiltBuffer? = null
+	var vertices: MeshData? = null
 
 	fun uploadVertices(size: Int, init: (BufferBuilder) -> Unit) {
 		uploadVertices(
-			BufferBuilder(queueClose(BufferAllocator(size)), drawMode, vertexFormat)
+			BufferBuilder(queueClose(ByteBufferBuilder(size)), drawMode, vertexFormat)
 				.also(init)
-				.end()
+				.buildOrThrow()
 		)
 	}
 
-	fun uploadVertices(buffer: BuiltBuffer) {
+	fun uploadVertices(buffer: MeshData) {
 		queueClose(buffer)
 		ErrorUtil.softCheck("Vertices have already been uploaded", vertices == null)
 		vertices = buffer
-		val vertexBuffer = vertexFormat.uploadImmediateVertexBuffer(buffer.buffer)
+		val vertexBuffer = vertexFormat.uploadImmediateVertexBuffer(buffer.vertexBuffer())
 		val indexBufferConstructor = RenderSystem.getSequentialBuffer(drawMode)
-		val indexBuffer = indexBufferConstructor.getIndexBuffer(buffer.drawParameters.indexCount)
+		val indexBuffer = indexBufferConstructor.getBuffer(buffer.drawState().indexCount)
 		queueAction {
-			it.setIndexBuffer(indexBuffer, indexBufferConstructor.indexType)
+			it.setIndexBuffer(indexBuffer, indexBufferConstructor.type())
 			it.setVertexBuffer(0, vertexBuffer)
 		}
 	}
@@ -119,7 +119,7 @@ class CustomRenderPassHelper(
 	fun allocateByteBuf(size: Int, init: (Std140Builder) -> Unit): ByteBuffer {
 		return Std140Builder.intoBuffer( // TODO: i really dont know about this 16 align? but it seems to be generally correct.
 			ByteBuffer
-				.allocateDirect(MathHelper.roundUpToMultiple(size, 16))
+				.allocateDirect(Mth.roundToward(size, 16))
 				.order(ByteOrder.nativeOrder())
 		).also(init).get()
 	}
@@ -142,10 +142,10 @@ class CustomRenderPassHelper(
 		val renderPass = queueClose(
 			commandEncoder.createRenderPass(
 				labelSupplier::invoke,
-				RenderSystem.outputColorTextureOverride ?: frameBuffer.getColorAttachmentView(),
+				RenderSystem.outputColorTextureOverride ?: frameBuffer.colorTextureView!!,
 				OptionalInt.empty(),
 				(RenderSystem.outputDepthTextureOverride
-					?: frameBuffer.getDepthAttachmentView()).takeIf { frameBuffer.useDepthAttachment && hasDepth },
+					?: frameBuffer.depthTextureView).takeIf { frameBuffer.useDepth && hasDepth },
 				OptionalDouble.empty()
 			)
 		)
@@ -153,7 +153,7 @@ class CustomRenderPassHelper(
 		renderPass.drawIndexed(
 			0,
 			0,
-			vertexData.drawParameters.indexCount,
+			vertexData.drawState().indexCount,
 			1
 		)
 		return DrawToken

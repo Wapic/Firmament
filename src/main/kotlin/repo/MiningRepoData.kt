@@ -9,11 +9,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.serializer
 import kotlin.streams.asSequence
-import net.minecraft.block.Block
-import net.minecraft.item.BlockItem
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.text.Text
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.item.BlockItem
+import net.minecraft.world.item.ItemStack
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.repo.ReforgeStore.kJson
 import moe.nea.firmament.util.SBData
 import moe.nea.firmament.util.SkyBlockIsland
@@ -87,7 +87,7 @@ class MiningRepoData : IReloadable {
 		private fun markItemStack(itemStack: ItemStack) {
 			itemStack.set(FirmamentDataComponentTypes.CUSTOM_MINING_BLOCK_DATA, this)
 			if (name != null)
-				itemStack.displayNameAccordingToNbt = Text.literal(name)
+				itemStack.displayNameAccordingToNbt = Component.literal(name)
 		}
 
 		fun getDisplayItem(block: Block): ItemStack {
@@ -112,7 +112,7 @@ class MiningRepoData : IReloadable {
 		@OptIn(ExpensiveItemCacheApi::class)
 		private fun convertToModernBlock(): Block? {
 			// TODO: this should be in a shared util, really
-			val newCompound = ItemCache.convert189ToModern(NbtCompound().apply {
+			val newCompound = ItemCache.convert189ToModern(CompoundTag().apply {
 				putString("id", itemId)
 				putShort("Damage", damage)
 			}) ?: return null

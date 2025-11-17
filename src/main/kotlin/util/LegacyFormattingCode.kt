@@ -1,6 +1,6 @@
 package moe.nea.firmament.util
 
-import net.minecraft.util.Formatting
+import net.minecraft.ChatFormatting
 
 enum class LegacyFormattingCode(val label: String, val char: Char, val index: Int) {
 	BLACK("BLACK", '0', 0),
@@ -30,7 +30,7 @@ enum class LegacyFormattingCode(val label: String, val char: Char, val index: In
 		val byCode = entries.associateBy { it.char }
 	}
 
-	val modern = Formatting.byCode(char)!!
+	val modern = ChatFormatting.getByCode(char)!!
 
 	val formattingCode = "§$char"
 

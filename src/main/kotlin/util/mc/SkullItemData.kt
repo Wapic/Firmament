@@ -9,10 +9,10 @@ import java.time.Instant
 import java.util.UUID
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.ProfileComponent
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.ResolvableProfile
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.util.Base64Util.padToValidBase64
 import moe.nea.firmament.util.assertTrueOr
@@ -46,7 +46,7 @@ fun ItemStack.setEncodedSkullOwner(uuid: UUID, encodedData: String) {
     assert(this.item == Items.PLAYER_HEAD)
     val gameProfile = GameProfile(uuid, "LameGuy123")
     gameProfile.properties.put(propertyTextures, Property(propertyTextures, encodedData.padToValidBase64()))
-    this.set(DataComponentTypes.PROFILE, ProfileComponent.ofStatic(gameProfile))
+    this.set(DataComponents.PROFILE, ResolvableProfile.createResolved(gameProfile))
 }
 
 val arbitraryUUID = UUID.fromString("d3cb85e2-3075-48a1-b213-a9bfb62360c1")
@@ -63,7 +63,7 @@ fun ItemStack.setSkullOwner(uuid: UUID, url: String) {
             profileName = "nea89",
         )
     )
-    this.set(DataComponentTypes.PROFILE, ProfileComponent.ofStatic(gameProfile))
+    this.set(DataComponents.PROFILE, ResolvableProfile.createResolved(gameProfile))
 }
 
 

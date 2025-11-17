@@ -2,11 +2,11 @@ package moe.nea.firmament.features.inventory
 
 import java.util.regex.Matcher
 import org.joml.Vector2i
-import net.minecraft.entity.player.PlayerInventory
-import net.minecraft.item.ItemStack
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
-import net.minecraft.util.StringIdentifiable
+import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.item.ItemStack
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
+import net.minecraft.util.StringRepresentable
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HudRenderEvent
@@ -52,14 +52,14 @@ object PetFeatures {
 		val petOverlayHudStyle by choice("pet-overlay-hud-style") { PetOverlayHudStyles.PLAIN_NO_BACKGROUND }
 	}
 
-	enum class PetOverlayHudStyles : StringIdentifiable {
+	enum class PetOverlayHudStyles : StringRepresentable {
 		PLAIN_NO_BACKGROUND,
 		COLOUR_NO_BACKGROUND,
 		PLAIN_BACKGROUND,
 		COLOUR_BACKGROUND,
 		ICON_ONLY;
 
-		override fun asString() : String {
+		override fun getSerializedName() : String {
 			return name
 		}
 	}
@@ -86,7 +86,7 @@ object PetFeatures {
 	fun onSlotRender(event: SlotRenderEvents.Before) {
 		// Cache pets
 		petMenuTitle.useMatch(MC.screenName ?: return) {
-			val stack = event.slot.stack
+			val stack = event.slot.item
 			if (!stack.isEmpty) cachePet(stack)
 			if (stack.petData?.active == true) {
 				if (currentPetUUID == "") currentPetUUID = stack.skyblockUUID.toString()
@@ -114,7 +114,7 @@ object PetFeatures {
 	fun onSlotClick(event: SlotClickEvent) {
 		// Check for switching/removing pet manually
 		petMenuTitle.useMatch(MC.screenName ?: return) {
-			if (event.slot.inventory is PlayerInventory) return
+			if (event.slot.container is Inventory) return
 			if (event.button != 0 && event.button != 1) return
 			val petData = event.stack.petData ?: return
 			if (petData.active == true) {
@@ -175,23 +175,23 @@ object PetFeatures {
 		}
 	}
 
-	private fun renderLinesAndBackground(it: HudRenderEvent, lines: List<Text>) {
+	private fun renderLinesAndBackground(it: HudRenderEvent, lines: List<Component>) {
 		// Render background for the hud
 		if (TConfig.petOverlayHudStyle == PetOverlayHudStyles.PLAIN_BACKGROUND ||
 			TConfig.petOverlayHudStyle == PetOverlayHudStyles.COLOUR_BACKGROUND) {
 			var maxWidth = 0
-			lines.forEach { if (MC.font.getWidth(it) > maxWidth) maxWidth = MC.font.getWidth(it.unformattedString) }
-			val height = if (MC.font.fontHeight * lines.size > 32) MC.font.fontHeight * lines.size else 32
+			lines.forEach { if (MC.font.width(it) > maxWidth) maxWidth = MC.font.width(it.unformattedString) }
+			val height = if (MC.font.lineHeight * lines.size > 32) MC.font.lineHeight * lines.size else 32
 			it.context.fill(0, -3, 40 + maxWidth, height + 2, 0x80000000.toInt())
 		}
 
 		// Render text for the hud
 		lines.forEachIndexed { index, line ->
-			it.context.drawText(
+			it.context.drawString(
 				MC.font,
-				line.copy().withColor(Formatting.GRAY),
+				line.copy().withColor(ChatFormatting.GRAY),
 				36,
-				MC.font.fontHeight * index,
+				MC.font.lineHeight * index,
 				-1,
 				true
 			)
@@ -217,13 +217,13 @@ object PetFeatures {
 		val tabPet = PetParser.parseTabWidget(TabListAPI.getWidgetLines(TabListAPI.WidgetName.PET))
 		if (pet == null && tabPet == null && tempTabPet == null && tempChatPet == null) {
 			// No data on current pet
-			it.context.matrices.pushMatrix()
-			TConfig.petOverlayHud.applyTransformations(JarvisIntegration.jarvis, it.context.matrices)
-			val lines = mutableListOf<Text>()
-			lines.add(Text.literal("" + Formatting.WHITE + "Unknown Pet"))
-			lines.add(Text.literal("Open Pets Menu To Fix"))
+			it.context.pose().pushMatrix()
+			TConfig.petOverlayHud.applyTransformations(JarvisIntegration.jarvis, it.context.pose())
+			val lines = mutableListOf<Component>()
+			lines.add(Component.literal("" + ChatFormatting.WHITE + "Unknown Pet"))
+			lines.add(Component.literal("Open Pets Menu To Fix"))
 			renderLinesAndBackground(it, lines)
-			it.context.matrices.popMatrix()
+			it.context.pose().popMatrix()
 			return
 		}
 		if (pet == null) {
@@ -255,71 +255,71 @@ object PetFeatures {
 
 		// Set the text for the HUD
 
-		val lines = mutableListOf<Text>()
+		val lines = mutableListOf<Component>()
 
 		if (TConfig.petOverlayHudStyle == PetOverlayHudStyles.COLOUR_NO_BACKGROUND ||
 			TConfig.petOverlayHudStyle == PetOverlayHudStyles.COLOUR_BACKGROUND) {
 			// Colour Style
-			lines.add(Text.literal("[Lvl ${pet.level}] ").append(Text.literal(pet.name)
-				.withColor((Rarity.colourMap[pet.rarity]) ?: Formatting.WHITE)))
+			lines.add(Component.literal("[Lvl ${pet.level}] ").append(Component.literal(pet.name)
+				.withColor((Rarity.colourMap[pet.rarity]) ?: ChatFormatting.WHITE)))
 
-			lines.add(Text.literal(pet.petItem))
+			lines.add(Component.literal(pet.petItem))
 			if (pet.level != pet.maxLevel) {
 				// Exp data
 				lines.add(
-					Text.literal(
-						"" + Formatting.YELLOW + "Required L${pet.level + 1}: ${shortFormat(pet.currentExp)}" +
-							Formatting.GOLD + "/" + Formatting.YELLOW +
-							"${shortFormat(pet.expForNextLevel)} " + Formatting.GOLD +
+					Component.literal(
+						"" + ChatFormatting.YELLOW + "Required L${pet.level + 1}: ${shortFormat(pet.currentExp)}" +
+							ChatFormatting.GOLD + "/" + ChatFormatting.YELLOW +
+							"${shortFormat(pet.expForNextLevel)} " + ChatFormatting.GOLD +
 							"(${formatPercent(pet.currentExp / pet.expForNextLevel)})"
 					)
 				)
 				lines.add(
-					Text.literal(
-						"" + Formatting.YELLOW + "Required L100: ${shortFormat(pet.totalExp)}" +
-							Formatting.GOLD + "/" + Formatting.YELLOW +
-							"${shortFormat(pet.expForMax)} " + Formatting.GOLD +
+					Component.literal(
+						"" + ChatFormatting.YELLOW + "Required L100: ${shortFormat(pet.totalExp)}" +
+							ChatFormatting.GOLD + "/" + ChatFormatting.YELLOW +
+							"${shortFormat(pet.expForMax)} " + ChatFormatting.GOLD +
 							"(${formatPercent(pet.totalExp / pet.expForMax)})"
 					)
 				)
 			} else {
 				// Overflow Exp data
-				lines.add(Text.literal(
-					"" + Formatting.AQUA + Formatting.BOLD + "MAX LEVEL"
+				lines.add(Component.literal(
+					"" + ChatFormatting.AQUA + ChatFormatting.BOLD + "MAX LEVEL"
 				))
-				lines.add(Text.literal(
-					"" + Formatting.GOLD + "+" + Formatting.YELLOW + "${shortFormat(pet.overflowExp)} XP"
+				lines.add(Component.literal(
+					"" + ChatFormatting.GOLD + "+" + ChatFormatting.YELLOW + "${shortFormat(pet.overflowExp)} XP"
 				))
 			}
 		} else if (TConfig.petOverlayHudStyle == PetOverlayHudStyles.PLAIN_NO_BACKGROUND ||
 			TConfig.petOverlayHudStyle == PetOverlayHudStyles.PLAIN_BACKGROUND) {
 			// Plain Style
-			lines.add(Text.literal("[Lvl ${pet.level}] ").append(Text.literal(pet.name)
-				.withColor((Rarity.colourMap[pet.rarity]) ?: Formatting.WHITE)))
+			lines.add(Component.literal("[Lvl ${pet.level}] ").append(Component.literal(pet.name)
+				.withColor((Rarity.colourMap[pet.rarity]) ?: ChatFormatting.WHITE)))
 
-			lines.add(Text.literal(if (pet.petItem != "None" && pet.petItem != "Unknown")
+			lines.add(Component.literal(if (pet.petItem != "None" && pet.petItem != "Unknown")
 				pet.petItem.substring(2) else pet.petItem))
 			if (pet.level != pet.maxLevel) {
 				// Exp data
 				lines.add(
-					Text.literal(
+					Component.literal(
 						"Required L${pet.level + 1}: ${shortFormat(pet.currentExp)}/" +
 							"${shortFormat(pet.expForNextLevel)} " +
 							"(${formatPercent(pet.currentExp / pet.expForNextLevel)})"
 					)
 				)
 				lines.add(
-					Text.literal(
+					Component.literal(
 						"Required L100: ${shortFormat(pet.totalExp)}/${shortFormat(pet.expForMax)} " +
 							"(${formatPercent(pet.totalExp / pet.expForMax)})"
 					)
 				)
 			} else {
 				// Overflow Exp data
-				lines.add(Text.literal(
+				lines.add(Component.literal(
 					"MAX LEVEL"
 				))
-				lines.add(Text.literal(
+				lines.add(Component.literal(
 					"+${shortFormat(pet.overflowExp)} XP"
 				))
 			}
@@ -327,19 +327,19 @@ object PetFeatures {
 
 		// Render HUD
 
-		it.context.matrices.pushMatrix()
-		TConfig.petOverlayHud.applyTransformations(JarvisIntegration.jarvis, it.context.matrices)
+		it.context.pose().pushMatrix()
+		TConfig.petOverlayHud.applyTransformations(JarvisIntegration.jarvis, it.context.pose())
 
 		renderLinesAndBackground(it, lines)
 
 		// Draw the ItemStack
-		it.context.matrices.pushMatrix()
-		it.context.matrices.translate(-0.5F, -0.5F)
-		it.context.matrices.scale(2f, 2f)
-		it.context.drawItem(pet.petItemStack.value, 0, 0)
-		it.context.matrices.popMatrix()
+		it.context.pose().pushMatrix()
+		it.context.pose().translate(-0.5F, -0.5F)
+		it.context.pose().scale(2f, 2f)
+		it.context.renderItem(pet.petItemStack.value, 0, 0)
+		it.context.pose().popMatrix()
 
-		it.context.matrices.popMatrix()
+		it.context.pose().popMatrix()
 	}
 }
 
@@ -404,7 +404,7 @@ object PetParser {
 	}
 
 	@OptIn(ExpensiveItemCacheApi::class)
-	fun parseTabWidget(lines: List<Text>): ParsedPet? {
+	fun parseTabWidget(lines: List<Component>): ParsedPet? {
 		found.clear()
 		for (line in lines.reversed()) {
 			if (!found.containsKey("kat")) {
@@ -524,20 +524,20 @@ object PetParser {
 }
 
 data class ParsedPet(
-	val name: String,
-	val rarity: Rarity,
-	var level: Int,
-	val maxLevel: Int,
-	val expLadder: ExpLadders.ExpLadder?,
-	var currentExp: Double,
-	var expForNextLevel: Double,
-	var totalExp: Double,
-	var totalExpBeforeLevel: Double,
-	val expForMax: Double,
-	var overflowExp: Double,
-	var petItem: String,
-	var petItemStack: Lazy<ItemStack>,
-	var isComplete: Boolean
+    val name: String,
+    val rarity: Rarity,
+    var level: Int,
+    val maxLevel: Int,
+    val expLadder: ExpLadders.ExpLadder?,
+    var currentExp: Double,
+    var expForNextLevel: Double,
+    var totalExp: Double,
+    var totalExpBeforeLevel: Double,
+    val expForMax: Double,
+    var overflowExp: Double,
+    var petItem: String,
+    var petItemStack: Lazy<ItemStack>,
+    var isComplete: Boolean
 ) {
 	fun update(other: ParsedPet) {
 		// Update the pet data to reflect another instance (of itself)

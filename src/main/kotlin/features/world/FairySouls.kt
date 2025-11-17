@@ -67,12 +67,12 @@ object FairySouls {
 
 	fun findNearestClickableSoul(): Coordinate? {
 		val player = MC.player ?: return null
-		val pos = player.pos
+		val pos = player.position
 		val location = SBData.skyblockLocation ?: return null
 		val soulLocations: List<Coordinate> =
 			RepoManager.neuRepo.constants.fairySouls.soulLocations[location.locrawMode] ?: return null
 		return soulLocations
-			.map { it to it.blockPos.getSquaredDistance(pos) }
+			.map { it to it.blockPos.distToCenterSqr(pos) }
 			.filter { it.second < playerReachSquared }
 			.minByOrNull { it.second }
 			?.first

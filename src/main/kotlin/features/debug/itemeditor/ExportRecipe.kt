@@ -4,9 +4,9 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import net.minecraft.client.network.AbstractClientPlayerEntity
-import net.minecraft.entity.decoration.ArmorStandEntity
-import net.minecraft.util.AssetInfo
+import net.minecraft.client.player.AbstractClientPlayer
+import net.minecraft.world.entity.decoration.ArmorStand
+import net.minecraft.core.ClientAsset
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HandledScreenKeyPressedEvent
@@ -52,23 +52,23 @@ object ExportRecipe {
 		if (!event.matches(PowerUserTools.TConfig.exportNpcLocation)) {
 			return
 		}
-		val entity = MC.instance.targetedEntity
+		val entity = MC.instance.crosshairPickEntity
 		if (entity == null) {
 			MC.sendChat(tr("firmament.repo.export.npc.noentity", "Could not find entity to export"))
 			return
 		}
 		Firmament.coroutineScope.launch {
-			val guessName = entity.world.getEntitiesByClass(
-				ArmorStandEntity::class.java,
-				entity.boundingBox.expand(0.1),
+			val guessName = entity.level.getEntitiesOfClass(
+				ArmorStand::class.java,
+				entity.boundingBox.inflate(0.1),
 				{ !it.name.string.contains("CLICK") })
 				.firstOrNull()?.customName?.string
 				?: ""
 			val reply = waitForTextInput("$guessName (NPC)", "Export stub")
 			val id = generateName(reply)
 			ItemExporter.exportStub(id, "§9$reply") {
-				val playerEntity = entity as? AbstractClientPlayerEntity
-				val textureUrl = (playerEntity?.skin?.body as? AssetInfo.SkinAssetInfo)?.url
+				val playerEntity = entity as? AbstractClientPlayer
+				val textureUrl = (playerEntity?.skin?.body as? ClientAsset.DownloadedTexture)?.url
 				if (textureUrl != null)
 					it.setSkullOwner(playerEntity.uuid, textureUrl)
 			}
@@ -89,19 +89,19 @@ object ExportRecipe {
 			return
 		}
 		val title = event.screen.title.string
-		val sellSlot = event.screen.getSlotByIndex(49, false)?.stack
+		val sellSlot = event.screen.getSlotByIndex(49, false)?.item
 		val craftingTableSlot = event.screen.getSlotByIndex(craftingTableSlut, false)
-		if (craftingTableSlot?.stack?.displayNameAccordingToNbt?.unformattedString == "Crafting Table") {
+		if (craftingTableSlot?.item?.displayNameAccordingToNbt?.unformattedString == "Crafting Table") {
 			slotIndices.forEach { (_, index) ->
-				event.screen.getSlotByIndex(index, false)?.stack?.let(ItemExporter::ensureExported)
+				event.screen.getSlotByIndex(index, false)?.item?.let(ItemExporter::ensureExported)
 			}
 			val inputs = slotIndices.associate { (name, index) ->
-				val id = event.screen.getSlotByIndex(index, false)?.stack?.takeIf { !it.isEmpty() }?.let {
+				val id = event.screen.getSlotByIndex(index, false)?.item?.takeIf { !it.isEmpty() }?.let {
 					"${it.skyBlockId?.neuItem}:${it.count}"
 				} ?: ""
 				name to JsonPrimitive(id)
 			}
-			val output = event.screen.getSlotByIndex(resultSlot, false)?.stack!!
+			val output = event.screen.getSlotByIndex(resultSlot, false)?.item!!
 			val overrideOutputId = output.skyBlockId!!.neuItem
 			val count = output.count
 			val recipe = JsonObject(
@@ -123,7 +123,7 @@ object ExportRecipe {
 				ItemExporter.exportStub(shopId, "§9$title (NPC)")
 			}
 			for (index in (9..9 * 5)) {
-				val item = event.screen.getSlotByIndex(index, false)?.stack ?: continue
+				val item = event.screen.getSlotByIndex(index, false)?.item ?: continue
 				val skyblockId = item.skyBlockId ?: continue
 				val costLines = item.loreAccordingToNbt
 					.map { it.string.trim() }

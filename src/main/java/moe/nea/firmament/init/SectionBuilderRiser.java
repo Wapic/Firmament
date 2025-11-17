@@ -1,11 +1,11 @@
 package moe.nea.firmament.init;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.block.BlockRenderManager;
-import net.minecraft.client.render.chunk.SectionBuilder;
-import net.minecraft.client.render.model.BlockStateModel;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.chunk.SectionCompiler;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.core.BlockPos;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -18,16 +18,16 @@ import org.objectweb.asm.tree.VarInsnNode;
 
 public class SectionBuilderRiser extends RiserUtils {
 
-	Intermediary.InterClass SectionBuilder = Intermediary.<SectionBuilder>intermediaryClass();
+	Intermediary.InterClass SectionBuilder = Intermediary.<SectionCompiler>intermediaryClass();
 	Intermediary.InterClass BlockPos = Intermediary.<BlockPos>intermediaryClass();
-	Intermediary.InterClass BlockRenderManager = Intermediary.<BlockRenderManager>intermediaryClass();
+	Intermediary.InterClass BlockRenderManager = Intermediary.<BlockRenderDispatcher>intermediaryClass();
 	Intermediary.InterClass BlockState = Intermediary.<BlockState>intermediaryClass();
 	Intermediary.InterClass BlockStateModel = Intermediary.<BlockStateModel>intermediaryClass();
 	String CustomBlockTextures = "moe.nea.firmament.features.texturepack.CustomBlockTextures";
 
 	Intermediary.InterMethod getModel =
 		Intermediary.intermediaryMethod(
-			net.minecraft.client.render.block.BlockRenderManager::getModel,
+			net.minecraft.client.renderer.block.BlockRenderDispatcher::getBlockModel,
 			BlockStateModel,
 			BlockState
 		);

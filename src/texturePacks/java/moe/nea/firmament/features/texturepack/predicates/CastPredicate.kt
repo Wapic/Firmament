@@ -1,9 +1,9 @@
 package moe.nea.firmament.features.texturepack.predicates
 
 import com.google.gson.JsonElement
-import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.ItemStack
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
 import moe.nea.firmament.features.texturepack.FirmamentModelPredicate
 import moe.nea.firmament.features.texturepack.FirmamentModelPredicateParser
 
@@ -16,7 +16,7 @@ class CastPredicate : FirmamentModelPredicate {
 	}
 
 	override fun test(stack: ItemStack, holder: LivingEntity?): Boolean {
-		return (holder as? PlayerEntity)?.fishHook != null && holder.mainHandStack === stack
+		return (holder as? Player)?.fishing != null && holder.mainHandItem === stack
 	}
 
 	override fun test(stack: ItemStack): Boolean {

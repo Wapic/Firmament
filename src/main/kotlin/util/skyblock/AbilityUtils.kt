@@ -1,8 +1,8 @@
 package moe.nea.firmament.util.skyblock
 
 import kotlin.time.Duration
-import net.minecraft.item.ItemStack
-import net.minecraft.text.Text
+import net.minecraft.world.item.ItemStack
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.directLiteralStringContent
 import moe.nea.firmament.util.mc.loreAccordingToNbt
@@ -17,7 +17,7 @@ object AbilityUtils {
 		val hasPowerScroll: Boolean,
 		val activation: AbilityActivation,
 		val manaCost: Int?,
-		val descriptionLines: List<Text>,
+		val descriptionLines: List<Component>,
 		val cooldown: Duration?,
 	)
 
@@ -40,7 +40,7 @@ object AbilityUtils {
 	}
 
 	private val abilityNameRegex = "Ability: (?<name>.*?) *".toPattern()
-	private fun findAbility(iterator: ListIterator<Text>): ItemAbility? {
+	private fun findAbility(iterator: ListIterator<Component>): ItemAbility? {
 		if (!iterator.hasNext()) {
 			return null
 		}
@@ -72,7 +72,7 @@ object AbilityUtils {
 			return null
 		}
 		if (abilityName == null) return null
-		val descriptionLines = mutableListOf<Text>()
+		val descriptionLines = mutableListOf<Component>()
 		var manaCost: Int? = null
 		var cooldown: Duration? = null
 		while (iterator.hasNext()) {
@@ -121,7 +121,7 @@ object AbilityUtils {
 		)
 	}
 
-	fun getAbilities(lore: List<Text>): List<ItemAbility> {
+	fun getAbilities(lore: List<Component>): List<ItemAbility> {
 		val iterator = lore.listIterator()
 		val abilities = mutableListOf<ItemAbility>()
 		while (iterator.hasNext()) {

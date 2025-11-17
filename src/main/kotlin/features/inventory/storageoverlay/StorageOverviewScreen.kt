@@ -4,19 +4,19 @@ package moe.nea.firmament.features.inventory.storageoverlay
 
 import org.lwjgl.glfw.GLFW
 import kotlin.math.max
-import net.minecraft.block.Blocks
-import net.minecraft.client.gui.Click
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.input.KeyInput
-import net.minecraft.item.Item
-import net.minecraft.item.Items
-import net.minecraft.text.Text
-import net.minecraft.util.DyeColor
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.input.KeyEvent
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.Items
+import net.minecraft.network.chat.Component
+import net.minecraft.world.item.DyeColor
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.toShedaniel
 
-class StorageOverviewScreen() : Screen(Text.empty()) {
+class StorageOverviewScreen() : Screen(Component.empty()) {
     companion object {
         val emptyStorageSlotItems = listOf<Item>(
             Blocks.RED_STAINED_GLASS_PANE.asItem(),
@@ -37,19 +37,19 @@ class StorageOverviewScreen() : Screen(Text.empty()) {
 		scroll = scroll.coerceAtMost(getMaxScroll()).coerceAtLeast(0)
 	}
 
-	override fun close() {
+	override fun onClose() {
 		if (!StorageOverlay.TConfig.retainScroll) scroll = 0
-		super.close()
+		super.onClose()
 	}
 
-    override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
+    override fun render(context: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
         super.render(context, mouseX, mouseY, delta)
         context.fill(0, 0, width, height, 0x90000000.toInt())
         layoutedForEach { (key, value), offsetX, offsetY ->
-            context.matrices.pushMatrix()
-            context.matrices.translate(offsetX.toFloat(), offsetY.toFloat())
+            context.pose().pushMatrix()
+            context.pose().translate(offsetX.toFloat(), offsetY.toFloat())
             renderStoragePage(context, value, mouseX - offsetX, mouseY - offsetY)
-            context.matrices.popMatrix()
+            context.pose().popMatrix()
         }
     }
 
@@ -74,12 +74,12 @@ class StorageOverviewScreen() : Screen(Text.empty()) {
         lastRenderedHeight = totalHeight + currentMaxHeight
     }
 
-	override fun mouseClicked(click: Click, doubled: Boolean): Boolean {
+	override fun mouseClicked(click: MouseButtonEvent, doubled: Boolean): Boolean {
         layoutedForEach { (k, p), x, y ->
             val rx = click.x - x
             val ry = click.y - y
             if (rx in (0.0..pageWidth.toDouble()) && ry in (0.0..getStorePageHeight(p).toDouble())) {
-                close()
+                onClose()
                 StorageOverlay.lastStorageOverlay = this
                 k.navigateTo()
                 return true
@@ -89,7 +89,7 @@ class StorageOverviewScreen() : Screen(Text.empty()) {
     }
 
     fun getStorePageHeight(page: StorageData.StorageInventory): Int {
-        return page.inventory?.rows?.let { it * 19 + MC.font.fontHeight + 2 } ?: 60
+        return page.inventory?.rows?.let { it * 19 + MC.font.lineHeight + 2 } ?: 60
     }
 
     override fun mouseScrolled(
@@ -106,31 +106,31 @@ class StorageOverviewScreen() : Screen(Text.empty()) {
 
 	private fun getMaxScroll() = lastRenderedHeight - height + 2 * StorageOverlay.TConfig.margin
 
-    private fun renderStoragePage(context: DrawContext, page: StorageData.StorageInventory, mouseX: Int, mouseY: Int) {
-        context.drawText(MC.font, page.title, 2, 2, -1, true)
+    private fun renderStoragePage(context: GuiGraphics, page: StorageData.StorageInventory, mouseX: Int, mouseY: Int) {
+        context.drawString(MC.font, page.title, 2, 2, -1, true)
         val inventory = page.inventory
         if (inventory == null) {
             // TODO: Missing texture
             context.fill(0, 0, pageWidth, 60, DyeColor.RED.toShedaniel().darker(4.0).color)
-            context.drawCenteredTextWithShadow(MC.font, Text.literal("Not loaded yet"), pageWidth / 2, 30, -1)
+            context.drawCenteredString(MC.font, Component.literal("Not loaded yet"), pageWidth / 2, 30, -1)
             return
         }
 
         for ((index, stack) in inventory.stacks.withIndex()) {
             val x = (index % 9) * 19
-            val y = (index / 9) * 19 + MC.font.fontHeight + 2
+            val y = (index / 9) * 19 + MC.font.lineHeight + 2
             if (((mouseX - x) in 0 until 18) && ((mouseY - y) in 0 until 18)) {
                 context.fill(x, y, x + 18, y + 18, 0x80808080.toInt())
             } else {
                 context.fill(x, y, x + 18, y + 18, 0x40808080.toInt())
             }
-            context.drawItem(stack, x + 1, y + 1)
-            context.drawStackOverlay(MC.font, stack, x + 1, y + 1)
+            context.renderItem(stack, x + 1, y + 1)
+            context.renderItemDecorations(MC.font, stack, x + 1, y + 1)
         }
     }
 
-	override fun keyPressed(input: KeyInput): Boolean {
-        if (input.keycode == GLFW.GLFW_KEY_ESCAPE)
+	override fun keyPressed(input: KeyEvent): Boolean {
+        if (input.input() == GLFW.GLFW_KEY_ESCAPE)
             isClosing = true
         return super.keyPressed(input)
     }

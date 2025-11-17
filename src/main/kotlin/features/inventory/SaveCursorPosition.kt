@@ -3,7 +3,7 @@ package moe.nea.firmament.features.inventory
 import org.lwjgl.glfw.GLFW
 import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.milliseconds
-import net.minecraft.client.util.InputUtil
+import com.mojang.blaze3d.platform.InputConstants
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.TimeMark
 import moe.nea.firmament.util.assertNotNullOr
@@ -43,9 +43,9 @@ object SaveCursorPosition {
 			(lastPosition.middle.first - middleX).absoluteValue < 1 &&
 			(lastPosition.middle.second - middleY).absoluteValue < 1
 		) {
-			InputUtil.setCursorParameters(
+			InputConstants.grabOrReleaseMouse(
 				MC.window,
-				InputUtil.GLFW_CURSOR_NORMAL,
+				InputConstants.CURSOR_NORMAL,
 				lastPosition.cursor.first,
 				lastPosition.cursor.second
 			)

@@ -5,11 +5,11 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.ProfileComponent
-import net.minecraft.entity.EquipmentSlot
-import net.minecraft.entity.LivingEntity
-import net.minecraft.util.math.Vec3d
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.ResolvableProfile
+import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.phys.Vec3
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.EntityUpdateEvent
 import moe.nea.firmament.events.IsSlotProtectedEvent
@@ -32,11 +32,11 @@ object SkinPreviews {
 	@Subscribe
 	fun onEntityUpdate(event: EntityUpdateEvent) {
 		if (!isRecording) return
-		if (event.entity.pos != pos)
+		if (event.entity.position != pos)
 			return
 		val entity = event.entity as? LivingEntity ?: return
-		val stack = entity.getEquippedStack(EquipmentSlot.HEAD) ?: return
-		val profile = stack.get(DataComponentTypes.PROFILE)?.gameProfile ?: return
+		val stack = entity.getItemBySlot(EquipmentSlot.HEAD) ?: return
+		val profile = stack.get(DataComponents.PROFILE)?.partialProfile() ?: return
 		if (profile == animation.lastOrNull()) return
 		animation.add(profile)
 		val shortened = animation.shortenCycle()
@@ -65,7 +65,7 @@ object SkinPreviews {
 	}
 
 	var animation = mutableListOf<GameProfile>()
-	var pos = Vec3d(-1.0, 72.0, -101.25)
+	var pos = Vec3(-1.0, 72.0, -101.25)
 	var isRecording = false
 	var skinColor: String? = null
 	var skinId: String? = null

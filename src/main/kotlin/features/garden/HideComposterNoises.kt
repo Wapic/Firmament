@@ -1,8 +1,8 @@
 package moe.nea.firmament.features.garden
 
-import net.minecraft.entity.passive.WolfSoundVariants
-import net.minecraft.sound.SoundEvent
-import net.minecraft.sound.SoundEvents
+import net.minecraft.world.entity.animal.wolf.WolfSoundVariants
+import net.minecraft.sounds.SoundEvent
+import net.minecraft.sounds.SoundEvents
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.SoundReceiveEvent
 import moe.nea.firmament.util.SBData
@@ -17,10 +17,10 @@ object HideComposterNoises {
 	}
 
 	val composterSoundEvents: List<SoundEvent> = listOf(
-		SoundEvents.BLOCK_PISTON_EXTEND,
-		SoundEvents.BLOCK_WATER_AMBIENT,
-		SoundEvents.ENTITY_CHICKEN_EGG,
-		SoundEvents.WOLF_SOUNDS[WolfSoundVariants.Type.CLASSIC]!!.growlSound().value(),
+		SoundEvents.PISTON_EXTEND,
+		SoundEvents.WATER_AMBIENT,
+		SoundEvents.CHICKEN_EGG,
+		SoundEvents.WOLF_SOUNDS[WolfSoundVariants.SoundSet.CLASSIC]!!.growlSound().value(),
 	)
 
 	@Subscribe

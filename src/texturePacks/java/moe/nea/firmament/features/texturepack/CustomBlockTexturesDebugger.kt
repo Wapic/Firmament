@@ -2,11 +2,11 @@ package moe.nea.firmament.features.texturepack
 
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
-import net.minecraft.block.Block
-import net.minecraft.command.argument.BlockArgumentParser
-import net.minecraft.command.argument.BlockStateArgumentType
-import net.minecraft.util.math.Box
-import net.minecraft.util.math.Vec3d
+import net.minecraft.world.level.block.Block
+import net.minecraft.commands.arguments.blocks.BlockStateParser
+import net.minecraft.commands.arguments.blocks.BlockStateArgument
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec3
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.get
 import moe.nea.firmament.commands.thenArgument
@@ -42,10 +42,10 @@ object CustomBlockTexturesDebugger {
 		}
 	}
 
-	fun RenderInWorldContext.tryRenderBox(box: Box, colour: Int) {
-		val player = MC.player?.pos ?: Vec3d.ZERO
+	fun RenderInWorldContext.tryRenderBox(box: AABB, colour: Int) {
+		val player = MC.player?.position ?: Vec3.ZERO
 		if (box.center.distanceTo(player) < range + maxOf(
-				box.lengthZ, box.lengthX, box.lengthY
+				box.zsize, box.xsize, box.ysize
 			) / 2 && !box.contains(player)
 		) {
 			box(box, colour)
@@ -81,9 +81,9 @@ object CustomBlockTexturesDebugger {
 						)
 					}
 				}
-				thenArgument("block", BlockStateArgumentType.blockState(event.commandRegistryAccess)) { block ->
+				thenArgument("block", BlockStateArgument.block(event.commandRegistryAccess)) { block ->
 					thenExecute {
-						val block = get(block).blockState.block
+						val block = get(block).state.block
 						debugMode = DebugMode.ForBlock(block)
 						MC.sendChat(
 							tr(

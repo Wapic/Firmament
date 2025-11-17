@@ -1,7 +1,7 @@
 package moe.nea.firmament.util.skyblock
 
 import org.intellij.lang.annotations.Language
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.util.StringUtil.title
 import moe.nea.firmament.util.StringUtil.unwords
 import moe.nea.firmament.util.mc.MCTabListAPI
@@ -9,7 +9,7 @@ import moe.nea.firmament.util.unformattedString
 
 object TabListAPI {
 
-	fun getWidgetLines(widgetName: WidgetName, includeTitle: Boolean = false, from: MCTabListAPI.CurrentTabList = MCTabListAPI.currentTabList): List<Text> {
+	fun getWidgetLines(widgetName: WidgetName, includeTitle: Boolean = false, from: MCTabListAPI.CurrentTabList = MCTabListAPI.currentTabList): List<Component> {
 		return from.body
 			.dropWhile { !widgetName.matchesTitle(it) }
 			.takeWhile { it.string.isNotBlank() && !it.string.startsWith("               ") }
@@ -25,7 +25,7 @@ object TabListAPI {
 		PET
 		;
 
-		fun matchesTitle(it: Text): Boolean {
+		fun matchesTitle(it: Component): Boolean {
 			return regex.matches(it.unformattedString)
 		}
 

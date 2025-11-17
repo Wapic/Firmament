@@ -3,14 +3,14 @@ package moe.nea.firmament.mixins.render.entitytints;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import moe.nea.firmament.events.EntityRenderTintEvent;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.command.OrderedRenderCommandQueue;
-import net.minecraft.client.render.entity.LivingEntityRenderer;
-import net.minecraft.client.render.entity.model.EntityModel;
-import net.minecraft.client.render.entity.state.LivingEntityRenderState;
-import net.minecraft.client.render.state.CameraRenderState;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(LivingEntityRenderer.class)
 public class ChangeColorOfLivingEntities<T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>> {
-	@ModifyReturnValue(method = "getMixColor", at = @At("RETURN"))
+	@ModifyReturnValue(method = "getModelTint", at = @At("RETURN"))
 	private int changeColor(int original, @Local(argsOnly = true) S state) {
 		var tintState = EntityRenderTintEvent.HasTintRenderState.cast(state);
 		if (tintState.getHasTintOverride_firmament())
@@ -31,8 +31,8 @@ public class ChangeColorOfLivingEntities<T extends LivingEntity, S extends Livin
 	}
 
 	@ModifyArg(
-		method = "getOverlay",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/OverlayTexture;getU(F)I"),
+		method = "getOverlayCoords",
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/texture/OverlayTexture;u(F)I"),
 		allow = 1
 	)
 	private static float modifyLightOverlay(float originalWhiteOffset, @Local(argsOnly = true) LivingEntityRenderState state) {
@@ -43,8 +43,8 @@ public class ChangeColorOfLivingEntities<T extends LivingEntity, S extends Livin
 		return originalWhiteOffset;
 	}
 
-	@Inject(method = "render(Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;Lnet/minecraft/client/render/state/CameraRenderState;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;pop()V"))
-	private void afterRender(S livingEntityRenderState, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, CameraRenderState cameraRenderState, CallbackInfo ci) {
+	@Inject(method = "submit(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/CameraRenderState;)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V"))
+	private void afterRender(S livingEntityRenderState, PoseStack matrixStack, SubmitNodeCollector orderedRenderCommandQueue, CameraRenderState cameraRenderState, CallbackInfo ci) {
 //		var tintState = EntityRenderTintEvent.HasTintRenderState.cast(livingEntityRenderState);
 //		var overlayTexture = tintState.getOverlayTexture_firmament();
 //		if (overlayTexture != null && vertexConsumerProvider instanceof VertexConsumerProvider.Immediate imm) {
@@ -54,8 +54,8 @@ public class ChangeColorOfLivingEntities<T extends LivingEntity, S extends Livin
 		// TODO: 1.21.10
 	}
 
-	@Inject(method = "render(Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;Lnet/minecraft/client/render/state/CameraRenderState;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;push()V"))
-	private void beforeRender(S livingEntityRenderState, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, CameraRenderState cameraRenderState, CallbackInfo ci) {
+	@Inject(method = "submit(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/CameraRenderState;)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V"))
+	private void beforeRender(S livingEntityRenderState, PoseStack matrixStack, SubmitNodeCollector orderedRenderCommandQueue, CameraRenderState cameraRenderState, CallbackInfo ci) {
 		var tintState = EntityRenderTintEvent.HasTintRenderState.cast(livingEntityRenderState);
 		var overlayTexture = tintState.getOverlayTexture_firmament();
 		if (overlayTexture != null) {

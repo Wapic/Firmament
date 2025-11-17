@@ -2,27 +2,27 @@ package moe.nea.firmament.util.mc
 
 import com.mojang.serialization.DynamicOps
 import java.util.Optional
-import net.minecraft.registry.Registry
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryOps
-import net.minecraft.registry.RegistryWrapper
-import net.minecraft.registry.entry.RegistryEntryOwner
+import net.minecraft.core.Registry
+import net.minecraft.resources.ResourceKey
+import net.minecraft.resources.RegistryOps
+import net.minecraft.core.HolderLookup
+import net.minecraft.core.HolderOwner
 
 class TolerantRegistriesOps<T>(
 	delegate: DynamicOps<T>,
-	registryInfoGetter: RegistryInfoGetter
+	registryInfoGetter: RegistryInfoLookup
 ) : RegistryOps<T>(delegate, registryInfoGetter) {
-	constructor(delegate: DynamicOps<T>, registry: RegistryWrapper.WrapperLookup) :
-		this(delegate, CachedRegistryInfoGetter(registry))
+	constructor(delegate: DynamicOps<T>, registry: HolderLookup.Provider) :
+		this(delegate, HolderLookupAdapter(registry))
 
-	class TolerantOwner<E> : RegistryEntryOwner<E> {
-		override fun ownerEquals(other: RegistryEntryOwner<E>?): Boolean {
+	class TolerantOwner<E> : HolderOwner<E> {
+		override fun canSerializeIn(other: HolderOwner<E>?): Boolean {
 			return true
 		}
 	}
 
-	override fun <E : Any?> getOwner(registryRef: RegistryKey<out Registry<out E>>?): Optional<RegistryEntryOwner<E>> {
-		return super.getOwner(registryRef).map {
+	override fun <E : Any?> owner(registryRef: ResourceKey<out Registry<out E>>?): Optional<HolderOwner<E>> {
+		return super.owner(registryRef).map {
 			TolerantOwner()
 		}
 	}

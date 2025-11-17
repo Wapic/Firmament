@@ -2,15 +2,15 @@
 
 package moe.nea.firmament.events
 
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.screens.Screen
 
 data class ScreenRenderPostEvent(
     val screen: Screen,
     val mouseX: Int,
     val mouseY: Int,
     val tickDelta: Float,
-    val drawContext: DrawContext
+    val drawContext: GuiGraphics
 ) : FirmamentEvent() {
     companion object : FirmamentEventBus<ScreenRenderPostEvent>()
 }

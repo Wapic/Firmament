@@ -6,9 +6,9 @@ import dev.isxander.yacl3.api.utils.Dimension
 import dev.isxander.yacl3.gui.AbstractWidget
 import dev.isxander.yacl3.gui.YACLScreen
 import dev.isxander.yacl3.gui.controllers.ControllerWidget
-import net.minecraft.client.gui.Click
-import net.minecraft.client.input.KeyInput
-import net.minecraft.text.Text
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.input.KeyEvent
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.gui.config.KeyBindingHandler
 import moe.nea.firmament.gui.config.KeyBindingStateManager
 import moe.nea.firmament.gui.config.ManagedOption
@@ -24,7 +24,7 @@ class KeybindingController(
 		return option
 	}
 
-	override fun formatValue(): Text {
+	override fun formatValue(): Component {
 		return option.pendingValue().format()
 	}
 
@@ -55,15 +55,15 @@ class KeybindingWidget(
 		return 130
 	}
 
-	override fun getValueText(): Text {
+	override fun getValueText(): Component {
 		return sm.label
 	}
 
-	override fun keyPressed(keyEvent: KeyInput): Boolean {
+	override fun keyPressed(keyEvent: KeyEvent): Boolean {
 		return sm.keyboardEvent(GenericInputButton.of(keyEvent), true)
 	}
 
-	override fun keyReleased(keyEvent: KeyInput): Boolean {
+	override fun keyReleased(keyEvent: KeyEvent): Boolean {
 		return sm.keyboardEvent(GenericInputButton.of(keyEvent), false)
 	}
 
@@ -76,7 +76,7 @@ class KeybindingWidget(
 		if (!focused) sm.onLostFocus()
 	}
 
-	override fun mouseClicked(mouseButtonEvent: Click, doubleClick: Boolean): Boolean {
+	override fun mouseClicked(mouseButtonEvent: MouseButtonEvent, doubleClick: Boolean): Boolean {
 		if (isHovered) {
 			sm.onClick(mouseButtonEvent.button())
 			return true

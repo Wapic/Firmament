@@ -1,8 +1,8 @@
 package moe.nea.firmament.features.world
 
 import kotlinx.serialization.Serializable
-import net.minecraft.text.Text
-import net.minecraft.util.math.BlockPos
+import net.minecraft.network.chat.Component
+import net.minecraft.core.BlockPos
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.DefaultSource
@@ -44,9 +44,9 @@ object ColeWeightCompat {
 	}
 
 	fun copyAndInform(
-		source: DefaultSource,
-		origin: BlockPos,
-		positiveFeedback: (Int) -> Text,
+        source: DefaultSource,
+        origin: BlockPos,
+        positiveFeedback: (Int) -> Component,
 	) {
 		val waypoints = Waypoints.useNonEmptyWaypoints()
 			?.let { fromFirm(it, origin) }
@@ -61,12 +61,12 @@ object ColeWeightCompat {
 	}
 
 	fun importAndInform(
-		source: DefaultSource,
-		pos: BlockPos?,
-		positiveFeedback: (Int) -> Text
+        source: DefaultSource,
+        pos: BlockPos?,
+        positiveFeedback: (Int) -> Component
 	) {
 		val text = ClipboardUtils.getTextContents()
-		val wr = tryParse(text).map { intoFirm(it, pos ?: BlockPos.ORIGIN) }
+		val wr = tryParse(text).map { intoFirm(it, pos ?: BlockPos.ZERO) }
 		val waypoints = wr.getOrElse {
 			source.sendError(
 				tr("firmament.command.waypoint.import.cw.error",
@@ -84,7 +84,7 @@ object ColeWeightCompat {
 		event.subcommand(Waypoints.WAYPOINTS_SUBCOMMAND) {
 			thenLiteral("exportcw") {
 				thenExecute {
-					copyAndInform(source, BlockPos.ORIGIN) {
+					copyAndInform(source, BlockPos.ZERO) {
 						tr("firmament.command.waypoint.export.cw",
 						   "Copied $it waypoints to clipboard in ColeWeight format.")
 					}
@@ -92,7 +92,7 @@ object ColeWeightCompat {
 			}
 			thenLiteral("exportrelativecw") {
 				thenExecute {
-					copyAndInform(source, MC.player?.blockPos ?: BlockPos.ORIGIN) {
+					copyAndInform(source, MC.player?.blockPosition() ?: BlockPos.ZERO) {
 						tr("firmament.command.waypoint.export.cw.relative",
 						   "Copied $it relative waypoints to clipboard in ColeWeight format. Make sure to stand in the same position when importing.")
 					}
@@ -108,7 +108,7 @@ object ColeWeightCompat {
 			}
 			thenLiteral("importrelativecw") {
 				thenExecute {
-					importAndInform(source, MC.player!!.blockPos) {
+					importAndInform(source, MC.player!!.blockPosition()) {
 						tr("firmament.command.waypoint.import.cw.relative",
 						   "Imported $it relative waypoints from clipboard. Make sure you stand in the same position as when you exported these waypoints for them to line up correctly.")
 					}

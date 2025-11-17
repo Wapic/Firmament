@@ -3,8 +3,8 @@
 package moe.nea.firmament.util
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.screens.Screen
 import moe.nea.firmament.Firmament
 
 object ScreenUtil {
@@ -12,11 +12,11 @@ object ScreenUtil {
         ClientTickEvents.START_CLIENT_TICK.register(::onTick)
     }
 
-    private fun onTick(minecraft: MinecraftClient) {
+    private fun onTick(minecraft: Minecraft) {
         if (nextOpenedGui != null) {
             val p = minecraft.player
-            if (p?.currentScreenHandler != null) {
-                p.closeHandledScreen()
+            if (p?.containerMenu != null) {
+                p.closeContainer()
             }
             minecraft.setScreen(nextOpenedGui)
             nextOpenedGui = null

@@ -2,14 +2,14 @@ package moe.nea.firmament.util.render
 
 import com.mojang.blaze3d.vertex.VertexFormat
 import util.render.CustomRenderLayers
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.ScreenRect
-import net.minecraft.client.render.BufferBuilder
-import net.minecraft.client.render.RenderLayer
-import net.minecraft.client.render.VertexConsumerProvider
-import net.minecraft.client.util.BufferAllocator
-import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.util.Identifier
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.navigation.ScreenRectangle
+import com.mojang.blaze3d.vertex.BufferBuilder
+import net.minecraft.client.renderer.RenderType
+import net.minecraft.client.renderer.MultiBufferSource
+import com.mojang.blaze3d.vertex.ByteBufferBuilder
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.collections.nonNegligibleSubSectionsAlignedWith
 import moe.nea.firmament.util.math.Projections
@@ -23,7 +23,7 @@ object RenderCircleProgress {
 		override val x2: Int,
 		override val y1: Int,
 		override val y2: Int,
-		val layer: RenderLayer.MultiPhase,
+		val layer: RenderType.CompositeRenderType,
 		val u1: Float,
 		val u2: Float,
 		val v1: Float,
@@ -32,21 +32,21 @@ object RenderCircleProgress {
 		val color: Int,
 		val innerCutoutRadius: Float,
 		override val scale: Float,
-		override val bounds: ScreenRect?,
-		override val scissorArea: ScreenRect?,
+		override val bounds: ScreenRectangle?,
+		override val scissorArea: ScreenRectangle?,
 	) : MultiSpecialGuiRenderState() {
-		override fun createRenderer(vertexConsumers: VertexConsumerProvider.Immediate): MultiSpecialGuiRenderer<out MultiSpecialGuiRenderState> {
+		override fun createRenderer(vertexConsumers: MultiBufferSource.BufferSource): MultiSpecialGuiRenderer<out MultiSpecialGuiRenderState> {
 			return Renderer(vertexConsumers)
 		}
 	}
 
-	class Renderer(vertexConsumers: VertexConsumerProvider.Immediate) :
+	class Renderer(vertexConsumers: MultiBufferSource.BufferSource) :
 		MultiSpecialGuiRenderer<State>(vertexConsumers) {
-		override fun render(
+		override fun renderToTexture(
 			state: State,
-			matrices: MatrixStack
+			matrices: PoseStack
 		) {
-			matrices.push()
+			matrices.pushPose()
 			matrices.translate(0F, -1F, 0F)
 			val sections = state.angleRadians.nonNegligibleSubSectionsAlignedWith((τ / 8f).toFloat())
 				.zipWithNext().toList()
@@ -55,10 +55,10 @@ object RenderCircleProgress {
 			val v1 = state.v1
 			val v2 = state.v2
 			val color = state.color
-			val matrix = matrices.peek().positionMatrix
-			BufferAllocator(state.layer.vertexFormat.vertexSize * sections.size * 3).use { allocator ->
+			val matrix = matrices.last().pose()
+			ByteBufferBuilder(state.layer.format().vertexSize * sections.size * 3).use { allocator ->
 
-				val bufferBuilder = BufferBuilder(allocator, VertexFormat.DrawMode.TRIANGLES, state.layer.vertexFormat)
+				val bufferBuilder = BufferBuilder(allocator, VertexFormat.Mode.TRIANGLES, state.layer.format())
 
 				for ((sectionStart, sectionEnd) in sections) {
 					val firstPoint = Projections.Two.projectAngleOntoUnitBox(sectionStart.toDouble())
@@ -67,37 +67,37 @@ object RenderCircleProgress {
 						ilerp(-1f, 1f, f)
 
 					bufferBuilder
-						.vertex(matrix, secondPoint.x, secondPoint.y, 0F)
-						.texture(lerp(u1, u2, ilerp(secondPoint.x)), lerp(v1, v2, ilerp(secondPoint.y)))
-						.color(color)
+						.addVertex(matrix, secondPoint.x, secondPoint.y, 0F)
+						.setUv(lerp(u1, u2, ilerp(secondPoint.x)), lerp(v1, v2, ilerp(secondPoint.y)))
+						.setColor(color)
 
 					bufferBuilder
-						.vertex(matrix, firstPoint.x, firstPoint.y, 0F)
-						.texture(lerp(u1, u2, ilerp(firstPoint.x)), lerp(v1, v2, ilerp(firstPoint.y)))
-						.color(color)
+						.addVertex(matrix, firstPoint.x, firstPoint.y, 0F)
+						.setUv(lerp(u1, u2, ilerp(firstPoint.x)), lerp(v1, v2, ilerp(firstPoint.y)))
+						.setColor(color)
 
 					bufferBuilder
-						.vertex(matrix, 0F, 0F, 0F)
-						.texture(lerp(u1, u2, ilerp(0F)), lerp(v1, v2, ilerp(0F)))
-						.color(color)
+						.addVertex(matrix, 0F, 0F, 0F)
+						.setUv(lerp(u1, u2, ilerp(0F)), lerp(v1, v2, ilerp(0F)))
+						.setColor(color)
 
 				}
 
-				bufferBuilder.end().use { buffer ->
+				bufferBuilder.buildOrThrow().use { buffer ->
 					if (state.innerCutoutRadius <= 0) {
 						state.layer.draw(buffer)
 						return
 					}
 					CustomRenderPassHelper(
 						{ "RenderCircleProgress" },
-						VertexFormat.DrawMode.TRIANGLES,
-						state.layer.vertexFormat,
-						MC.instance.framebuffer,
+						VertexFormat.Mode.TRIANGLES,
+						state.layer.format(),
+						MC.instance.mainRenderTarget,
 						false,
 					).use { renderPass ->
 						renderPass.uploadVertices(buffer)
 						renderPass.setAllDefaultUniforms()
-						renderPass.setPipeline(state.layer.pipeline)
+						renderPass.setPipeline(state.layer.renderPipeline)
 						renderPass.setUniform("CutoutRadius", 4) {
 							it.putFloat(state.innerCutoutRadius)
 						}
@@ -105,21 +105,21 @@ object RenderCircleProgress {
 					}
 				}
 			}
-			matrices.pop()
+			matrices.popPose()
 		}
 
-		override fun getElementClass(): Class<State> {
+		override fun getRenderStateClass(): Class<State> {
 			return State::class.java
 		}
 
-		override fun getName(): String {
+		override fun getTextureLabel(): String {
 			return "Firmament Circle"
 		}
 	}
 
 	fun renderCircularSlice(
-		drawContext: DrawContext,
-		layer: RenderLayer.MultiPhase,
+		drawContext: GuiGraphics,
+		layer: RenderType.CompositeRenderType,
 		u1: Float,
 		u2: Float,
 		v1: Float,
@@ -128,11 +128,11 @@ object RenderCircleProgress {
 		color: Int = -1,
 		innerCutoutRadius: Float = 0F
 	) {
-		val screenRect = ScreenRect(-1, -1, 2, 2).transform(drawContext.matrices)
-		drawContext.state.addSpecialElement(
+		val screenRect = ScreenRectangle(-1, -1, 2, 2).transformAxisAligned(drawContext.pose())
+		drawContext.guiRenderState.submitPicturesInPictureState(
 			State(
-				screenRect.left, screenRect.right,
-				screenRect.top, screenRect.bottom,
+				screenRect.left(), screenRect.right(),
+				screenRect.top(), screenRect.bottom(),
 				layer,
 				u1, u2, v1, v2,
 				angleRadians,
@@ -146,8 +146,8 @@ object RenderCircleProgress {
 	}
 
 	fun renderCircle(
-		drawContext: DrawContext,
-		texture: Identifier,
+		drawContext: GuiGraphics,
+		texture: ResourceLocation,
 		progress: Float,
 		u1: Float,
 		u2: Float,

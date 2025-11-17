@@ -1,11 +1,11 @@
 
 package moe.nea.firmament.events
 
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.util.Hand
-import net.minecraft.util.hit.BlockHitResult
-import net.minecraft.world.World
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.level.Level
 
-data class UseBlockEvent(val player: PlayerEntity, val world: World, val hand: Hand, val hitResult: BlockHitResult) : FirmamentEvent.Cancellable() {
+data class UseBlockEvent(val player: Player, val world: Level, val hand: InteractionHand, val hitResult: BlockHitResult) : FirmamentEvent.Cancellable() {
     companion object : FirmamentEventBus<UseBlockEvent>()
 }

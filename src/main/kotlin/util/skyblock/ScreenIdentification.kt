@@ -1,7 +1,7 @@
 package moe.nea.firmament.util.skyblock
 
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.mc.loreAccordingToNbt
 import moe.nea.firmament.util.unformattedString
@@ -24,13 +24,13 @@ object ScreenIdentification {
 
 enum class ScreenType(val detector: (Screen) -> Boolean) {
 	BAZAAR_ANY({
-		it is GenericContainerScreen && (
-			it.screenHandler.getSlot(it.screenHandler.rows * 9 - 4)
-				.stack
+		it is ContainerScreen && (
+			it.menu.getSlot(it.menu.rowCount * 9 - 4)
+				.item
 				.displayNameAccordingToNbt
 				.unformattedString == "Manage Orders"
-				|| it.screenHandler.getSlot(it.screenHandler.rows * 9 - 5)
-				.stack
+				|| it.menu.getSlot(it.menu.rowCount * 9 - 5)
+				.item
 				.loreAccordingToNbt
 				.any {
 					it.unformattedString == "To Bazaar"

@@ -1,6 +1,6 @@
 package moe.nea.firmament.features.chat
 
-import net.minecraft.text.OrderedText
+import net.minecraft.util.FormattedCharSequence
 import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.reconstitute
@@ -15,7 +15,7 @@ object CopyChat {
 		val copyChat by toggle("copy-chat") { false }
 	}
 
-	fun orderedTextToString(orderedText: OrderedText): String {
+	fun orderedTextToString(orderedText: FormattedCharSequence): String {
 		return orderedText.reconstitute().string
 	}
 }

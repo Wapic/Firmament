@@ -3,8 +3,8 @@ package moe.nea.firmament.features.mining
 import io.github.notenoughupdates.moulconfig.observer.ObservableList
 import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
 import io.github.notenoughupdates.moulconfig.xml.Bind
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.item.ItemStack
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.world.item.ItemStack
 import moe.nea.firmament.repo.MiningRepoData
 import moe.nea.firmament.repo.RepoManager
 import moe.nea.firmament.util.MoulConfigUtils

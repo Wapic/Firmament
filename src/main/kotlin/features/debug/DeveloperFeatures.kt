@@ -10,8 +10,8 @@ import org.spongepowered.asm.mixin.Mixin
 import kotlinx.serialization.json.encodeToStream
 import kotlin.io.path.absolute
 import kotlin.io.path.exists
-import net.minecraft.client.MinecraftClient
-import net.minecraft.text.Text
+import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.DebugInstantiateEvent
@@ -92,17 +92,17 @@ object DeveloperFeatures {
 	}
 
 	@JvmStatic
-	fun hookOnBeforeResourceReload(client: MinecraftClient): CompletableFuture<Void> {
+	fun hookOnBeforeResourceReload(client: Minecraft): CompletableFuture<Void> {
 		val reloadFuture = if (TConfig.autoRebuildResources && Firmament.DEBUG && gradleDir != null) {
 			val builder = ProcessBuilder("./gradlew", ":processResources")
 			builder.directory(gradleDir.toFile())
 			builder.inheritIO()
 			val process = builder.start()
-			MC.sendChat(Text.translatable("firmament.dev.resourcerebuild.start"))
+			MC.sendChat(Component.translatable("firmament.dev.resourcerebuild.start"))
 			val startTime = TimeMark.now()
 			process.toHandle().onExit().thenApply {
 				MC.sendChat(
-					Text.stringifiedTranslatable(
+					Component.translatableEscape(
 						"firmament.dev.resourcerebuild.done",
 						startTime.passedTime()
 					)
@@ -112,7 +112,7 @@ object DeveloperFeatures {
 		} else {
 			CompletableFuture.completedFuture(Unit)
 		}
-		return reloadFuture.thenCompose { client.reloadResources() }
+		return reloadFuture.thenCompose { client.reloadResourcePacks() }
 	}
 }
 

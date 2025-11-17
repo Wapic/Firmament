@@ -36,11 +36,11 @@ import java.net.URI
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
-import net.minecraft.util.StringIdentifiable
-import net.minecraft.util.Util
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.StringRepresentable
+import net.minecraft.Util
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.gui.config.AllConfigsGui
 import moe.nea.firmament.gui.config.BooleanHandler
@@ -129,7 +129,7 @@ class MCConfigEditorIntegration : FirmamentConfigScreenProvider {
 		}
 	}
 
-	fun <T> helpRegisterChoice() where  T : Enum<T>, T : StringIdentifiable {
+	fun <T> helpRegisterChoice() where  T : Enum<T>, T : StringRepresentable {
 		register(ChoiceHandler::class.java as Class<ChoiceHandler<T>>) { handler, option, categoryAccordionId, configObject ->
 			object : ProcessedEditableOptionFirm<T>(option, categoryAccordionId, configObject) {
 				override fun createEditor(): GuiOptionEditor {
@@ -356,9 +356,9 @@ class MCConfigEditorIntegration : FirmamentConfigScreenProvider {
 			return DescriptionRendereringBehaviour.EXPAND_PANEL
 		}
 
-		fun mkSocial(name: String, identifier: Identifier, link: String) = object : Social() {
+		fun mkSocial(name: String, identifier: ResourceLocation, link: String) = object : Social() {
 			override fun onClick() {
-				Util.getOperatingSystem().open(URI(link))
+				MC.openUrl(link)
 			}
 
 			override fun getTooltip(): List<StructuredText> {
@@ -437,7 +437,7 @@ class MCConfigEditorIntegration : FirmamentConfigScreenProvider {
 		if (search != null)
 			editor.search(search)
 		editor.setWide(AllConfigsGui.ConfigConfig.enableWideMC)
-		return MoulConfigScreenComponent(Text.empty(), GuiContext(GuiElementComponent(editor)), parent) // TODO : add parent support
+		return MoulConfigScreenComponent(Component.empty(), GuiContext(GuiElementComponent(editor)), parent) // TODO : add parent support
 	}
 
 }

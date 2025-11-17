@@ -2,8 +2,8 @@ package moe.nea.firmament.features.world
 
 import me.shedaniel.math.Color
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.text.Text
-import net.minecraft.util.math.BlockPos
+import net.minecraft.network.chat.Component
+import net.minecraft.core.BlockPos
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ProcessChatEvent
 import moe.nea.firmament.events.WorldReadyEvent
@@ -15,8 +15,8 @@ import moe.nea.firmament.util.render.RenderInWorldContext
 
 object TemporaryWaypoints {
 	data class TemporaryWaypoint(
-		val pos: BlockPos,
-		val postedAt: TimeMark,
+        val pos: BlockPos,
+        val postedAt: TimeMark,
 	)
 	val temporaryPlayerWaypointList = mutableMapOf<String, TemporaryWaypoint>()
 	val temporaryPlayerWaypointMatcher = "(?i)x: (-?[0-9]+),? y: (-?[0-9]+),? z: (-?[0-9]+)".toPattern()
@@ -41,9 +41,9 @@ object TemporaryWaypoints {
 			}
 			temporaryPlayerWaypointList.forEach { (player, waypoint) ->
 				val skin =
-					MC.networkHandler?.listedPlayerListEntries?.find { it.profile.name == player }?.skinTextures?.body
-				withFacingThePlayer(waypoint.pos.toCenterPos()) {
-					waypoint(waypoint.pos, Text.stringifiedTranslatable("firmament.waypoint.temporary", player))
+					MC.networkHandler?.listedOnlinePlayers?.find { it.profile.name == player }?.skin?.body
+				withFacingThePlayer(waypoint.pos.center) {
+					waypoint(waypoint.pos, Component.translatableEscape("firmament.waypoint.temporary", player))
 					if (skin != null) {
 						matrixStack.translate(0F, -20F, 0F)
 						// Head front

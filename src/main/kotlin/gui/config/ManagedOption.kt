@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.data.ManagedConfig
 
@@ -24,9 +24,9 @@ class ManagedOption<T : Any>(
 	}
 
 	val rawLabelText = "firmament.config.${element.name}.${propertyName}"
-	val labelText: Text = Text.translatable(rawLabelText)
+	val labelText: Component = Component.translatable(rawLabelText)
 	val descriptionTranslationKey = "firmament.config.${element.name}.${propertyName}.description"
-	val labelDescription: Text = Text.translatable(descriptionTranslationKey)
+	val labelDescription: Component = Component.translatable(descriptionTranslationKey)
 
 	var _actualValue: T? = null
 	var value: T

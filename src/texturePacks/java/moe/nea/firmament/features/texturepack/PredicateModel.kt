@@ -4,42 +4,42 @@ import com.google.gson.JsonObject
 import com.mojang.serialization.Codec
 import com.mojang.serialization.MapCodec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import net.minecraft.client.item.ItemModelManager
-import net.minecraft.client.render.item.ItemRenderState
-import net.minecraft.client.render.item.model.BasicItemModel
-import net.minecraft.client.render.item.model.ItemModel
-import net.minecraft.client.render.item.model.ItemModelTypes
-import net.minecraft.client.render.model.ResolvableModel
-import net.minecraft.client.world.ClientWorld
-import net.minecraft.entity.LivingEntity
-import net.minecraft.item.ItemDisplayContext
-import net.minecraft.item.ItemStack
-import net.minecraft.util.HeldItemContext
-import net.minecraft.util.Identifier
+import net.minecraft.client.renderer.item.ItemModelResolver
+import net.minecraft.client.renderer.item.ItemStackRenderState
+import net.minecraft.client.renderer.item.BlockModelWrapper
+import net.minecraft.client.renderer.item.ItemModel
+import net.minecraft.client.renderer.item.ItemModels
+import net.minecraft.client.resources.model.ResolvableModel
+import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.ItemDisplayContext
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.entity.ItemOwner
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.features.texturepack.predicates.AndPredicate
 
 class PredicateModel {
 	data class Baked(
-		val fallback: ItemModel,
-		val overrides: List<Override>
+        val fallback: ItemModel,
+        val overrides: List<Override>
 	) : ItemModel {
 		data class Override(
-			val model: ItemModel,
-			val predicate: FirmamentModelPredicate,
+            val model: ItemModel,
+            val predicate: FirmamentModelPredicate,
 		)
 
 		override fun update(
-			state: ItemRenderState?,
-			stack: ItemStack,
-			resolver: ItemModelManager?,
-			displayContext: ItemDisplayContext?,
-			world: ClientWorld?,
-			heldItemContext: HeldItemContext?,
-			seed: Int
+            state: ItemStackRenderState?,
+            stack: ItemStack,
+            resolver: ItemModelResolver?,
+            displayContext: ItemDisplayContext?,
+            world: ClientLevel?,
+            heldItemContext: ItemOwner?,
+            seed: Int
 		) {
 			val model =
 				overrides
-					.findLast { it.predicate.test(stack, heldItemContext?.entity) }
+					.findLast { it.predicate.test(stack, heldItemContext?.asLivingEntity()) }
 					?.model
 					?: fallback
 			model.update(state, stack, resolver, displayContext, world, heldItemContext, seed)
@@ -47,8 +47,8 @@ class PredicateModel {
 	}
 
 	data class Unbaked(
-		val fallback: ItemModel.Unbaked,
-		val overrides: List<Override>,
+        val fallback: ItemModel.Unbaked,
+        val overrides: List<Override>,
 	) : ItemModel.Unbaked {
 		companion object {
 			@JvmStatic
@@ -57,10 +57,10 @@ class PredicateModel {
 				val newOverrides = ArrayList<Override>()
 				for (legacyOverride in legacyOverrides) {
 					legacyOverride as JsonObject
-					val overrideModel = Identifier.tryParse(legacyOverride.get("model")?.asString ?: continue) ?: continue
+					val overrideModel = ResourceLocation.tryParse(legacyOverride.get("model")?.asString ?: continue) ?: continue
 					val predicate = CustomModelOverrideParser.parsePredicates(legacyOverride.getAsJsonObject("predicate"))
 					newOverrides.add(Override(
-						BasicItemModel.Unbaked(overrideModel, listOf()),
+						BlockModelWrapper.Unbaked(overrideModel, listOf()),
 						AndPredicate(predicate.toTypedArray())
 					))
 				}
@@ -69,34 +69,34 @@ class PredicateModel {
 
 			val OVERRIDE_CODEC: Codec<Override> = RecordCodecBuilder.create {
 				it.group(
-					ItemModelTypes.CODEC.fieldOf("model").forGetter(Override::model),
+					ItemModels.CODEC.fieldOf("model").forGetter(Override::model),
 					CustomModelOverrideParser.LEGACY_CODEC.fieldOf("predicate").forGetter(Override::predicate),
 				).apply(it, Unbaked::Override)
 			}
 			val CODEC: MapCodec<Unbaked> =
 				RecordCodecBuilder.mapCodec {
 					it.group(
-						ItemModelTypes.CODEC.fieldOf("fallback").forGetter(Unbaked::fallback),
+						ItemModels.CODEC.fieldOf("fallback").forGetter(Unbaked::fallback),
 						OVERRIDE_CODEC.listOf().fieldOf("overrides").forGetter(Unbaked::overrides),
 					).apply(it, ::Unbaked)
 				}
 		}
 
 		data class Override(
-			val model: ItemModel.Unbaked,
-			val predicate: FirmamentModelPredicate,
+            val model: ItemModel.Unbaked,
+            val predicate: FirmamentModelPredicate,
 		)
 
-		override fun resolve(resolver: ResolvableModel.Resolver) {
-			fallback.resolve(resolver)
-			overrides.forEach { it.model.resolve(resolver) }
+		override fun resolveDependencies(resolver: ResolvableModel.Resolver) {
+			fallback.resolveDependencies(resolver)
+			overrides.forEach { it.model.resolveDependencies(resolver) }
 		}
 
-		override fun getCodec(): MapCodec<out Unbaked> {
+		override fun type(): MapCodec<out Unbaked> {
 			return CODEC
 		}
 
-		override fun bake(context: ItemModel.BakeContext): ItemModel {
+		override fun bake(context: ItemModel.BakingContext): ItemModel {
 			return Baked(
 				fallback.bake(context),
 				overrides.map { Baked.Override(it.model.bake(context), it.predicate) }

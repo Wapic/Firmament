@@ -1,39 +1,39 @@
 package moe.nea.firmament.mixins.accessor;
 
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.inventory.Slot;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(HandledScreen.class)
+@Mixin(AbstractContainerScreen.class)
 public interface AccessorHandledScreen {
-    @Accessor("focusedSlot")
+    @Accessor("hoveredSlot")
     @Nullable
-    Slot getFocusedSlot_Firmament();
+	Slot getFocusedSlot_Firmament();
 
-    @Accessor("backgroundWidth")
+    @Accessor("imageWidth")
     int getBackgroundWidth_Firmament();
 
-    @Accessor("backgroundWidth")
+    @Accessor("imageWidth")
     void setBackgroundWidth_Firmament(int newBackgroundWidth);
 
-    @Accessor("backgroundHeight")
+    @Accessor("imageHeight")
     int getBackgroundHeight_Firmament();
 
-    @Accessor("backgroundHeight")
+    @Accessor("imageHeight")
     void setBackgroundHeight_Firmament(int newBackgroundHeight);
 
-    @Accessor("x")
+    @Accessor("leftPos")
     int getX_Firmament();
 
-    @Accessor("x")
+    @Accessor("leftPos")
     void setX_Firmament(int newX);
 
-    @Accessor("y")
+    @Accessor("topPos")
     int getY_Firmament();
 
-    @Accessor("y")
+    @Accessor("topPos")
     void setY_Firmament(int newY);
 
 }

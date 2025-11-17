@@ -1,7 +1,7 @@
 
 package moe.nea.firmament.events
 
-import net.minecraft.entity.Entity
+import net.minecraft.world.entity.Entity
 
 data class EntityDespawnEvent(
     val entity: Entity?, val entityId: Int,

@@ -3,14 +3,14 @@ package moe.nea.firmament.mixins;
 import moe.nea.firmament.features.chat.CopyChat;
 import moe.nea.firmament.mixins.accessor.AccessorChatHud;
 import moe.nea.firmament.util.ClipboardUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.hud.ChatHud;
-import net.minecraft.client.gui.hud.ChatHudLine;
-import net.minecraft.client.gui.screen.ChatScreen;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.components.ChatComponent;
+import net.minecraft.client.GuiMessage;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.util.Mth;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,25 +21,25 @@ import java.util.List;
 @Mixin(ChatScreen.class)
 public class CopyChatPatch {
 	@Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-	private void onRightClick(Click click, boolean doubled, CallbackInfoReturnable<Boolean> cir) throws NoSuchFieldException, IllegalAccessException {
+	private void onRightClick(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) throws NoSuchFieldException, IllegalAccessException {
 		if (click.button() != 1 || !CopyChat.TConfig.INSTANCE.getCopyChat()) return;
-		MinecraftClient client = MinecraftClient.getInstance();
-		ChatHud chatHud = client.inGameHud.getChatHud();
+		Minecraft client = Minecraft.getInstance();
+		ChatComponent chatHud = client.gui.getChat();
 		int lineIndex = getChatLineIndex(chatHud, click.y());
 		if (lineIndex < 0) return;
-		List<ChatHudLine.Visible> visible = ((AccessorChatHud) chatHud).getVisibleMessages_firmament();
+		List<GuiMessage.Line> visible = ((AccessorChatHud) chatHud).getVisibleMessages_firmament();
 		if (lineIndex >= visible.size()) return;
-		ChatHudLine.Visible line = visible.get(lineIndex);
+		GuiMessage.Line line = visible.get(lineIndex);
 		String text = CopyChat.INSTANCE.orderedTextToString(line.content());
 		ClipboardUtils.INSTANCE.setTextContent(text);
-		chatHud.addMessage(Text.literal("Copied: ").append(text).formatted(Formatting.GRAY));
+		chatHud.addMessage(Component.literal("Copied: ").append(text).withStyle(ChatFormatting.GRAY));
 		cir.setReturnValue(true);
 		cir.cancel();
 	}
 
 	@Unique
-	private int getChatLineIndex(ChatHud chatHud, double mouseY) {
+	private int getChatLineIndex(ChatComponent chatHud, double mouseY) {
 		double chatLineY = ((AccessorChatHud) chatHud).toChatLineY_firmament(mouseY);
-		return MathHelper.floor(chatLineY + ((AccessorChatHud) chatHud).getScrolledLines_firmament());
+		return Mth.floor(chatLineY + ((AccessorChatHud) chatHud).getScrolledLines_firmament());
 	}
 }

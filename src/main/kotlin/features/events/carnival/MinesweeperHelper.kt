@@ -5,14 +5,14 @@ import io.github.notenoughupdates.moulconfig.observer.ObservableList
 import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
 import io.github.notenoughupdates.moulconfig.xml.Bind
 import java.util.UUID
-import net.minecraft.block.Blocks
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.text.ClickEvent
-import net.minecraft.text.Text
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.WorldAccess
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import net.minecraft.network.chat.ClickEvent
+import net.minecraft.network.chat.Component
+import net.minecraft.core.BlockPos
+import net.minecraft.world.level.LevelAccessor
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.thenExecute
 import moe.nea.firmament.events.AttackBlockEvent
@@ -118,19 +118,19 @@ object MinesweeperHelper {
         val itemStack = createSkullItem(UUID.randomUUID(), textureUrl)
             .setSkyBlockFirmamentUiId("MINESWEEPER_$name")
 		@get:Bind("fruitName")
-		val textFruitName = Text.literal(fruitName)
+		val textFruitName = Component.literal(fruitName)
 
         @Bind
         fun getIcon() = MoulConfigPlatform.wrap(itemStack)
 
         @get:Bind("pieceLabel")
-        val pieceLabel = Text.literal(fruitColor.formattingCode + fruitName)
+        val pieceLabel = Component.literal(fruitColor.formattingCode + fruitName)
 
         @get:Bind("boardLabel")
-        val boardLabel = Text.literal("§a$totalPerBoard§7/§rboard")
+        val boardLabel = Component.literal("§a$totalPerBoard§7/§rboard")
 
         @get:Bind("description")
-        val getDescription = Text.literal(buildString {
+        val getDescription = Component.literal(buildString {
             append(specialAbility)
             if (points >= 0) {
                 append(" Default points: $points.")
@@ -176,10 +176,10 @@ object MinesweeperHelper {
     ) {
         fun toBlockPos() = BlockPos(sandBoxLow.x + x, sandBoxLow.y, sandBoxLow.z + y)
 
-        fun getBlock(world: WorldAccess) = world.getBlockState(toBlockPos()).block
-        fun isUnopened(world: WorldAccess) = getBlock(world) == Blocks.SAND
-        fun isOpened(world: WorldAccess) = getBlock(world) == Blocks.SANDSTONE
-        fun isScorched(world: WorldAccess) = getBlock(world) == Blocks.SANDSTONE_STAIRS
+        fun getBlock(world: LevelAccessor) = world.getBlockState(toBlockPos()).block
+        fun isUnopened(world: LevelAccessor) = getBlock(world) == Blocks.SAND
+        fun isOpened(world: LevelAccessor) = getBlock(world) == Blocks.SANDSTONE
+        fun isScorched(world: LevelAccessor) = getBlock(world) == Blocks.SANDSTONE_STAIRS
 
         companion object {
             fun fromBlockPos(blockPos: BlockPos): BoardPosition? {
@@ -222,7 +222,7 @@ object MinesweeperHelper {
     @Subscribe
     fun onChat(event: ProcessChatEvent) {
         if (CarnivalFeatures.TConfig.displayTutorials && event.unformattedString == startGameQuestion) {
-            MC.sendChat(Text.translatable("firmament.carnival.tutorial.minesweeper").styled {
+            MC.sendChat(Component.translatable("firmament.carnival.tutorial.minesweeper").withStyle {
                 it.withClickEvent(ClickEvent.RunCommand("/firm minesweepertutorial"))
             })
         }
@@ -260,7 +260,7 @@ object MinesweeperHelper {
         val boardPosition = BoardPosition.fromBlockPos(event.blockPos)
         log.log { "Breaking block at ${event.blockPos} ($boardPosition)" }
         gs.lastClickedPosition = boardPosition
-        gs.lastDowsingMode = DowsingMode.fromItem(event.player.mainHandStack)
+        gs.lastDowsingMode = DowsingMode.fromItem(event.player.mainHandItem)
     }
 
     @Subscribe
@@ -268,7 +268,7 @@ object MinesweeperHelper {
         val gs = gameState ?: return
         RenderInWorldContext.renderInWorld(event) {
             for ((pos, bombCount) in gs.nearbyBombs) {
-                this.text(pos.toBlockPos().up().toCenterPos(), Text.literal("§a$bombCount \uD83D\uDCA3"))
+                this.text(pos.toBlockPos().above().center, Component.literal("§a$bombCount \uD83D\uDCA3"))
             }
         }
     }

@@ -10,10 +10,10 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.minecraft.client.MinecraftClient
-import net.minecraft.network.packet.s2c.play.SynchronizeRecipesS2CPacket
-import net.minecraft.recipe.display.CuttingRecipeDisplay
-import net.minecraft.util.StringIdentifiable
+import net.minecraft.client.Minecraft
+import net.minecraft.network.protocol.game.ClientboundUpdateRecipesPacket
+import net.minecraft.world.item.crafting.SelectableRecipe
+import net.minecraft.util.StringRepresentable
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.Firmament.logger
 import moe.nea.firmament.events.ReloadRegistrationEvent
@@ -56,7 +56,7 @@ object RepoManager {
 		val perfectRenders by choice("perfect-renders") { PerfectRender.RENDER }
 	}
 
-	enum class PerfectRender(val label: String) : StringIdentifiable {
+	enum class PerfectRender(val label: String) : StringRepresentable {
 		NOTHING("nothing"),
 		RENDER("render"),
 		RENDER_AND_TEXT("text"),
@@ -65,7 +65,7 @@ object RepoManager {
 		fun rendersPerfectText() = this == RENDER_AND_TEXT
 		fun rendersPerfectVisuals() = this == RENDER || this == RENDER_AND_TEXT
 
-		override fun asString(): String? = label
+		override fun getSerializedName(): String? = label
 	}
 
 	val currentDownloadedSha by RepoDownloadManager::latestSavedVersionHash
@@ -112,8 +112,8 @@ object RepoManager {
 	fun getUsagesFor(skyblockId: SkyblockId): Set<NEURecipe> = recipeCache.usages[skyblockId] ?: setOf()
 
 	private fun trySendClientboundUpdateRecipesPacket(): Boolean {
-		return MinecraftClient.getInstance().world != null && MinecraftClient.getInstance().networkHandler?.onSynchronizeRecipes(
-			SynchronizeRecipesS2CPacket(mutableMapOf(), CuttingRecipeDisplay.Grouping.empty())
+		return Minecraft.getInstance().level != null && Minecraft.getInstance().connection?.handleUpdateRecipes(
+			ClientboundUpdateRecipesPacket(mutableMapOf(), SelectableRecipe.SingleInputSet.empty())
 		) != null
 	}
 

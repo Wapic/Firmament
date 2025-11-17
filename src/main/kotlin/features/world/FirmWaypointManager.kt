@@ -2,7 +2,7 @@ package moe.nea.firmament.features.world
 
 import com.mojang.brigadier.arguments.StringArgumentType
 import kotlinx.serialization.serializer
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.DefaultSource
 import moe.nea.firmament.commands.RestArgumentType
@@ -46,10 +46,10 @@ object FirmWaypointManager {
 		return copy
 	}
 
-	fun loadWaypoints(waypoints: FirmWaypoints, sendFeedback: (Text) -> Unit) {
+	fun loadWaypoints(waypoints: FirmWaypoints, sendFeedback: (Component) -> Unit) {
 		val copy = waypoints.deepCopy()
 		if (copy.isRelativeTo != null) {
-			val origin = MC.player!!.blockPos
+			val origin = MC.player!!.blockPosition()
 			copy.waypoints.replaceAll {
 				it.copy(
 					x = it.x + origin.x,
@@ -57,7 +57,7 @@ object FirmWaypointManager {
 					z = it.z + origin.z,
 				)
 			}
-			copy.lastRelativeImport = origin.toImmutable()
+			copy.lastRelativeImport = origin.immutable()
 			sendFeedback(tr("firmament.command.waypoint.import.ordered.success",
 			                "Imported ${copy.size} relative waypoints. Make sure you stand in the correct spot while loading the waypoints: ${copy.isRelativeTo}."))
 		} else {
@@ -70,7 +70,7 @@ object FirmWaypointManager {
 	fun setOrigin(source: DefaultSource, text: String?) {
 		val waypoints = Waypoints.useEditableWaypoints()
 		waypoints.isRelativeTo = text ?: waypoints.isRelativeTo ?: ""
-		val pos = MC.player!!.blockPos
+		val pos = MC.player!!.blockPosition()
 		waypoints.lastRelativeImport = pos
 		source.sendFeedback(tr("firmament.command.waypoint.originset",
 		                       "Set the origin of waypoints to ${FirmFormatters.formatPosition(pos)}. Run /firm waypoints export to save the waypoints relative to this position."))

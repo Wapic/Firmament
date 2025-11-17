@@ -4,13 +4,15 @@ package moe.nea.firmament.mixins;
 
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import moe.nea.firmament.events.WorldRenderLastEvent;
-import net.minecraft.client.render.*;
-import net.minecraft.client.render.fog.FogRenderer;
-import net.minecraft.client.render.state.WorldRenderState;
-import net.minecraft.client.util.Handle;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.profiler.Profiler;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LevelTargetBundle;
+import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.state.LevelRenderState;
+import com.mojang.blaze3d.resource.ResourceHandle;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
@@ -20,29 +22,22 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(WorldRenderer.class)
+@Mixin(LevelRenderer.class)
 public abstract class WorldRenderLastEventPatch {
 	@Shadow
 	@Final
-	private BufferBuilderStorage bufferBuilders;
+	private RenderBuffers renderBuffers;
 
 	@Shadow
-	@Final
-	private DefaultFramebufferSet framebufferSet;
-
-	@Shadow
-	protected abstract void checkEmpty(MatrixStack matrices);
-
-	@Shadow
-	private @Nullable ClientWorld world;
+	protected abstract void checkPoseStack(PoseStack matrices);
 
 	@Shadow
 	private int ticks;
 
-	@Inject(method = "method_62214", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiler/Profiler;pop()V", shift = At.Shift.AFTER))
-	public void onWorldRenderLast(GpuBufferSlice gpuBufferSlice, WorldRenderState worldRenderState, Profiler profiler, Matrix4f matrix4f, Handle handle, Handle handle2, boolean bl, Frustum frustum, Handle handle3, Handle handle4, CallbackInfo ci) {
-		var imm = this.bufferBuilders.getEntityVertexConsumers();
-		var stack = new MatrixStack();
+	@Inject(method = "method_62214", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiling/ProfilerFiller;pop()V", shift = At.Shift.AFTER))
+	public void onWorldRenderLast(GpuBufferSlice gpuBufferSlice, LevelRenderState worldRenderState, ProfilerFiller profiler, Matrix4f matrix4f, ResourceHandle handle, ResourceHandle handle2, boolean bl, Frustum frustum, ResourceHandle handle3, ResourceHandle handle4, CallbackInfo ci) {
+		var imm = this.renderBuffers.bufferSource();
+		var stack = new PoseStack();
 		// TODO: pre-cancel this event if F1 is active
 		var event = new WorldRenderLastEvent(
 			stack, ticks,
@@ -50,7 +45,7 @@ public abstract class WorldRenderLastEventPatch {
 			imm
 		);
 		WorldRenderLastEvent.Companion.publish(event);
-		imm.draw();
-		checkEmpty(stack);
+		imm.endBatch();
+		checkPoseStack(stack);
 	}
 }

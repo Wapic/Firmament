@@ -7,17 +7,17 @@ import com.llamalad7.mixinextras.sugar.Local;
 import moe.nea.firmament.events.WorldKeyboardEvent;
 import moe.nea.firmament.keybindings.GenericInputAction;
 import moe.nea.firmament.keybindings.InputModifiers;
-import net.minecraft.client.Keyboard;
-import net.minecraft.client.input.KeyInput;
-import net.minecraft.client.util.InputUtil;
+import net.minecraft.client.KeyboardHandler;
+import net.minecraft.client.input.KeyEvent;
+import com.mojang.blaze3d.platform.InputConstants;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-@Mixin(Keyboard.class)
+@Mixin(KeyboardHandler.class)
 public class KeyPressInWorldEventPatch {
 
-	@WrapWithCondition(method = "onKey", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/KeyBinding;onKeyPressed(Lnet/minecraft/client/util/InputUtil$Key;)V"))
-	public boolean onKeyBoardInWorld(InputUtil.Key key, @Local(argsOnly = true) KeyInput keyInput) {
+	@WrapWithCondition(method = "keyPress", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;click(Lcom/mojang/blaze3d/platform/InputConstants$Key;)V"))
+	public boolean onKeyBoardInWorld(InputConstants.Key key, @Local(argsOnly = true) KeyEvent keyInput) {
 		var event = WorldKeyboardEvent.Companion.publish(new WorldKeyboardEvent(GenericInputAction.of(keyInput), InputModifiers.of(keyInput)));
 		return !event.getCancelled();
 	}

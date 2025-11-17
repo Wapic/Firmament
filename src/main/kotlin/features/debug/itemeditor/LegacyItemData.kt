@@ -1,8 +1,8 @@
 package moe.nea.firmament.features.debug.itemeditor
 
 import kotlinx.serialization.Serializable
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.util.Identifier
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
 import moe.nea.firmament.repo.ItemCache
@@ -54,14 +54,14 @@ object LegacyItemData {
 		).getOrThrow()
 
 	val enchantmentData = getLegacyData<List<EnchantmentData>>("enchantments")
-	val enchantmentLut = enchantmentData.associateBy { Identifier.ofVanilla(it.name) }
+	val enchantmentLut = enchantmentData.associateBy { ResourceLocation.withDefaultNamespace(it.name) }
 
 	val itemDat = getLegacyData<List<ItemData>>("items")
 
 	@OptIn(ExpensiveItemCacheApi::class) // This is fine, we get loaded in a thread.
 	val itemLut = itemDat.flatMap { item ->
 		item.allVariants().map { legacyItemType ->
-			val nbt = ItemCache.convert189ToModern(NbtCompound().apply {
+			val nbt = ItemCache.convert189ToModern(CompoundTag().apply {
 				putString("id", legacyItemType.name)
 				putByte("Count", 1)
 				putShort("Damage", legacyItemType.metadata)

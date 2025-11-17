@@ -20,7 +20,7 @@ object CommissionFeatures {
 	fun onSlotRender(event: SlotRenderEvents.Before) {
 		if (!TConfig.highlightCompletedCommissions) return
 		if (MC.screenName != "Commissions") return
-		val stack = event.slot.stack
+		val stack = event.slot.item
 		if (stack.loreAccordingToNbt.any { it.unformattedString == "COMPLETED" }) {
 			event.highlight(Firmament.identifier("completed_commission_background"))
 		}

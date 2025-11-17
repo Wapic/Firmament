@@ -7,7 +7,7 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
-import net.minecraft.client.gui.DrawContext
+import net.minecraft.client.gui.GuiGraphics
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HudRenderEvent
 import moe.nea.firmament.events.TickEvent
@@ -32,7 +32,7 @@ object RadialMenuViewer {
 	interface RadialMenuOption {
 		val isEnabled: Boolean
 		fun resolve()
-		fun renderSlice(drawContext: DrawContext)
+		fun renderSlice(drawContext: GuiGraphics)
 	}
 
 	var activeMenu: RadialMenu? = null
@@ -63,11 +63,11 @@ object RadialMenuViewer {
 	@Subscribe
 	fun onRender(event: HudRenderEvent) {
 		val menu = activeMenu ?: return
-		val mat = event.context.matrices
+		val mat = event.context.pose()
 		mat.pushMatrix()
 		mat.translate(
-			(MC.window.scaledWidth) / 2F,
-			(MC.window.scaledHeight) / 2F,
+			(MC.window.guiScaledWidth) / 2F,
+			(MC.window.guiScaledHeight) / 2F,
 		)
 		val sliceWidth = (τ / menu.options.size).toFloat()
 		var selectedAngle = wrapAngle(atan2(delta.y, delta.x))
@@ -137,8 +137,8 @@ object RadialMacros {
 						action.execute()
 					}
 
-					override fun renderSlice(drawContext: DrawContext) {
-						drawContext.drawCenteredTextWithShadow(MC.font, action.label, 0, 0, -1)
+					override fun renderSlice(drawContext: GuiGraphics) {
+						drawContext.drawCenteredString(MC.font, action.label, 0, 0, -1)
 					}
 				}
 				RadialMenuViewer.activeMenu = object : RadialMenu {

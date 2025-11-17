@@ -12,10 +12,10 @@ import kotlin.io.path.notExists
 import kotlin.io.path.readText
 import kotlin.io.path.relativeTo
 import kotlin.io.path.writeText
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.nbt.NbtString
-import net.minecraft.text.Text
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import net.minecraft.nbt.StringTag
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.RestArgumentType
@@ -47,7 +47,7 @@ import moe.nea.firmament.util.tr
 
 object ItemExporter {
 
-	fun exportItem(itemStack: ItemStack): Text {
+	fun exportItem(itemStack: ItemStack): Component {
 		nonOverlayCache.clear()
 		val exporter = LegacyItemExporter.createExporter(itemStack)
 		var json = exporter.exportJson()
@@ -197,7 +197,7 @@ object ItemExporter {
 			display.putString("Name", mutJson["displayname"]!!.jsonPrimitive.content)
 			display.put(
 				"Lore",
-				(mutJson["lore"] as JsonArray).map { NbtString.of(it.jsonPrimitive.content) }
+				(mutJson["lore"] as JsonArray).map { StringTag.valueOf(it.jsonPrimitive.content) }
 					.toNbtList()
 			)
 			mutJson["nbttag"] = JsonPrimitive(legacyTag.toLegacyString())
@@ -220,8 +220,8 @@ object ItemExporter {
 		if (!PowerUserTools.TConfig.highlightNonOverlayItems) {
 			return
 		}
-		val stack = event.slot.stack ?: return
-		val id = event.slot.stack.skyBlockId?.neuItem
+		val stack = event.slot.item ?: return
+		val id = event.slot.item.skyBlockId?.neuItem
 		if (PowerUserTools.TConfig.dontHighlightSemicolonItems && id != null && id.contains(";")) return
 		val sbId = stack.skyBlockId ?: return
 		val isExported = nonOverlayCache.getOrPut(sbId) {
@@ -240,8 +240,8 @@ object ItemExporter {
 
 	fun exportStub(skyblockId: SkyblockId, title: String, extra: (ItemStack) -> Unit = {}) {
 		exportItem(ItemStack(Items.PLAYER_HEAD).also {
-			it.displayNameAccordingToNbt = Text.literal(title)
-			it.loreAccordingToNbt = listOf(Text.literal(""))
+			it.displayNameAccordingToNbt = Component.literal(title)
+			it.loreAccordingToNbt = listOf(Component.literal(""))
 			it.setSkyBlockId(skyblockId)
 			extra(it) // LOL
 		})

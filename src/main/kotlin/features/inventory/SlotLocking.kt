@@ -16,17 +16,17 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.int
 import kotlinx.serialization.serializer
-import net.minecraft.client.gl.RenderPipelines
-import net.minecraft.client.gui.screen.ingame.HandledScreen
-import net.minecraft.client.gui.screen.ingame.InventoryScreen
-import net.minecraft.entity.player.PlayerInventory
-import net.minecraft.item.ItemStack
-import net.minecraft.screen.GenericContainerScreenHandler
-import net.minecraft.screen.PlayerScreenHandler
-import net.minecraft.screen.slot.Slot
-import net.minecraft.screen.slot.SlotActionType
-import net.minecraft.util.Identifier
-import net.minecraft.util.StringIdentifiable
+import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.client.gui.screens.inventory.InventoryScreen
+import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.inventory.ChestMenu
+import net.minecraft.world.inventory.InventoryMenu
+import net.minecraft.world.inventory.Slot
+import net.minecraft.world.inventory.ClickType
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.StringRepresentable
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ClientInitEvent
 import moe.nea.firmament.events.HandledScreenForegroundEvent
@@ -157,12 +157,12 @@ object SlotLocking {
 		val allowDroppingInDungeons by toggle("drop-in-dungeons") { true }
 	}
 
-	enum class SlotRenderLinesMode : StringIdentifiable {
+	enum class SlotRenderLinesMode : StringRepresentable {
 		EVERYTHING,
 		ONLY_BOXES,
 		NOTHING;
 
-		override fun asString(): String {
+		override fun getSerializedName(): String {
 			return name
 		}
 	}
@@ -175,25 +175,25 @@ object SlotLocking {
 	val lockedSlots
 		get() = currentWorldData?.lockedSlots
 
-	fun isSalvageScreen(screen: HandledScreen<*>?): Boolean {
+	fun isSalvageScreen(screen: AbstractContainerScreen<*>?): Boolean {
 		if (screen == null) return false
 		return screen.title.unformattedString.contains("Salvage Item")
 	}
 
-	fun isTradeScreen(screen: HandledScreen<*>?): Boolean {
+	fun isTradeScreen(screen: AbstractContainerScreen<*>?): Boolean {
 		if (screen == null) return false
-		val handler = screen.screenHandler as? GenericContainerScreenHandler ?: return false
-		if (handler.inventory.size() < 9) return false
-		val middlePane = handler.inventory.getStack(handler.inventory.size() - 5)
+		val handler = screen.menu as? ChestMenu ?: return false
+		if (handler.container.containerSize < 9) return false
+		val middlePane = handler.container.getItem(handler.container.containerSize - 5)
 		if (middlePane == null) return false
 		return middlePane.displayNameAccordingToNbt?.unformattedString == "⇦ Your stuff"
 	}
 
-	fun isNpcShop(screen: HandledScreen<*>?): Boolean {
+	fun isNpcShop(screen: AbstractContainerScreen<*>?): Boolean {
 		if (screen == null) return false
-		val handler = screen.screenHandler as? GenericContainerScreenHandler ?: return false
-		if (handler.inventory.size() < 9) return false
-		val sellItem = handler.inventory.getStack(handler.inventory.size() - 5)
+		val handler = screen.menu as? ChestMenu ?: return false
+		if (handler.container.containerSize < 9) return false
+		val sellItem = handler.container.getItem(handler.container.containerSize - 5)
 		if (sellItem == null) return false
 		if (sellItem.displayNameAccordingToNbt.unformattedString == "Sell Item") return true
 		val lore = sellItem.loreAccordingToNbt
@@ -203,15 +203,15 @@ object SlotLocking {
 	@Subscribe
 	fun onSalvageProtect(event: IsSlotProtectedEvent) {
 		if (event.slot == null) return
-		if (!event.slot.hasStack()) return
-		if (event.slot.stack.displayNameAccordingToNbt.unformattedString != "Salvage Items") return
-		val inv = event.slot.inventory
+		if (!event.slot.hasItem()) return
+		if (event.slot.item.displayNameAccordingToNbt.unformattedString != "Salvage Items") return
+		val inv = event.slot.container
 		var anyBlocked = false
-		for (i in 0 until event.slot.index) {
-			val stack = inv.getStack(i)
+		for (i in 0 until event.slot.containerSlot) {
+			val stack = inv.getItem(i)
 			if (IsSlotProtectedEvent.shouldBlockInteraction(
 					null,
-					SlotActionType.THROW,
+					ClickType.THROW,
 					IsSlotProtectedEvent.MoveOrigin.SALVAGE,
 					stack
 				)
@@ -225,15 +225,15 @@ object SlotLocking {
 
 	@Subscribe
 	fun onProtectUuidItems(event: IsSlotProtectedEvent) {
-		val doesNotDeleteItem = event.actionType == SlotActionType.SWAP
-			|| event.actionType == SlotActionType.PICKUP
-			|| event.actionType == SlotActionType.QUICK_MOVE
-			|| event.actionType == SlotActionType.QUICK_CRAFT
-			|| event.actionType == SlotActionType.CLONE
-			|| event.actionType == SlotActionType.PICKUP_ALL
+		val doesNotDeleteItem = event.actionType == ClickType.SWAP
+			|| event.actionType == ClickType.PICKUP
+			|| event.actionType == ClickType.QUICK_MOVE
+			|| event.actionType == ClickType.QUICK_CRAFT
+			|| event.actionType == ClickType.CLONE
+			|| event.actionType == ClickType.PICKUP_ALL
 		val isSellOrTradeScreen =
 			isNpcShop(MC.handledScreen) || isTradeScreen(MC.handledScreen) || isSalvageScreen(MC.handledScreen)
-		if ((!isSellOrTradeScreen || event.slot?.inventory !is PlayerInventory)
+		if ((!isSellOrTradeScreen || event.slot?.container !is Inventory)
 			&& doesNotDeleteItem
 		) return
 		val stack = event.itemStack ?: return
@@ -253,7 +253,7 @@ object SlotLocking {
 
 	@Subscribe
 	fun onProtectSlot(it: IsSlotProtectedEvent) {
-		if (it.slot != null && it.slot.inventory is PlayerInventory && it.slot.index in (lockedSlots ?: setOf())) {
+		if (it.slot != null && it.slot.container is Inventory && it.slot.containerSlot in (lockedSlots ?: setOf())) {
 			it.protect()
 		}
 	}
@@ -275,14 +275,14 @@ object SlotLocking {
 	fun onQuickMoveBoundSlot(it: IsSlotProtectedEvent) {
 		val boundSlots = currentWorldData?.boundSlots ?: BoundSlots()
 		val isValidAction =
-			it.actionType == SlotActionType.QUICK_MOVE || (it.actionType == SlotActionType.PICKUP && !TConfig.slotBindRequireShift)
+			it.actionType == ClickType.QUICK_MOVE || (it.actionType == ClickType.PICKUP && !TConfig.slotBindRequireShift)
 		if (!isValidAction) return
-		val handler = MC.handledScreen?.screenHandler ?: return
-		if (TConfig.slotBindOnlyInInv && handler !is PlayerScreenHandler)
+		val handler = MC.handledScreen?.menu ?: return
+		if (TConfig.slotBindOnlyInInv && handler !is InventoryMenu)
 			return
 		val slot = it.slot
-		if (slot != null && it.slot.inventory is PlayerInventory) {
-			val matchingSlots = boundSlots.findMatchingSlots(slot.index)
+		if (slot != null && it.slot.container is Inventory) {
+			val matchingSlots = boundSlots.findMatchingSlots(slot.containerSlot)
 			if (matchingSlots.isEmpty()) return
 			it.protectSilent()
 			val boundSlot = matchingSlots.singleOrNull() ?: return
@@ -298,7 +298,7 @@ object SlotLocking {
 		inventory as AccessorHandledScreen
 
 		val slot = inventory.focusedSlot_Firmament ?: return
-		val stack = slot.stack ?: return
+		val stack = slot.item ?: return
 		if (stack.isHuntingBox()) {
 			MC.sendChat(
 				tr(
@@ -339,10 +339,10 @@ object SlotLocking {
 			val hotBarSlot = if (slot.isHotbar()) slot else storedSlot
 			val invSlot = if (slot.isHotbar()) storedSlot else slot
 			val boundSlots = currentWorldData?.boundSlots ?: return
-			lockedSlots?.remove(hotBarSlot.index)
-			lockedSlots?.remove(invSlot.index)
-			boundSlots.removeDuplicateForInventory(invSlot.index)
-			boundSlots.insert(hotBarSlot.index, invSlot.index)
+			lockedSlots?.remove(hotBarSlot.containerSlot)
+			lockedSlots?.remove(invSlot.containerSlot)
+			boundSlots.removeDuplicateForInventory(invSlot.containerSlot)
+			boundSlots.insert(hotBarSlot.containerSlot, invSlot.containerSlot)
 			DConfig.markDirty()
 			CommonSoundEffects.playSuccess()
 			return
@@ -356,7 +356,7 @@ object SlotLocking {
 			storedLockingSlot = null
 			val boundSlots = currentWorldData?.boundSlots ?: return
 			if (slot != null)
-				boundSlots.removeAllInvolving(slot.index)
+				boundSlots.removeAllInvolving(slot.containerSlot)
 		}
 	}
 
@@ -393,12 +393,12 @@ object SlotLocking {
 					hotX + sx, hotY + sy,
 					color(anyHovered)
 				)
-			event.context.drawStrokedRectangle(
+			event.context.submitOutline(
 				hotbarSlot.x + sx,
 				hotbarSlot.y + sy,
 				16, 16, color(hotbarSlot in highlitSlots).color
 			)
-			event.context.drawStrokedRectangle( // TODO: 1.21.10
+			event.context.submitOutline( // TODO: 1.21.10
 				inventorySlot.x + sx,
 				inventorySlot.y + sy,
 				16, 16, color(inventorySlot in highlitSlots).color
@@ -411,12 +411,12 @@ object SlotLocking {
 		val draggingSlot = storedLockingSlot ?: return
 		val accScreen = event.screen as AccessorHandledScreen
 		val hoveredSlot = accScreen.focusedSlot_Firmament
-			?.takeIf { it.inventory is PlayerInventory }
+			?.takeIf { it.container is Inventory }
 			?.takeIf { it == draggingSlot || it.isHotbar() != draggingSlot.isHotbar() }
 		val sx = accScreen.x_Firmament
 		val sy = accScreen.y_Firmament
 		val (borderX, borderY) = draggingSlot.lineCenter()
-		event.context.drawStrokedRectangle(draggingSlot.x + sx, draggingSlot.y + sy, 16, 16, 0xFF00FF00u.toInt()) // TODO: 1.21.10
+		event.context.submitOutline(draggingSlot.x + sx, draggingSlot.y + sy, 16, 16, 0xFF00FF00u.toInt()) // TODO: 1.21.10
 		if (hoveredSlot == null) {
 			event.context.drawLine(
 				borderX + sx, borderY + sy,
@@ -430,7 +430,7 @@ object SlotLocking {
 				hovX + sx, hovY + sy,
 				me.shedaniel.math.Color.ofOpaque(0x00FF00)
 			)
-			event.context.drawStrokedRectangle(
+			event.context.submitOutline(
 				hoveredSlot.x + sx,
 				hoveredSlot.y + sy,
 				16, 16, 0xFF00FF00u.toInt()
@@ -448,7 +448,7 @@ object SlotLocking {
 
 
 	fun Slot.isHotbar(): Boolean {
-		return index < 9
+		return containerSlot < 9
 	}
 
 	@Subscribe
@@ -461,13 +461,13 @@ object SlotLocking {
 	fun toggleSlotLock(slot: Slot) {
 		val lockedSlots = lockedSlots ?: return
 		val boundSlots = currentWorldData?.boundSlots ?: BoundSlots()
-		if (slot.inventory is PlayerInventory) {
-			if (boundSlots.removeAllInvolving(slot.index)) {
+		if (slot.container is Inventory) {
+			if (boundSlots.removeAllInvolving(slot.containerSlot)) {
 				// intentionally do nothing
-			} else if (slot.index in lockedSlots) {
-				lockedSlots.remove(slot.index)
+			} else if (slot.containerSlot in lockedSlots) {
+				lockedSlots.remove(slot.containerSlot)
 			} else {
-				lockedSlots.add(slot.index)
+				lockedSlots.add(slot.containerSlot)
 			}
 			DConfig.markDirty()
 			CommonSoundEffects.playSuccess()
@@ -480,7 +480,7 @@ object SlotLocking {
 		inventory as AccessorHandledScreen
 
 		val slot = inventory.focusedSlot_Firmament ?: return
-		if (slot.inventory !is PlayerInventory) return
+		if (slot.container !is Inventory) return
 		if (it.matches(TConfig.slotBind)) {
 			storedLockingSlot = storedLockingSlot ?: slot
 			return
@@ -493,17 +493,17 @@ object SlotLocking {
 
 	@Subscribe
 	fun onRenderSlotOverlay(it: SlotRenderEvents.After) {
-		val isSlotLocked = it.slot.inventory is PlayerInventory && it.slot.index in (lockedSlots ?: setOf())
-		val isUUIDLocked = (it.slot.stack?.skyblockUUID) in (lockedUUIDs ?: setOf())
+		val isSlotLocked = it.slot.container is Inventory && it.slot.containerSlot in (lockedSlots ?: setOf())
+		val isUUIDLocked = (it.slot.item?.skyblockUUID) in (lockedUUIDs ?: setOf())
 		if (isSlotLocked || isUUIDLocked) {
-			it.context.drawGuiTexture(
+			it.context.blitSprite(
 				RenderPipelines.GUI_TEXTURED,
 				when {
 					isSlotLocked ->
-						(Identifier.of("firmament:slot_locked"))
+						(ResourceLocation.parse("firmament:slot_locked"))
 
 					isUUIDLocked ->
-						(Identifier.of("firmament:uuid_locked"))
+						(ResourceLocation.parse("firmament:uuid_locked"))
 
 					else ->
 						error("unreachable")

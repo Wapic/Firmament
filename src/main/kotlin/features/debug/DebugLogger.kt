@@ -1,7 +1,7 @@
 package moe.nea.firmament.features.debug
 
 import kotlinx.serialization.serializer
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.TestUtil
 import moe.nea.firmament.util.collections.InstanceList
@@ -24,6 +24,6 @@ class DebugLogger(val tag: String) {
 	fun log(text: String) = log { text }
 	fun log(text: () -> String) {
 		if (!isEnabled()) return
-		MC.sendChat(Text.literal(text()))
+		MC.sendChat(Component.literal(text()))
 	}
 }

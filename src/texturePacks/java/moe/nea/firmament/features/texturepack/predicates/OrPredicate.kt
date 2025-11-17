@@ -7,7 +7,7 @@ import com.google.gson.JsonObject
 import moe.nea.firmament.features.texturepack.CustomModelOverrideParser
 import moe.nea.firmament.features.texturepack.FirmamentModelPredicate
 import moe.nea.firmament.features.texturepack.FirmamentModelPredicateParser
-import net.minecraft.item.ItemStack
+import net.minecraft.world.item.ItemStack
 
 class OrPredicate(val children: Array<FirmamentModelPredicate>) : FirmamentModelPredicate {
     override fun test(stack: ItemStack): Boolean {

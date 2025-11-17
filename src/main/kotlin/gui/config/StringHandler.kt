@@ -7,7 +7,7 @@ import io.github.notenoughupdates.moulconfig.observer.GetSetter
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.util.data.ManagedConfig
 
 class StringHandler(val config: ManagedConfig) : ManagedConfig.OptionHandler<String> {
@@ -30,7 +30,7 @@ class StringHandler(val config: ManagedConfig) : ManagedConfig.OptionHandler<Str
                     }
                 },
                 130,
-                suggestion = Text.translatableWithFallback(opt.rawLabelText + ".hint", "").string
+                suggestion = Component.translatableWithFallback(opt.rawLabelText + ".hint", "").string
             ),
         )
     }

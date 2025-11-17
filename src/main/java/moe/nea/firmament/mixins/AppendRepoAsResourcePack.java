@@ -7,7 +7,7 @@ import net.fabricmc.fabric.api.resource.ModResourcePack;
 import net.fabricmc.fabric.impl.resource.loader.ModResourcePackSorter;
 import net.fabricmc.fabric.impl.resource.loader.ModResourcePackUtil;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.resource.ResourceType;
+import net.minecraft.server.packs.PackType;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,7 +25,7 @@ public class AppendRepoAsResourcePack {
 		require = 0
 	)
 	private static void onAppendModResourcePack(
-		FabricLoader fabricLoader, ResourceType type, @Nullable String subPath, CallbackInfoReturnable<List<ModResourcePack>> cir,
+		FabricLoader fabricLoader, PackType type, @Nullable String subPath, CallbackInfoReturnable<List<ModResourcePack>> cir,
 		@Local ModResourcePackSorter sorter
 	) {
 		RepoModResourcePack.Companion.append(sorter);

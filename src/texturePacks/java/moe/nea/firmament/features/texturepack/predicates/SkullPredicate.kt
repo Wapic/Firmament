@@ -4,10 +4,10 @@ import com.google.gson.JsonElement
 import com.mojang.authlib.minecraft.MinecraftProfileTexture
 import java.util.UUID
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.entity.LivingEntity
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
 import moe.nea.firmament.features.texturepack.FirmamentModelPredicate
 import moe.nea.firmament.features.texturepack.FirmamentModelPredicateParser
 import moe.nea.firmament.features.texturepack.StringMatcher
@@ -34,15 +34,15 @@ class SkullPredicate(
 	}
 
 	override fun test(stack: ItemStack, holder: LivingEntity?): Boolean {
-		if (!stack.isOf(Items.PLAYER_HEAD)) return false
-		val profile = stack.get(DataComponentTypes.PROFILE) ?: return false
-		val textureProperty = profile.gameProfile.properties["textures"].firstOrNull()
+		if (!stack.`is`(Items.PLAYER_HEAD)) return false
+		val profile = stack.get(DataComponents.PROFILE) ?: return false
+		val textureProperty = profile.partialProfile().properties["textures"].firstOrNull()
 		val textureMode = lazy(LazyThreadSafetyMode.NONE) {
 			decodeProfileTextureProperty(textureProperty ?: return@lazy null)
 		}
 		when {
 			profileId != null
-				&& profileId != profile.gameProfile.id ->
+				&& profileId != profile.partialProfile().id ->
 				return false
 
 			textureValue != null

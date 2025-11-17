@@ -8,17 +8,17 @@ import io.github.notenoughupdates.moulconfig.xml.Bind
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
 import org.lwjgl.glfw.GLFW
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.Click
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.widget.ButtonWidget
-import net.minecraft.client.gui.widget.MultilineTextWidget
-import net.minecraft.client.gui.widget.TextWidget
-import net.minecraft.client.input.KeyInput
-import net.minecraft.client.util.InputUtil
-import net.minecraft.text.Text
-import net.minecraft.util.math.MathHelper
-import net.minecraft.util.math.Vec2f
+import net.minecraft.client.Minecraft
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.components.Button
+import net.minecraft.client.gui.components.MultiLineTextWidget
+import net.minecraft.client.gui.components.StringWidget
+import net.minecraft.client.input.KeyEvent
+import com.mojang.blaze3d.platform.InputConstants
+import net.minecraft.network.chat.Component
+import net.minecraft.util.Mth
+import net.minecraft.world.phys.Vec2
 import moe.nea.firmament.util.ClipboardUtils
 import moe.nea.firmament.util.FragmentGuiScreen
 import moe.nea.firmament.util.MC
@@ -60,69 +60,69 @@ class InventoryButtonEditor(
 	var buttons: MutableList<InventoryButton> =
 		InventoryButtons.DConfig.data.buttons.map { it.copy() }.toMutableList()
 
-	override fun close() {
+	override fun onClose() {
 		InventoryButtons.DConfig.data.buttons = buttons
 		InventoryButtons.DConfig.markDirty()
-		super.close()
+		super.onClose()
 	}
 
-	override fun resize(client: MinecraftClient, width: Int, height: Int) {
+	override fun resize(client: Minecraft, width: Int, height: Int) {
 		lastGuiRect.move(
-			MC.window.scaledWidth / 2 - lastGuiRect.width / 2,
-			MC.window.scaledHeight / 2 - lastGuiRect.height / 2
+			MC.window.guiScaledWidth / 2 - lastGuiRect.width / 2,
+			MC.window.guiScaledHeight / 2 - lastGuiRect.height / 2
 		)
 		super.resize(client, width, height)
 	}
 
 	override fun init() {
 		super.init()
-		addDrawableChild(
-			MultilineTextWidget(
+		addRenderableWidget(
+			MultiLineTextWidget(
 				lastGuiRect.minX,
 				25,
-				Text.translatable("firmament.inventory-buttons.delete"),
+				Component.translatable("firmament.inventory-buttons.delete"),
 				MC.font
 			).setCentered(true).setMaxWidth(lastGuiRect.width)
 		)
-		addDrawableChild(
-			MultilineTextWidget(
+		addRenderableWidget(
+			MultiLineTextWidget(
 				lastGuiRect.minX,
 				40,
-				Text.translatable("firmament.inventory-buttons.info"),
+				Component.translatable("firmament.inventory-buttons.info"),
 				MC.font
 			).setCentered(true).setMaxWidth(lastGuiRect.width)
 		)
-		addDrawableChild(
-			ButtonWidget.builder(Text.translatable("firmament.inventory-buttons.reset")) {
+		addRenderableWidget(
+			Button.builder(Component.translatable("firmament.inventory-buttons.reset")) {
 				val newButtons = InventoryButtonTemplates.loadTemplate("TkVVQlVUVE9OUy9bXQ==")
 				if (newButtons != null)
 					buttons = moveButtons(newButtons.map { it.copy(command = it.command?.removePrefix("/")) })
 			}
-				.position(lastGuiRect.minX + 10, lastGuiRect.minY + 10)
+				.pos(lastGuiRect.minX + 10, lastGuiRect.minY + 10)
 				.width(lastGuiRect.width - 20)
 				.build()
 		)
-		addDrawableChild(
-			ButtonWidget.builder(Text.translatable("firmament.inventory-buttons.load-preset")) {
+		addRenderableWidget(
+			Button.builder(Component.translatable("firmament.inventory-buttons.load-preset")) {
 				val t = ClipboardUtils.getTextContents()
 				val newButtons = InventoryButtonTemplates.loadTemplate(t)
 				if (newButtons != null)
 					buttons = moveButtons(newButtons.map { it.copy(command = it.command?.removePrefix("/")) })
 			}
-				.position(lastGuiRect.minX + 10, lastGuiRect.minY + 35)
+				.pos(lastGuiRect.minX + 10, lastGuiRect.minY + 35)
 				.width(lastGuiRect.width - 20)
 				.build()
 		)
-		addDrawableChild(
-			ButtonWidget.builder(Text.translatable("firmament.inventory-buttons.save-preset")) {
+		addRenderableWidget(
+			Button.builder(Component.translatable("firmament.inventory-buttons.save-preset")) {
 				ClipboardUtils.setTextContent(InventoryButtonTemplates.saveTemplate(buttons))
 			}
-				.position(lastGuiRect.minX + 10, lastGuiRect.minY + 60)
+				.pos(lastGuiRect.minX + 10, lastGuiRect.minY + 60)
 				.width(lastGuiRect.width - 20)
 				.build()
 		)
-		addDrawableChild(
-			ButtonWidget.builder(Text.translatable("firmament.inventory-buttons.simple-preset")) {
+		addRenderableWidget(
+			Button.builder(Component.translatable("firmament.inventory-buttons.simple-preset")) {
 				// Preset from NEU
 				// Credit: https://github.com/NotEnoughUpdates/NotEnoughUpdates/blob/9b1fcfebc646e9fb69f99006327faa3e734e5f51/src/main/resources/assets/notenoughupdates/invbuttons/presets.json#L900-L1348
 				val newButtons = InventoryButtonTemplates.loadTemplate(
@@ -131,12 +131,12 @@ class InventoryButtonEditor(
 				if (newButtons != null)
 					buttons = moveButtons(newButtons.map { it.copy(command = it.command?.removePrefix("/")) })
 			}
-				.position(lastGuiRect.minX + 10, lastGuiRect.minY + 85)
+				.pos(lastGuiRect.minX + 10, lastGuiRect.minY + 85)
 				.width(lastGuiRect.width - 20)
 				.build()
 		)
-		addDrawableChild(
-			ButtonWidget.builder(Text.translatable("firmament.inventory-buttons.all-warps-preset")) {
+		addRenderableWidget(
+			Button.builder(Component.translatable("firmament.inventory-buttons.all-warps-preset")) {
 				// Preset from NEU
 				// Credit: https://github.com/NotEnoughUpdates/NotEnoughUpdates/blob/9b1fcfebc646e9fb69f99006327faa3e734e5f51/src/main/resources/assets/notenoughupdates/invbuttons/presets.json#L1817-L2276
 				val newButtons = InventoryButtonTemplates.loadTemplate(
@@ -145,7 +145,7 @@ class InventoryButtonEditor(
 				if (newButtons != null)
 					buttons = moveButtons(newButtons.map { it.copy(command = it.command?.removePrefix("/")) })
 			}
-				.position(lastGuiRect.minX + 10, lastGuiRect.minY + 110)
+				.pos(lastGuiRect.minX + 10, lastGuiRect.minY + 110)
 				.width(lastGuiRect.width - 20)
 				.build()
 		)
@@ -195,42 +195,42 @@ class InventoryButtonEditor(
 		return newButtons
 	}
 
-	override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
-		context.matrices.pushMatrix()
+	override fun render(context: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
+		context.pose().pushMatrix()
 		PanelComponent.DefaultBackgroundRenderer.VANILLA
 			.render(
 				MoulConfigRenderContext(context),
 				lastGuiRect.minX, lastGuiRect.minY,
 				lastGuiRect.width, lastGuiRect.height,
 			)
-		context.matrices.popMatrix()
+		context.pose().popMatrix()
 		super.render(context, mouseX, mouseY, delta)
 		for (button in buttons) {
 			val buttonPosition = button.getBounds(lastGuiRect)
-			context.matrices.pushMatrix()
-			context.matrices.translate(buttonPosition.minX.toFloat(), buttonPosition.minY.toFloat())
+			context.pose().pushMatrix()
+			context.pose().translate(buttonPosition.minX.toFloat(), buttonPosition.minY.toFloat())
 			button.render(context)
-			context.matrices.popMatrix()
+			context.pose().popMatrix()
 		}
 		renderPopup(context, mouseX, mouseY, delta)
 	}
 
-	override fun keyPressed(input: KeyInput): Boolean {
+	override fun keyPressed(input: KeyEvent): Boolean {
 		if (super.keyPressed(input)) return true
-		if (input.keycode == GLFW.GLFW_KEY_ESCAPE) {
-			close()
+		if (input.input() == GLFW.GLFW_KEY_ESCAPE) {
+			onClose()
 			return true
 		}
 		return false
 	}
 
-	override fun mouseReleased(click: Click): Boolean {
+	override fun mouseReleased(click: MouseButtonEvent): Boolean {
 		if (super.mouseReleased(click)) return true
 		val clickedButton = buttons.firstOrNull { it.getBounds(lastGuiRect).contains(Point(click.x, click.y)) }
 		if (clickedButton != null && !justPerformedAClickAction) {
-			if (InputUtil.isKeyPressed(
+			if (InputConstants.isKeyDown(
 					MC.window,
-					InputUtil.GLFW_KEY_LEFT_CONTROL
+					InputConstants.KEY_LCONTROL
 				)
 			) Editor(clickedButton).delete()
 			else createPopup(
@@ -244,11 +244,11 @@ class InventoryButtonEditor(
 		return false
 	}
 
-	override fun mouseDragged(click: Click, offsetX: Double, offsetY: Double): Boolean {
+	override fun mouseDragged(click: MouseButtonEvent, offsetX: Double, offsetY: Double): Boolean {
 		if (super.mouseDragged(click, offsetX, offsetY)) return true
 
-		if (initialDragMousePosition.distanceSquared(Vec2f(click.x.toFloat(), click.y.toFloat())) >= 4 * 4) {
-			initialDragMousePosition = Vec2f(-10F, -10F)
+		if (initialDragMousePosition.distanceToSqr(Vec2(click.x.toFloat(), click.y.toFloat())) >= 4 * 4) {
+			initialDragMousePosition = Vec2(-10F, -10F)
 			lastDraggedButton?.let { dragging ->
 				justPerformedAClickAction = true
 				val (anchorRight, anchorBottom, offsetX, offsetY) = getCoordsForMouse(click.x.toInt(), click.y.toInt())
@@ -272,7 +272,7 @@ class InventoryButtonEditor(
 
 	var lastDraggedButton: InventoryButton? = null
 	var justPerformedAClickAction = false
-	var initialDragMousePosition = Vec2f(-10F, -10F)
+	var initialDragMousePosition = Vec2(-10F, -10F)
 
 	data class AnchoredCoords(
 		val anchorRight: Boolean,
@@ -286,9 +286,9 @@ class InventoryButtonEditor(
 		val anchorBottom = my > lastGuiRect.maxY
 		var offsetX = mx - if (anchorRight) lastGuiRect.maxX else lastGuiRect.minX
 		var offsetY = my - if (anchorBottom) lastGuiRect.maxY else lastGuiRect.minY
-		if (InputUtil.isKeyPressed(MC.window, InputUtil.GLFW_KEY_LEFT_SHIFT)) {
-			offsetX = MathHelper.floor(offsetX / 20F) * 20
-			offsetY = MathHelper.floor(offsetY / 20F) * 20
+		if (InputConstants.isKeyDown(MC.window, InputConstants.KEY_LSHIFT)) {
+			offsetX = Mth.floor(offsetX / 20F) * 20
+			offsetY = Mth.floor(offsetY / 20F) * 20
 		}
 		val rect = InventoryButton(offsetX, offsetY, anchorRight, anchorBottom).getBounds(lastGuiRect)
 		if (rect.intersects(lastGuiRect)) return null
@@ -296,12 +296,12 @@ class InventoryButtonEditor(
 		return anchoredCoords
 	}
 
-	override fun mouseClicked(click: Click, doubled: Boolean): Boolean {
+	override fun mouseClicked(click: MouseButtonEvent, doubled: Boolean): Boolean {
 		if (super.mouseClicked(click, doubled)) return true
 		val clickedButton = buttons.firstOrNull { it.getBounds(lastGuiRect).contains(click.x, click.y) }
 		if (clickedButton != null) {
 			lastDraggedButton = clickedButton
-			initialDragMousePosition = Vec2f(click.y.toFloat(), click.y.toFloat())
+			initialDragMousePosition = Vec2(click.y.toFloat(), click.y.toFloat())
 			return true
 		}
 		val mx = click.x.toInt()

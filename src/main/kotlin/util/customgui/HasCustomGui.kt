@@ -1,7 +1,7 @@
 
 package moe.nea.firmament.util.customgui
 
-import net.minecraft.client.gui.screen.ingame.HandledScreen
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 
 @Suppress("FunctionName")
 interface HasCustomGui {
@@ -9,7 +9,7 @@ interface HasCustomGui {
     fun setCustomGui_Firmament(gui: CustomGui?)
 }
 
-var <T : HandledScreen<*>> T.customGui: CustomGui?
+var <T : AbstractContainerScreen<*>> T.customGui: CustomGui?
     get() = (this as HasCustomGui).getCustomGui_Firmament()
     set(value) {
         (this as HasCustomGui).setCustomGui_Firmament(value)

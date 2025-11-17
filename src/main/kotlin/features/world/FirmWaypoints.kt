@@ -2,7 +2,7 @@ package moe.nea.firmament.features.world
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import net.minecraft.util.math.BlockPos
+import net.minecraft.core.BlockPos
 
 @Serializable
 data class FirmWaypoints(

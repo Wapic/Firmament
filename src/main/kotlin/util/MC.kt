@@ -4,32 +4,32 @@ import io.github.moulberry.repo.data.Coordinate
 import io.github.notenoughupdates.moulconfig.platform.MoulConfigScreenComponent
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.hud.InGameHud
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.gui.screen.ingame.HandledScreen
-import net.minecraft.client.network.ClientPlayerEntity
-import net.minecraft.client.render.GameRenderer
-import net.minecraft.client.render.WorldRenderer
-import net.minecraft.client.render.item.ItemRenderer
-import net.minecraft.client.world.ClientWorld
-import net.minecraft.entity.Entity
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.Gui
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.client.player.LocalPlayer
+import net.minecraft.client.renderer.GameRenderer
+import net.minecraft.client.renderer.LevelRenderer
+import net.minecraft.client.renderer.entity.ItemRenderer
+import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStack
 import net.minecraft.nbt.NbtOps
-import net.minecraft.network.packet.c2s.play.CommandExecutionC2SPacket
-import net.minecraft.registry.BuiltinRegistries
-import net.minecraft.registry.Registry
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.registry.RegistryOps
-import net.minecraft.registry.RegistryWrapper
-import net.minecraft.resource.ReloadableResourceManagerImpl
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
-import net.minecraft.util.Util
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.World
+import net.minecraft.network.protocol.game.ServerboundChatCommandPacket
+import net.minecraft.data.registries.VanillaRegistries
+import net.minecraft.core.Registry
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.registries.Registries
+import net.minecraft.resources.RegistryOps
+import net.minecraft.core.HolderLookup
+import net.minecraft.server.packs.resources.ReloadableResourceManager
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.Util
+import net.minecraft.core.BlockPos
+import net.minecraft.world.level.Level
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.events.WorldReadyEvent
@@ -37,13 +37,13 @@ import moe.nea.firmament.util.mc.TolerantRegistriesOps
 
 object MC {
 
-	private val messageQueue = ConcurrentLinkedQueue<Text>()
+	private val messageQueue = ConcurrentLinkedQueue<Component>()
 
 	init {
 		TickEvent.subscribe("MC:push") {
-			if (inGameHud.chatHud != null && world != null)
+			if (inGameHud.chat != null && world != null)
 				while (true) {
-					inGameHud.chatHud.addMessage(messageQueue.poll() ?: break)
+					inGameHud.chat.addMessage(messageQueue.poll() ?: break)
 				}
 			while (true) {
 				(nextTickTodos.poll() ?: break).invoke()
@@ -54,42 +54,42 @@ object MC {
 		}
 	}
 
-	fun sendChat(text: Text) {
+	fun sendChat(text: Component) {
 		if (TestUtil.isInTest) {
 			Firmament.logger.info("CHAT: ${text.string}")
 			return
 		}
-		if (instance.isOnThread && inGameHud.chatHud != null && world != null)
-			inGameHud.chatHud.addMessage(text)
+		if (instance.isSameThread && inGameHud.chat != null && world != null)
+			inGameHud.chat.addMessage(text)
 		else
 			messageQueue.add(text)
 	}
 
 	@Deprecated("Use checked method instead", replaceWith = ReplaceWith("sendCommand(command)"))
 	fun sendServerCommand(command: String) {
-		val nh = player?.networkHandler ?: return
-		nh.sendPacket(
-			CommandExecutionC2SPacket(
+		val nh = player?.connection ?: return
+		nh.send(
+			ServerboundChatCommandPacket(
 				command,
 			)
 		)
 	}
 
 	fun sendServerChat(text: String) {
-		player?.networkHandler?.sendChatMessage(text)
+		player?.connection?.sendChat(text)
 	}
 
 	fun sendCommand(command: String) {
 		// TODO: add a queue to this and sendServerChat
 		ErrorUtil.softCheck("Server commands have an implied /", !command.startsWith("/"))
-		player?.networkHandler?.sendChatCommand(command)
+		player?.connection?.sendCommand(command)
 	}
 
 	fun onMainThread(block: () -> Unit) {
-		if (instance.isOnThread)
+		if (instance.isSameThread)
 			block()
 		else
-			instance.send(block)
+			instance.schedule(block)
 	}
 
 	private val nextTickTodos = ConcurrentLinkedQueue<() -> Unit>()
@@ -98,38 +98,38 @@ object MC {
 	}
 
 
-	inline val resourceManager get() = (instance.resourceManager as ReloadableResourceManagerImpl)
+	inline val resourceManager get() = (instance.resourceManager as ReloadableResourceManager)
 	inline val itemRenderer: ItemRenderer get() = instance.itemRenderer
-	inline val worldRenderer: WorldRenderer get() = instance.worldRenderer
+	inline val worldRenderer: LevelRenderer get() = instance.levelRenderer
 	inline val gameRenderer: GameRenderer get() = instance.gameRenderer
-	inline val networkHandler get() = player?.networkHandler
-	inline val instance get() = MinecraftClient.getInstance()
-	inline val keyboard get() = instance.keyboard
-	inline val interactionManager get() = instance.interactionManager
+	inline val networkHandler get() = player?.connection
+	inline val instance get() = Minecraft.getInstance()
+	inline val keyboard get() = instance.keyboardHandler
+	inline val interactionManager get() = instance.gameMode
 	inline val textureManager get() = instance.textureManager
 	inline val options get() = instance.options
-	inline val inGameHud: InGameHud get() = instance.inGameHud
-	inline val font get() = instance.textRenderer
+	inline val inGameHud: Gui get() = instance.gui
+	inline val font get() = instance.font
 	inline val soundManager get() = instance.soundManager
-	inline val player: ClientPlayerEntity? get() = TestUtil.unlessTesting { instance.player }
+	inline val player: LocalPlayer? get() = TestUtil.unlessTesting { instance.player }
 	inline val camera: Entity? get() = instance.cameraEntity
-	inline val stackInHand: ItemStack get() = player?.mainHandStack ?: ItemStack.EMPTY
-	inline val world: ClientWorld? get() = TestUtil.unlessTesting { instance.world }
-	inline val playerName: String get() = player?.name?.unformattedString ?: MC.instance.session.username
+	inline val stackInHand: ItemStack get() = player?.mainHandItem ?: ItemStack.EMPTY
+	inline val world: ClientLevel? get() = TestUtil.unlessTesting { instance.level }
+	inline val playerName: String get() = player?.name?.unformattedString ?: MC.instance.user.name
 	inline var screen: Screen?
-		get() = TestUtil.unlessTesting { instance.currentScreen }
+		get() = TestUtil.unlessTesting { instance.screen }
 		set(value) = instance.setScreen(value)
 	val screenName get() = screen?.title?.unformattedString?.trim()
-	inline val handledScreen: HandledScreen<*>? get() = instance.currentScreen as? HandledScreen<*>
+	inline val handledScreen: AbstractContainerScreen<*>? get() = instance.screen as? AbstractContainerScreen<*>
 	inline val window get() = instance.window
-	inline val currentRegistries: RegistryWrapper.WrapperLookup? get() = world?.registryManager
-	val defaultRegistries: RegistryWrapper.WrapperLookup by lazy { BuiltinRegistries.createWrapperLookup() }
-	val defaultRegistryNbtOps by lazy { RegistryOps.of(NbtOps.INSTANCE, defaultRegistries) }
+	inline val currentRegistries: HolderLookup.Provider? get() = world?.registryAccess()
+	val defaultRegistries: HolderLookup.Provider by lazy { VanillaRegistries.createLookup() }
+	val defaultRegistryNbtOps by lazy { RegistryOps.create(NbtOps.INSTANCE, defaultRegistries) }
 	inline val currentOrDefaultRegistries get() = currentRegistries ?: defaultRegistries
 	val currentOrDefaultRegistryNbtOps get() = TolerantRegistriesOps(NbtOps.INSTANCE, currentOrDefaultRegistries)
-	val defaultItems: RegistryWrapper.Impl<Item> by lazy { defaultRegistries.getOrThrow(RegistryKeys.ITEM) }
+	val defaultItems: HolderLookup.RegistryLookup<Item> by lazy { defaultRegistries.lookupOrThrow(Registries.ITEM) }
 	var currentTick = 0
-	var lastWorld: World? = null
+	var lastWorld: Level? = null
 		get() {
 			field = world ?: field
 			return field
@@ -140,17 +140,17 @@ object MC {
 		get() = (screen as? MoulConfigScreenComponent)?.guiContext
 
 	fun openUrl(uri: String) {
-		Util.getOperatingSystem().open(uri)
+		Util.getPlatform().openUri(uri)
 	}
 
-	fun <T> unsafeGetRegistryEntry(registry: RegistryKey<out Registry<T>>, identifier: Identifier) =
-		unsafeGetRegistryEntry(RegistryKey.of(registry, identifier))
+	fun <T> unsafeGetRegistryEntry(registry: ResourceKey<out Registry<T>>, identifier: ResourceLocation) =
+		unsafeGetRegistryEntry(ResourceKey.create(registry, identifier))
 
 
-	fun <T> unsafeGetRegistryEntry(registryKey: RegistryKey<T>): T? {
+	fun <T> unsafeGetRegistryEntry(registryKey: ResourceKey<T>): T? {
 		return currentOrDefaultRegistries
-			.getOrThrow(registryKey.registryRef)
-			.getOptional(registryKey)
+			.lookupOrThrow(registryKey.registryKey())
+			.get(registryKey)
 			.getOrNull()
 			?.value()
 	}

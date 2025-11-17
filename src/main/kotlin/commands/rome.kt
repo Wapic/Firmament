@@ -6,10 +6,10 @@ import com.mojang.brigadier.arguments.StringArgumentType.string
 import java.net.http.HttpResponse
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import kotlinx.coroutines.launch
-import net.minecraft.command.CommandRegistryAccess
+import net.minecraft.commands.CommandBuildContext
 import net.minecraft.nbt.NbtOps
-import net.minecraft.text.Text
-import net.minecraft.text.TextCodecs
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.ComponentSerialization
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.apis.UrsaManager
 import moe.nea.firmament.events.CommandEvent
@@ -46,7 +46,7 @@ import moe.nea.firmament.util.tr
 import moe.nea.firmament.util.unformattedString
 
 
-fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
+fun firmamentCommand(ctx: CommandBuildContext) = literal("firmament") {
 	thenLiteral("config") {
 		thenExecute {
 			AllConfigsGui.showAllGuis()
@@ -71,7 +71,7 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 						val configObj = ManagedConfig.allManagedConfigs.getAll().find { it.name == config }
 						if (configObj == null) {
 							source.sendFeedback(
-								Text.stringifiedTranslatable(
+								Component.translatableEscape(
 									"firmament.command.toggle.no-config-found",
 									config
 								)
@@ -81,13 +81,13 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 						val propertyObj = configObj.allOptions[property]
 						if (propertyObj == null) {
 							source.sendFeedback(
-								Text.stringifiedTranslatable("firmament.command.toggle.no-property-found", property)
+								Component.translatableEscape("firmament.command.toggle.no-property-found", property)
 							)
 							return@thenExecute
 						}
 						if (propertyObj.handler !is BooleanHandler) {
 							source.sendFeedback(
-								Text.stringifiedTranslatable("firmament.command.toggle.not-a-toggle", property)
+								Component.translatableEscape("firmament.command.toggle.not-a-toggle", property)
 							)
 							return@thenExecute
 						}
@@ -95,10 +95,10 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 						propertyObj.value = !propertyObj.value
 						configObj.markDirty()
 						source.sendFeedback(
-							Text.stringifiedTranslatable(
+							Component.translatableEscape(
 								"firmament.command.toggle.toggled", configObj.labelText,
 								propertyObj.labelText,
-								Text.translatable("firmament.toggle.${propertyObj.value}")
+								Component.translatable("firmament.toggle.${propertyObj.value}")
 							)
 						)
 					}
@@ -126,13 +126,13 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 	thenLiteral("storageoverview") {
 		thenExecute {
 			ScreenUtil.setScreenLater(StorageOverviewScreen())
-			MC.player?.networkHandler?.sendChatCommand("storage")
+			MC.player?.connection?.sendCommand("storage")
 		}
 	}
 	thenLiteral("storage") {
 		thenExecute {
 			ScreenUtil.setScreenLater(StorageOverlayScreen())
-			MC.player?.networkHandler?.sendChatCommand("storage")
+			MC.player?.connection?.sendCommand("storage")
 		}
 	}
 	thenLiteral("repo") {
@@ -148,12 +148,12 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 		thenLiteral("reload") {
 			thenLiteral("fetch") {
 				thenExecute {
-					source.sendFeedback(Text.translatable("firmament.repo.reload.network")) // TODO better reporting
+					source.sendFeedback(Component.translatable("firmament.repo.reload.network")) // TODO better reporting
 					RepoManager.launchAsyncUpdate()
 				}
 			}
 			thenExecute {
-				source.sendFeedback(Text.translatable("firmament.repo.reload.disk"))
+				source.sendFeedback(Component.translatable("firmament.repo.reload.disk"))
 				Firmament.coroutineScope.launch { RepoManager.reload() }
 			}
 		}
@@ -163,33 +163,33 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 			suggestsList { RepoManager.neuRepo.items.items.keys }
 			thenExecute {
 				val itemName = SkyblockId(get(item))
-				source.sendFeedback(Text.stringifiedTranslatable("firmament.price", itemName.neuItem))
+				source.sendFeedback(Component.translatableEscape("firmament.price", itemName.neuItem))
 				val bazaarData = HypixelStaticData.bazaarData[itemName.asBazaarStock]
 				if (bazaarData != null) {
-					source.sendFeedback(Text.translatable("firmament.price.bazaar"))
+					source.sendFeedback(Component.translatable("firmament.price.bazaar"))
 					source.sendFeedback(
-						Text.stringifiedTranslatable("firmament.price.bazaar.productid", bazaarData.productId.bazaarId)
+						Component.translatableEscape("firmament.price.bazaar.productid", bazaarData.productId.bazaarId)
 					)
 					source.sendFeedback(
-						Text.stringifiedTranslatable(
+						Component.translatableEscape(
 							"firmament.price.bazaar.buy.price",
 							FirmFormatters.formatCommas(bazaarData.quickStatus.buyPrice, 1)
 						)
 					)
 					source.sendFeedback(
-						Text.stringifiedTranslatable(
+						Component.translatableEscape(
 							"firmament.price.bazaar.buy.order",
 							bazaarData.quickStatus.buyOrders
 						)
 					)
 					source.sendFeedback(
-						Text.stringifiedTranslatable(
+						Component.translatableEscape(
 							"firmament.price.bazaar.sell.price",
 							FirmFormatters.formatCommas(bazaarData.quickStatus.sellPrice, 1)
 						)
 					)
 					source.sendFeedback(
-						Text.stringifiedTranslatable(
+						Component.translatableEscape(
 							"firmament.price.bazaar.sell.order",
 							bazaarData.quickStatus.sellOrders
 						)
@@ -198,7 +198,7 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 				val lowestBin = HypixelStaticData.lowestBin[itemName]
 				if (lowestBin != null) {
 					source.sendFeedback(
-						Text.stringifiedTranslatable(
+						Component.translatableEscape(
 							"firmament.price.lowestbin",
 							FirmFormatters.formatCommas(lowestBin, 1)
 						)
@@ -211,7 +211,7 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 		thenLiteral("simulate") {
 			thenArgument("message", RestArgumentType) { message ->
 				thenExecute {
-					MC.instance.messageHandler.onGameMessage(Text.literal(get(message)), false)
+					MC.instance.chatListener.handleSystemMessage(Component.literal(get(message)), false)
 				}
 			}
 		}
@@ -224,10 +224,10 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 						val enabled = DebugLogger.EnabledLogs.data
 						if (tagText in enabled) {
 							enabled.remove(tagText)
-							source.sendFeedback(Text.literal("Disabled $tagText debug logging"))
+							source.sendFeedback(Component.literal("Disabled $tagText debug logging"))
 						} else {
 							enabled.add(tagText)
-							source.sendFeedback(Text.literal("Enabled $tagText debug logging"))
+							source.sendFeedback(Component.literal("Enabled $tagText debug logging"))
 						}
 					}
 				}
@@ -236,11 +236,11 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 		thenLiteral("screens") {
 			thenExecute {
 				MC.sendChat(
-					Text.literal(
+					Component.literal(
 						"""
 					|Screen: ${MC.screen} (${MC.screen?.title})
-					|Screen Handler: ${MC.handledScreen?.screenHandler} ${MC.handledScreen?.screenHandler?.syncId}
-					|Player Screen Handler: ${MC.player?.currentScreenHandler} ${MC.player?.currentScreenHandler?.syncId}
+					|Screen Handler: ${MC.handledScreen?.menu} ${MC.handledScreen?.menu?.containerId}
+					|Player Screen Handler: ${MC.player?.containerMenu} ${MC.player?.containerMenu?.containerId}
 				""".trimMargin()
 					)
 				)
@@ -253,17 +253,17 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 		}
 		thenLiteral("dumpchat") {
 			thenExecute {
-				MC.inGameHud.chatHud.messages.forEach {
-					val nbt = TextCodecs.CODEC.encodeStart(NbtOps.INSTANCE, it.content).orThrow
+				MC.inGameHud.chat.messages.forEach {
+					val nbt = ComponentSerialization.CODEC.encodeStart(NbtOps.INSTANCE, it.content).orThrow
 					println(nbt)
 				}
 			}
 			thenArgument("search", string()) { search ->
 				thenExecute {
-					MC.inGameHud.chatHud.messages
+					MC.inGameHud.chat.messages
 						.filter { this[search] in it.content.unformattedString }
 						.forEach {
-							val nbt = TextCodecs.CODEC.encodeStart(NbtOps.INSTANCE, it.content).orThrow
+							val nbt = ComponentSerialization.CODEC.encodeStart(NbtOps.INSTANCE, it.content).orThrow
 							println(SNbtFormatter.prettify(nbt))
 						}
 				}
@@ -271,15 +271,15 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 		}
 		thenLiteral("sbdata") {
 			thenExecute {
-				source.sendFeedback(Text.stringifiedTranslatable("firmament.sbinfo.profile", SBData.profileId))
+				source.sendFeedback(Component.translatableEscape("firmament.sbinfo.profile", SBData.profileId))
 				val locrawInfo = SBData.locraw
 				if (locrawInfo == null) {
-					source.sendFeedback(Text.translatable("firmament.sbinfo.nolocraw"))
+					source.sendFeedback(Component.translatable("firmament.sbinfo.nolocraw"))
 				} else {
-					source.sendFeedback(Text.stringifiedTranslatable("firmament.sbinfo.server", locrawInfo.server))
-					source.sendFeedback(Text.stringifiedTranslatable("firmament.sbinfo.gametype", locrawInfo.gametype))
-					source.sendFeedback(Text.stringifiedTranslatable("firmament.sbinfo.mode", locrawInfo.mode))
-					source.sendFeedback(Text.stringifiedTranslatable("firmament.sbinfo.map", locrawInfo.map))
+					source.sendFeedback(Component.translatableEscape("firmament.sbinfo.server", locrawInfo.server))
+					source.sendFeedback(Component.translatableEscape("firmament.sbinfo.gametype", locrawInfo.gametype))
+					source.sendFeedback(Component.translatableEscape("firmament.sbinfo.mode", locrawInfo.mode))
+					source.sendFeedback(Component.translatableEscape("firmament.sbinfo.map", locrawInfo.map))
 					source.sendFeedback(
 						tr(
 							"firmament.sbinfo.custommining",
@@ -292,7 +292,7 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 		thenLiteral("copyEntities") {
 			thenExecute {
 				val player = MC.player ?: return@thenExecute
-				player.world.getOtherEntities(player, player.boundingBox.expand(12.0))
+				player.level.getEntities(player, player.boundingBox.inflate(12.0))
 					.forEach(PowerUserTools::showEntity)
 				PowerUserTools.showEntity(player)
 			}
@@ -301,9 +301,9 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 			thenArgument("path", string()) { path ->
 				thenExecute {
 					Firmament.coroutineScope.launch {
-						source.sendFeedback(Text.translatable("firmament.ursa.debugrequest.start"))
+						source.sendFeedback(Component.translatable("firmament.ursa.debugrequest.start"))
 						val text = UrsaManager.request(get(path).split("/"), HttpResponse.BodyHandlers.ofString())
-						source.sendFeedback(Text.stringifiedTranslatable("firmament.ursa.debugrequest.result", text))
+						source.sendFeedback(Component.translatableEscape("firmament.ursa.debugrequest.result", text))
 					}
 				}
 			}
@@ -332,13 +332,13 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 		}
 		thenLiteral("caches") {
 			thenExecute {
-				source.sendFeedback(Text.literal("Caches:"))
+				source.sendFeedback(Component.literal("Caches:"))
 				WeakCache.allInstances.getAll().forEach {
-					source.sendFeedback(Text.literal(" - ${it.name}: ${it.size}"))
+					source.sendFeedback(Component.literal(" - ${it.name}: ${it.size}"))
 				}
-				source.sendFeedback(Text.translatable("Instance lists:"))
+				source.sendFeedback(Component.translatable("Instance lists:"))
 				InstanceList.allInstances.getAll().forEach {
-					source.sendFeedback(Text.literal(" - ${it.name}: ${it.size}"))
+					source.sendFeedback(Component.literal(" - ${it.name}: ${it.size}"))
 				}
 			}
 		}
@@ -350,8 +350,8 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 						.map { it.removePrefix(plugin.mixinPackage) }
 						.forEach {
 							source.sendFeedback(
-								Text.literal(" - ").withColor(0xD020F0)
-									.append(Text.literal(it).withColor(0xF6BA20))
+								Component.literal(" - ").withColor(0xD020F0)
+									.append(Component.literal(it).withColor(0xF6BA20))
 							)
 						}
 				}
@@ -417,7 +417,7 @@ fun firmamentCommand(ctx: CommandRegistryAccess) = literal("firmament") {
 }
 
 
-fun registerFirmamentCommand(dispatcher: CommandDispatcher<FabricClientCommandSource>, ctx: CommandRegistryAccess) {
+fun registerFirmamentCommand(dispatcher: CommandDispatcher<FabricClientCommandSource>, ctx: CommandBuildContext) {
 	val firmament = dispatcher.register(firmamentCommand(ctx))
 	dispatcher.register(literal("firm") {
 		redirect(firmament)

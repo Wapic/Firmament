@@ -1,23 +1,23 @@
 package moe.nea.firmament.features.texturepack
 
-import net.minecraft.resource.ResourceManager
-import net.minecraft.resource.SinglePreparationResourceReloader
-import net.minecraft.text.Text
-import net.minecraft.util.profiler.Profiler
+import net.minecraft.server.packs.resources.ResourceManager
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener
+import net.minecraft.network.chat.Component
+import net.minecraft.util.profiling.ProfilerFiller
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.FinalizeResourceManagerEvent
 import moe.nea.firmament.util.ErrorUtil.intoCatch
 
-object CustomTextReplacements : SinglePreparationResourceReloader<List<TreeishTextReplacer>>() {
+object CustomTextReplacements : SimplePreparableReloadListener<List<TreeishTextReplacer>>() {
 
 	override fun prepare(
-		manager: ResourceManager,
-		profiler: Profiler
+        manager: ResourceManager,
+        profiler: ProfilerFiller
 	): List<TreeishTextReplacer> {
-		return manager.findResources("overrides/texts") { it.namespace == "firmskyblock" && it.path.endsWith(".json") }
+		return manager.listResources("overrides/texts") { it.namespace == "firmskyblock" && it.path.endsWith(".json") }
 			.mapNotNull {
-				Firmament.tryDecodeJsonFromStream<TreeishTextReplacer>(it.value.inputStream)
+				Firmament.tryDecodeJsonFromStream<TreeishTextReplacer>(it.value.open())
 					.intoCatch("Failed to load text override from ${it.key}").orNull()
 			}
 	}
@@ -25,20 +25,20 @@ object CustomTextReplacements : SinglePreparationResourceReloader<List<TreeishTe
 	var textReplacers: List<TreeishTextReplacer> = listOf()
 
 	override fun apply(
-		prepared: List<TreeishTextReplacer>,
-		manager: ResourceManager,
-		profiler: Profiler
+        prepared: List<TreeishTextReplacer>,
+        manager: ResourceManager,
+        profiler: ProfilerFiller
 	) {
 		this.textReplacers = prepared
 	}
 
 	@JvmStatic
-	fun replaceTexts(texts: List<Text>): List<Text> {
+	fun replaceTexts(texts: List<Component>): List<Component> {
 		return texts.map { replaceText(it) }
 	}
 
 	@JvmStatic
-	fun replaceText(text: Text): Text {
+	fun replaceText(text: Component): Component {
 		// TODO: add a config option for this
 		val rawText = text.string
 		var text = text
@@ -51,6 +51,6 @@ object CustomTextReplacements : SinglePreparationResourceReloader<List<TreeishTe
 
 	@Subscribe
 	fun onReloadStart(event: FinalizeResourceManagerEvent) {
-		event.resourceManager.registerReloader(this)
+		event.resourceManager.registerReloadListener(this)
 	}
 }

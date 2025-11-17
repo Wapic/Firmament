@@ -5,30 +5,30 @@ import me.shedaniel.math.Color
 import org.joml.Vector3f
 import util.render.CustomRenderLayers
 import kotlin.math.abs
-import net.minecraft.client.gl.RenderPipelines
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.ScreenRect
-import net.minecraft.client.render.VertexConsumerProvider
-import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.util.Identifier
+import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.navigation.ScreenRectangle
+import net.minecraft.client.renderer.MultiBufferSource
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.util.MC
 
-fun DrawContext.isUntranslatedGuiDrawContext(): Boolean {
-	return matrices.m00 == 1F && matrices.m11 == 1f && matrices.m01 == 0F && matrices.m10 == 0F && matrices.m20 == 0F && matrices.m21 == 0F
+fun GuiGraphics.isUntranslatedGuiDrawContext(): Boolean {
+	return pose().m00 == 1F && pose().m11 == 1f && pose().m01 == 0F && pose().m10 == 0F && pose().m20 == 0F && pose().m21 == 0F
 }
 
 @Deprecated("Use the other drawGuiTexture")
-fun DrawContext.drawGuiTexture(
-	x: Int, y: Int, z: Int, width: Int, height: Int, sprite: Identifier
-) = this.drawGuiTexture(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height)
+fun GuiGraphics.drawGuiTexture(
+	x: Int, y: Int, z: Int, width: Int, height: Int, sprite: ResourceLocation
+) = this.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height)
 
-fun DrawContext.drawGuiTexture(
-	sprite: Identifier,
+fun GuiGraphics.drawGuiTexture(
+	sprite: ResourceLocation,
 	x: Int, y: Int, width: Int, height: Int
-) = this.drawGuiTexture(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height)
+) = this.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height)
 
-fun DrawContext.drawTexture(
-	sprite: Identifier,
+fun GuiGraphics.drawTexture(
+	sprite: ResourceLocation,
 	x: Int,
 	y: Int,
 	u: Float,
@@ -38,7 +38,7 @@ fun DrawContext.drawTexture(
 	textureWidth: Int,
 	textureHeight: Int
 ) {
-	this.drawTexture(
+	this.blit(
 		RenderPipelines.GUI_TEXTURED,
 		sprite,
 		x,
@@ -60,7 +60,7 @@ data class LineRenderState(
 	override val y1: Int,
 	override val y2: Int,
 	override val scale: Float,
-	override val bounds: ScreenRect,
+	override val bounds: ScreenRectangle,
 	val lineWidth: Float,
 	val w: Int,
 	val h: Int,
@@ -72,42 +72,42 @@ data class LineRenderState(
 		BOTTOM_LEFT_TO_TOP_RIGHT,
 	}
 
-	override fun createRenderer(vertexConsumers: VertexConsumerProvider.Immediate): MultiSpecialGuiRenderer<out MultiSpecialGuiRenderState> {
+	override fun createRenderer(vertexConsumers: MultiBufferSource.BufferSource): MultiSpecialGuiRenderer<out MultiSpecialGuiRenderState> {
 		return LineRenderer(vertexConsumers)
 	}
 
 	override val scissorArea = null
 }
 
-class LineRenderer(vertexConsumers: VertexConsumerProvider.Immediate) :
+class LineRenderer(vertexConsumers: MultiBufferSource.BufferSource) :
 	MultiSpecialGuiRenderer<LineRenderState>(vertexConsumers) {
-	override fun getElementClass(): Class<LineRenderState> {
+	override fun getRenderStateClass(): Class<LineRenderState> {
 		return LineRenderState::class.java
 	}
 
-	override fun getYOffset(height: Int, windowScaleFactor: Int): Float {
+	override fun getTranslateY(height: Int, windowScaleFactor: Int): Float {
 		return height / 2F
 	}
 
-	override fun render(
+	override fun renderToTexture(
 		state: LineRenderState,
-		matrices: MatrixStack
+		matrices: PoseStack
 	) {
 		val gr = MC.instance.gameRenderer
 		val client = MC.instance
-		gr.globalSettings
-			.set(
+		gr.globalSettingsUniform
+			.update(
 				state.bounds.width,
 				state.bounds.height,
-				client.options.glintStrength.getValue(),
-				client.world?.time ?: 0L,
-				client.renderTickCounter,
-				client.options.menuBackgroundBlurrinessValue
+				client.options.glintStrength().get(),
+				client.level?.gameTime ?: 0L,
+				client.deltaTracker,
+				client.options.menuBackgroundBlurriness
 			)
 
 		RenderSystem.lineWidth(state.lineWidth)
-		val buf = vertexConsumers.getBuffer(CustomRenderLayers.LINES)
-		val matrix = matrices.peek()
+		val buf = bufferSource.getBuffer(CustomRenderLayers.LINES)
+		val matrix = matrices.last()
 		val wh = state.w / 2F
 		val hh = state.h / 2F
 		val lowX = -wh
@@ -115,50 +115,50 @@ class LineRenderer(vertexConsumers: VertexConsumerProvider.Immediate) :
 		val highX = wh
 		val highY = -lowY
 		val norm = Vector3f(highX - lowX, highY - lowY, 0F).normalize()
-		buf.vertex(matrix, lowX, lowY, 0F).color(state.color)
-			.normal(matrix, norm)
-		buf.vertex(matrix, highX, highY, 0F).color(state.color)
-			.normal(matrix, norm)
-		vertexConsumers.draw()
-		gr.globalSettings
-			.set(
-				client.window.framebufferWidth,
-				client.window.framebufferHeight,
-				client.options.glintStrength.getValue(),
-				client.world?.getTime() ?: 0L,
-				client.renderTickCounter,
-				client.options.menuBackgroundBlurrinessValue
+		buf.addVertex(matrix, lowX, lowY, 0F).setColor(state.color)
+			.setNormal(matrix, norm)
+		buf.addVertex(matrix, highX, highY, 0F).setColor(state.color)
+			.setNormal(matrix, norm)
+		bufferSource.endBatch()
+		gr.globalSettingsUniform
+			.update(
+				client.window.width,
+				client.window.height,
+				client.options.glintStrength().get(),
+				client.level?.gameTime ?: 0L,
+				client.deltaTracker,
+				client.options.menuBackgroundBlurriness
 			)
 
 	}
 
-	override fun getName(): String? {
+	override fun getTextureLabel(): String? {
 		return "Firmament Line Renderer"
 	}
 }
 
 
-fun DrawContext.drawLine(fromX: Int, fromY: Int, toX: Int, toY: Int, color: Color, lineWidth: Float = 1F) {
+fun GuiGraphics.drawLine(fromX: Int, fromY: Int, toX: Int, toY: Int, color: Color, lineWidth: Float = 1F) {
 	if (toY < fromY) {
 		drawLine(toX, toY, fromX, fromY, color)
 		return
 	}
-	val originalRect = ScreenRect(
+	val originalRect = ScreenRectangle(
 		minOf(fromX, toX), minOf(toY, fromY),
 		abs(toX - fromX), abs(toY - fromY)
-	).transform(matrices)
+	).transformAxisAligned(pose())
 	val expansionFactor = 3
-	val rect = ScreenRect(
-		originalRect.left - expansionFactor,
-		originalRect.top - expansionFactor,
+	val rect = ScreenRectangle(
+		originalRect.left() - expansionFactor,
+		originalRect.top() - expansionFactor,
 		originalRect.width + expansionFactor * 2,
 		originalRect.height + expansionFactor * 2
 	)
 	// TODO: expand the bounds so that the thickness of the line can be used
 	// TODO: fix this up to work with scissorarea
-	state.addSpecialElement(
+	guiRenderState.submitPicturesInPictureState(
 		LineRenderState(
-			rect.left, rect.right, rect.top, rect.bottom, 1F, rect, lineWidth,
+			rect.left(), rect.right(), rect.top(), rect.bottom(), 1F, rect, lineWidth,
 			originalRect.width, originalRect.height, color.color,
 			if (fromX < toX) LineRenderState.LineDirection.TOP_LEFT_TO_BOTTOM_RIGHT else LineRenderState.LineDirection.BOTTOM_LEFT_TO_TOP_RIGHT
 		)

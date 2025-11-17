@@ -4,11 +4,11 @@ package moe.nea.firmament.mixins;
 
 import moe.nea.firmament.gui.config.KeyBindingHandler;
 import moe.nea.firmament.keybindings.FirmamentKeyBindings;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.option.ControlsListWidget;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.options.controls.KeyBindsList;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
@@ -18,39 +18,39 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ControlsListWidget.KeyBindingEntry.class)
+@Mixin(KeyBindsList.KeyEntry.class)
 public class FirmKeybindsInVanillaControlsPatch {
 
     @Mutable
     @Shadow
     @Final
-    private ButtonWidget editButton;
+    private Button changeButton;
 
     @Shadow
     @Final
-    private KeyBinding binding;
+    private KeyMapping key;
 
     @Shadow
     @Final
-    private ButtonWidget resetButton;
+    private Button resetButton;
 
-    @ModifyArg(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/widget/ButtonWidget;builder(Lnet/minecraft/text/Text;Lnet/minecraft/client/gui/widget/ButtonWidget$PressAction;)Lnet/minecraft/client/gui/widget/ButtonWidget$Builder;"))
-    public ButtonWidget.PressAction onInit(ButtonWidget.PressAction action) {
-        var config = FirmamentKeyBindings.INSTANCE.getKeyBindings().get(binding);
+    @ModifyArg(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/Button;builder(Lnet/minecraft/network/chat/Component;Lnet/minecraft/client/gui/components/Button$OnPress;)Lnet/minecraft/client/gui/components/Button$Builder;"))
+    public Button.OnPress onInit(Button.OnPress action) {
+        var config = FirmamentKeyBindings.INSTANCE.getKeyBindings().get(key);
         if (config == null) return action;
         return button -> {
             ((KeyBindingHandler) config.getHandler())
                 .getManagedConfig()
-                .showConfigEditor(MinecraftClient.getInstance().currentScreen);
+                .showConfigEditor(Minecraft.getInstance().screen);
         };
     }
 
-    @Inject(method = "update", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "refreshEntry", at = @At("HEAD"), cancellable = true)
     public void onUpdate(CallbackInfo ci) {
-        var config = FirmamentKeyBindings.INSTANCE.getKeyBindings().get(binding);
+        var config = FirmamentKeyBindings.INSTANCE.getKeyBindings().get(key);
         if (config == null) return;
         resetButton.active = false;
-        editButton.setMessage(Text.translatable("firmament.keybinding.external", config.getValue().format()));
+        changeButton.setMessage(Component.translatable("firmament.keybinding.external", config.getValue().format()));
         ci.cancel();
     }
 

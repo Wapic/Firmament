@@ -9,15 +9,15 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.future.await
 import kotlin.math.min
-import net.minecraft.client.gui.screen.ChatScreen
-import net.minecraft.client.texture.NativeImage
-import net.minecraft.client.texture.NativeImageBackedTexture
-import net.minecraft.text.ClickEvent
-import net.minecraft.text.HoverEvent
-import net.minecraft.text.Style
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
-import net.minecraft.util.Identifier
+import net.minecraft.client.gui.screens.ChatScreen
+import com.mojang.blaze3d.platform.NativeImage
+import net.minecraft.client.renderer.texture.DynamicTexture
+import net.minecraft.network.chat.ClickEvent
+import net.minecraft.network.chat.HoverEvent
+import net.minecraft.network.chat.Style
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ModifyChatEvent
@@ -54,7 +54,7 @@ object ChatLinks {
 	val nextTexId = AtomicInteger(0)
 
 	data class Image(
-		val texture: Identifier,
+		val texture: ResourceLocation,
 		val width: Int,
 		val height: Int,
 	)
@@ -76,9 +76,9 @@ object ChatLinks {
 					.await()
 				val image = NativeImage.read(inputStream)
 				val texId = Firmament.identifier("dynamic_image_preview${nextTexId.getAndIncrement()}")
-				MC.textureManager.registerTexture(
+				MC.textureManager.register(
 					texId,
-					NativeImageBackedTexture({ texId.path }, image)
+					DynamicTexture({ texId.path }, image)
 				)
 				Image(texId, image.width, image.height)
 			} catch (exc: Exception) {
@@ -99,7 +99,7 @@ object ChatLinks {
 		if (!TConfig.imageEnabled) return
 		if (it.screen !is ChatScreen) return
 		val hoveredComponent =
-			MC.inGameHud.chatHud.getTextStyleAt(it.mouseX.toDouble(), it.mouseY.toDouble()) ?: return
+			MC.inGameHud.chat.getClickedComponentStyleAt(it.mouseX.toDouble(), it.mouseY.toDouble()) ?: return
 		val hoverEvent = hoveredComponent.hoverEvent as? HoverEvent.ShowText ?: return
 		val value = hoverEvent.value
 		val url = urlRegex.matchEntire(value.unformattedString)?.groupValues?.get(0) ?: return
@@ -107,11 +107,11 @@ object ChatLinks {
 		val imageFuture = imageCache[url] ?: return
 		if (!imageFuture.isCompleted) return
 		val image = imageFuture.getCompleted() ?: return
-		it.drawContext.matrices.pushMatrix()
+		it.drawContext.pose().pushMatrix()
 		val pos = TConfig.position
-		pos.applyTransformations(JarvisIntegration.jarvis, it.drawContext.matrices)
+		pos.applyTransformations(JarvisIntegration.jarvis, it.drawContext.pose())
 		val scale = min(1F, min((9 * 20F) / image.height, (16 * 20F) / image.width))
-		it.drawContext.matrices.scale(scale, scale)
+		it.drawContext.pose().scale(scale, scale)
 		it.drawContext.drawTexture(
 			image.texture,
 			0,
@@ -123,7 +123,7 @@ object ChatLinks {
 			image.width,
 			image.height,
 		)
-		it.drawContext.matrices.popMatrix()
+		it.drawContext.pose().popMatrix()
 	}
 
 	@Subscribe
@@ -132,23 +132,23 @@ object ChatLinks {
 		it.replaceWith = it.replaceWith.transformEachRecursively { child ->
 			val text = child.string
 			if ("://" !in text) return@transformEachRecursively child
-			val s = Text.empty().setStyle(child.style)
+			val s = Component.empty().setStyle(child.style)
 			var index = 0
 			while (index < text.length) {
 				val nextMatch = urlRegex.find(text, index)
 				val url = nextMatch?.groupValues[0]
 				val uri = runCatching { url?.let(::URI) }.getOrNull()
 				if (nextMatch == null || url == null || uri == null) {
-					s.append(Text.literal(text.substring(index, text.length)))
+					s.append(Component.literal(text.substring(index, text.length)))
 					break
 				}
 				val range = nextMatch.groups[0]!!.range
-				s.append(Text.literal(text.substring(index, range.first)))
+				s.append(Component.literal(text.substring(index, range.first)))
 				s.append(
-					Text.literal(url).setStyle(
-						Style.EMPTY.withUnderline(true).withColor(
-							Formatting.AQUA
-						).withHoverEvent(HoverEvent.ShowText(Text.literal(url)))
+					Component.literal(url).setStyle(
+						Style.EMPTY.withUnderlined(true).withColor(
+							ChatFormatting.AQUA
+						).withHoverEvent(HoverEvent.ShowText(Component.literal(url)))
 							.withClickEvent(ClickEvent.OpenUrl(uri))
 					)
 				)

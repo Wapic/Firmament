@@ -1,11 +1,11 @@
 package moe.nea.firmament.util.customgui
 
 import me.shedaniel.math.Rectangle
-import net.minecraft.client.gui.Click
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.input.CharInput
-import net.minecraft.client.input.KeyInput
-import net.minecraft.screen.slot.Slot
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.input.CharacterEvent
+import net.minecraft.client.input.KeyEvent
+import net.minecraft.world.inventory.Slot
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HandledScreenPushREIEvent
 
@@ -26,19 +26,19 @@ abstract class CustomGui {
 	}
 
 	open fun render(
-		drawContext: DrawContext,
-		delta: Float,
-		mouseX: Int,
-		mouseY: Int
+        drawContext: GuiGraphics,
+        delta: Float,
+        mouseX: Int,
+        mouseY: Int
 	) {
 	}
 
-	open fun mouseClick(click: Click, doubled: Boolean): Boolean {
+	open fun mouseClick(click: MouseButtonEvent, doubled: Boolean): Boolean {
 		return false
 	}
 
-	open fun afterSlotRender(context: DrawContext, slot: Slot) {}
-	open fun beforeSlotRender(context: DrawContext, slot: Slot) {}
+	open fun afterSlotRender(context: GuiGraphics, slot: Slot) {}
+	open fun beforeSlotRender(context: GuiGraphics, slot: Slot) {}
 	open fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double): Boolean {
 		return false
 	}
@@ -72,23 +72,23 @@ abstract class CustomGui {
 		return true
 	}
 
-	open fun mouseReleased(click: Click): Boolean {
+	open fun mouseReleased(click: MouseButtonEvent): Boolean {
 		return false
 	}
 
-	open fun mouseDragged(click: Click, offsetX: Double, offsetY: Double): Boolean {
+	open fun mouseDragged(click: MouseButtonEvent, offsetX: Double, offsetY: Double): Boolean {
 		return false
 	}
 
-	open fun keyPressed(input: KeyInput): Boolean {
+	open fun keyPressed(input: KeyEvent): Boolean {
 		return false
 	}
 
-	open fun charTyped(input: CharInput): Boolean {
+	open fun charTyped(input: CharacterEvent): Boolean {
 		return false
 	}
 
-	open fun keyReleased(input: KeyInput): Boolean {
+	open fun keyReleased(input: KeyEvent): Boolean {
 		return false
 	}
 }

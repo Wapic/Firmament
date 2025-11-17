@@ -2,7 +2,7 @@ package moe.nea.firmament.test.features.macros
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import net.minecraft.client.util.InputUtil
+import com.mojang.blaze3d.platform.InputConstants
 import moe.nea.firmament.features.macros.Branch
 import moe.nea.firmament.features.macros.ComboKeyAction
 import moe.nea.firmament.features.macros.CommandAction
@@ -12,9 +12,9 @@ import moe.nea.firmament.keybindings.SavedKeyBinding
 
 class KeyComboTrieCreation {
 	val basicAction = CommandAction("ac Hello")
-	val aPress = SavedKeyBinding.keyWithoutMods(InputUtil.GLFW_KEY_A)
-	val bPress = SavedKeyBinding.keyWithoutMods(InputUtil.GLFW_KEY_B)
-	val cPress = SavedKeyBinding.keyWithoutMods(InputUtil.GLFW_KEY_C)
+	val aPress = SavedKeyBinding.keyWithoutMods(InputConstants.KEY_A)
+	val bPress = SavedKeyBinding.keyWithoutMods(InputConstants.KEY_B)
+	val cPress = SavedKeyBinding.keyWithoutMods(InputConstants.KEY_C)
 
 	@Test
 	fun testValidShortTrie() {

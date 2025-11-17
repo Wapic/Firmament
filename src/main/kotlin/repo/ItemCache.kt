@@ -19,21 +19,21 @@ import kotlinx.coroutines.withContext
 import kotlin.io.path.readText
 import kotlin.jvm.optionals.getOrNull
 import net.minecraft.SharedConstants
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.NbtComponent
-import net.minecraft.datafixer.Schemas
-import net.minecraft.datafixer.TypeReferences
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtElement
+import net.minecraft.core.component.DataComponents
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtOps
-import net.minecraft.nbt.NbtString
-import net.minecraft.nbt.StringNbtReader
-import net.minecraft.text.MutableText
-import net.minecraft.text.Style
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
+import net.minecraft.nbt.StringTag
+import net.minecraft.nbt.Tag
+import net.minecraft.nbt.TagParser
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Style
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.datafix.DataFixers
+import net.minecraft.util.datafix.fixes.References
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import net.minecraft.world.item.component.CustomData
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.features.debug.ExportedTestConstantMeta
 import moe.nea.firmament.repo.RepoManager.initialize
@@ -56,12 +56,12 @@ import moe.nea.firmament.util.transformEachRecursively
 
 object ItemCache : IReloadable {
 	private val cache: MutableMap<String, ItemStack> = ConcurrentHashMap()
-	private val df = Schemas.getFixer()
+	private val df = DataFixers.getDataFixer()
 	val logger = LogManager.getLogger("${Firmament.logger.name}.ItemCache")
 	var isFlawless = true
 		private set
 
-	private fun NEUItem.get10809CompoundTag(): NbtCompound = NbtCompound().apply {
+	private fun NEUItem.get10809CompoundTag(): CompoundTag = CompoundTag().apply {
 		put("tag", LegacyTagParser.parse(nbttag))
 		putString("id", minecraftItemId)
 		putByte("Count", 1)
@@ -69,18 +69,18 @@ object ItemCache : IReloadable {
 	}
 
 	@ExpensiveItemCacheApi
-	private fun NbtCompound.transformFrom10809ToModern() = convert189ToModern(this@transformFrom10809ToModern)
-	val currentSaveVersion = SharedConstants.getGameVersion().dataVersion().id
+	private fun CompoundTag.transformFrom10809ToModern() = convert189ToModern(this@transformFrom10809ToModern)
+	val currentSaveVersion = SharedConstants.getCurrentVersion().dataVersion().version
 
 	@ExpensiveItemCacheApi
-	fun convert189ToModern(nbtComponent: NbtCompound): NbtCompound? =
+	fun convert189ToModern(nbtComponent: CompoundTag): CompoundTag? =
 		try {
 			df.update(
-				TypeReferences.ITEM_STACK,
+				References.ITEM_STACK,
 				Dynamic(NbtOps.INSTANCE, nbtComponent),
 				-1,
 				currentSaveVersion
-			).value as NbtCompound
+			).value as CompoundTag
 		} catch (e: Exception) {
 			isFlawless = false
 			logger.error("Could not data fix up $this", e)
@@ -97,24 +97,24 @@ object ItemCache : IReloadable {
 
 	fun brokenItemStack(neuItem: NEUItem?, idHint: SkyblockId? = null): ItemStack {
 		return ItemStack(Items.PAINTING).apply {
-			setCustomName(Text.literal(neuItem?.displayName ?: idHint?.neuItem ?: "null"))
+			setCustomName(Component.literal(neuItem?.displayName ?: idHint?.neuItem ?: "null"))
 			appendLore(
 				listOf(
-					Text.stringifiedTranslatable(
+					Component.translatableEscape(
 						"firmament.repo.brokenitem",
 						(neuItem?.skyblockItemId ?: idHint)
 					)
 				)
 			)
-			set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(NbtCompound().apply {
-				put("ID", NbtString.of(neuItem?.skyblockItemId ?: idHint?.neuItem ?: "null"))
+			set(DataComponents.CUSTOM_DATA, CustomData.of(CompoundTag().apply {
+				put("ID", StringTag.valueOf(neuItem?.skyblockItemId ?: idHint?.neuItem ?: "null"))
 			}))
 			set(FirmamentDataComponentTypes.IS_BROKEN, true)
 		}
 	}
 
-	fun un189Lore(lore: String): MutableText {
-		val base = Text.literal("")
+	fun un189Lore(lore: String): MutableComponent {
+		val base = Component.literal("")
 		base.setStyle(Style.EMPTY.withItalic(false))
 		var lastColorCode = Style.EMPTY
 		var readOffset = 0
@@ -125,7 +125,7 @@ object ItemCache : IReloadable {
 			}
 			val text = lore.substring(readOffset, nextCode)
 			if (text.isNotEmpty()) {
-				base.append(Text.literal(text).setStyle(lastColorCode))
+				base.append(Component.literal(text).setStyle(lastColorCode))
 			}
 			readOffset = nextCode + 2
 			if (nextCode + 1 < lore.length) {
@@ -135,27 +135,27 @@ object ItemCache : IReloadable {
 				if (modernFormatting.isColor) {
 					lastColorCode = Style.EMPTY.withColor(modernFormatting)
 				} else {
-					lastColorCode = lastColorCode.withFormatting(modernFormatting)
+					lastColorCode = lastColorCode.applyFormat(modernFormatting)
 				}
 			}
 		}
 		return base
 	}
 
-	fun tryFindFromModernFormat(skyblockId: SkyblockId): NbtCompound? {
+	fun tryFindFromModernFormat(skyblockId: SkyblockId): CompoundTag? {
 		val overlayFile =
 			RepoManager.overlayData.getMostModernReadableOverlay(skyblockId, currentSaveVersion) ?: return null
-		val overlay = StringNbtReader.readCompound(overlayFile.path.readText())
+		val overlay = TagParser.parseCompoundFully(overlayFile.path.readText())
 		val result = ExportedTestConstantMeta.SOURCE_CODEC.decode(
 			NbtOps.INSTANCE, overlay
 		).result().getOrNull() ?: return null
 		val meta = result.first
 		return df.update(
-			TypeReferences.ITEM_STACK,
+			References.ITEM_STACK,
 			Dynamic(NbtOps.INSTANCE, result.second),
 			meta.dataVersion,
 			currentSaveVersion
-		).value as NbtCompound
+		).value as CompoundTag
 	}
 
 	@ExpensiveItemCacheApi
@@ -177,10 +177,10 @@ object ItemCache : IReloadable {
 				val extraAttributes = tag.flatMap { it.getCompound("ExtraAttributes") }
 					.getOrNull()
 				if (extraAttributes != null)
-					itemInstance.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(extraAttributes))
+					itemInstance.set(DataComponents.CUSTOM_DATA, CustomData.of(extraAttributes))
 				val itemModel = tag.flatMap { it.getString("ItemModel") }.getOrNull()
 				if (itemModel != null)
-					itemInstance.set(DataComponentTypes.ITEM_MODEL, Identifier.of(itemModel))
+					itemInstance.set(DataComponents.ITEM_MODEL, ResourceLocation.parse(itemModel))
 			}
 			itemInstance.loreAccordingToNbt = lore.map { un189Lore(it) }
 			itemInstance.displayNameAccordingToNbt = un189Lore(displayName)
@@ -206,7 +206,7 @@ object ItemCache : IReloadable {
 		if (!loreReplacements.isNullOrEmpty()) {
 			s = s.copy()!!
 			s.applyLoreReplacements(loreReplacements)
-			s.setCustomName(s.name.applyLoreReplacements(loreReplacements))
+			s.setCustomName(s.hoverName.applyLoreReplacements(loreReplacements))
 		}
 		return s
 	}
@@ -219,13 +219,13 @@ object ItemCache : IReloadable {
 		}
 	}
 
-	fun Text.applyLoreReplacements(loreReplacements: Map<String, String>): Text {
+	fun Component.applyLoreReplacements(loreReplacements: Map<String, String>): Component {
 		return this.transformEachRecursively {
 			var string = it.directLiteralStringContent ?: return@transformEachRecursively it
 			loreReplacements.forEach { (find, replace) ->
 				string = string.replace("{$find}", replace)
 			}
-			Text.literal(string).setStyle(it.style)
+			Component.literal(string).setStyle(it.style)
 		}
 	}
 
@@ -289,7 +289,7 @@ object ItemCache : IReloadable {
 				"http://textures.minecraft.net/texture/7b951fed6a7b2cbc2036916dec7a46c4a56481564d14f945b6ebc03382766d3b"
 		}
 		val itemStack = ItemStack(Items.PLAYER_HEAD)
-		itemStack.setCustomName(Text.literal("§r§6" + NumberFormat.getInstance().format(coinAmount) + " Coins"))
+		itemStack.setCustomName(Component.literal("§r§6" + NumberFormat.getInstance().format(coinAmount) + " Coins"))
 		itemStack.setSkullOwner(uuid, texture)
 		return itemStack
 	}
@@ -303,10 +303,10 @@ object ItemCache : IReloadable {
 }
 
 
-operator fun NbtCompound.set(key: String, value: String) {
+operator fun CompoundTag.set(key: String, value: String) {
 	putString(key, value)
 }
 
-operator fun NbtCompound.set(key: String, value: NbtElement) {
+operator fun CompoundTag.set(key: String, value: Tag) {
 	put(key, value)
 }

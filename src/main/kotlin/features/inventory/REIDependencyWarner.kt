@@ -6,8 +6,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 import net.minecraft.SharedConstants
-import net.minecraft.text.ClickEvent
-import net.minecraft.text.Text
+import net.minecraft.network.chat.ClickEvent
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.thenExecute
@@ -31,22 +31,22 @@ object REIDependencyWarner {
 	var sentWarning = false
 
 	fun modrinthLink(slug: String) =
-		"https://modrinth.com/mod/$slug/versions?g=${SharedConstants.getGameVersion().name()}&l=fabric"
+		"https://modrinth.com/mod/$slug/versions?g=${SharedConstants.getCurrentVersion().name()}&l=fabric"
 
-	fun downloadButton(modName: String, modId: String, slug: String): Text {
+	fun downloadButton(modName: String, modId: String, slug: String): Component {
 		val alreadyDownloaded = FabricLoader.getInstance().isModLoaded(modId)
-		return Text.literal(" - ")
+		return Component.literal(" - ")
 			.white()
-			.append(Text.literal("[").aqua())
-			.append(Text.translatable("firmament.download", modName)
-				        .styled { it.withClickEvent(ClickEvent.OpenUrl(URI (modrinthLink(slug)))) }
+			.append(Component.literal("[").aqua())
+			.append(Component.translatable("firmament.download", modName)
+				        .withStyle { it.withClickEvent(ClickEvent.OpenUrl(URI (modrinthLink(slug)))) }
 				        .yellow()
 				        .also {
 					        if (alreadyDownloaded)
-						        it.append(Text.translatable("firmament.download.already", modName)
+						        it.append(Component.translatable("firmament.download.already", modName)
 							                  .lime())
 				        })
-			.append(Text.literal("]").aqua())
+			.append(Component.literal("]").aqua())
 	}
 
 	@Subscribe
@@ -60,11 +60,11 @@ object REIDependencyWarner {
 			delay(2.seconds)
 			// TODO: should we offer an automatic install that actually downloads the JARs and places them into the mod folder?
 			MC.sendChat(
-				Text.translatable("firmament.reiwarning").red().bold().append("\n")
+				Component.translatable("firmament.reiwarning").red().bold().append("\n")
 					.append(downloadButton("RoughlyEnoughItems", reiModId, "rei")).append("\n")
 					.append(downloadButton("Architectury API", "architectury", "architectury-api")).append("\n")
 					.append(downloadButton("Cloth Config API", "cloth-config", "cloth-config")).append("\n")
-					.append(Text.translatable("firmament.reiwarning.disable")
+					.append(Component.translatable("firmament.reiwarning.disable")
 						        .clickCommand("/firm disablereiwarning")
 						        .grey())
 			)
@@ -78,7 +78,7 @@ object REIDependencyWarner {
 			thenExecute {
 				RepoManager.TConfig.warnForMissingItemListMod = false
 				RepoManager.TConfig.markDirty()
-				MC.sendChat(Text.translatable("firmament.reiwarning.disabled").yellow())
+				MC.sendChat(Component.translatable("firmament.reiwarning.disabled").yellow())
 			}
 		}
 	}

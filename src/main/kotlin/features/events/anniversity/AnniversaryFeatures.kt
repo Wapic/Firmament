@@ -4,9 +4,9 @@ import io.github.notenoughupdates.moulconfig.observer.ObservableList
 import io.github.notenoughupdates.moulconfig.xml.Bind
 import org.joml.Vector2i
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.entity.passive.PigEntity
-import net.minecraft.text.Text
-import net.minecraft.util.math.BlockPos
+import net.minecraft.world.entity.animal.Pig
+import net.minecraft.network.chat.Component
+import net.minecraft.core.BlockPos
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.EntityInteractionEvent
 import moe.nea.firmament.events.ProcessChatEvent
@@ -36,16 +36,16 @@ object AnniversaryFeatures {
 	}
 
 	data class ClickedPig(
-		val clickedAt: TimeMark,
-		val startLocation: BlockPos,
-		val pigEntity: PigEntity
+        val clickedAt: TimeMark,
+        val startLocation: BlockPos,
+        val pigEntity: Pig
 	) {
 		@Bind("timeLeft")
 		fun getTimeLeft(): Double = 1 - clickedAt.passedTime() / pigDuration
 	}
 
 	val clickedPigs = ObservableList<ClickedPig>(mutableListOf())
-	var lastClickedPig: PigEntity? = null
+	var lastClickedPig: Pig? = null
 
 	val pigDuration = 90.seconds
 
@@ -62,14 +62,14 @@ object AnniversaryFeatures {
 		if (event.unformattedString == "Oink! Bring the pig back to the Shiny Orb!") {
 			val pig = lastClickedPig ?: return
 			// TODO: store proper location based on the orb location, maybe
-			val startLocation = pig.blockPos ?: return
+			val startLocation = pig.blockPosition() ?: return
 			clickedPigs.add(ClickedPig(TimeMark.now(), startLocation, pig))
 			lastClickedPig = null
 		}
 		if (event.unformattedString == "SHINY! The orb is charged! Click on it for loot!") {
 			val player = MC.player ?: return
 			val lowest =
-				clickedPigs.minByOrNull { it.startLocation.getSquaredDistance(player.pos) } ?: return
+				clickedPigs.minByOrNull { it.startLocation.distToCenterSqr(player.position) } ?: return
 			clickedPigs.remove(lowest)
 		}
 		pattern.useMatch(event.unformattedString) {
@@ -166,7 +166,7 @@ object AnniversaryFeatures {
 
 	@Subscribe
 	fun onEntityClick(event: EntityInteractionEvent) {
-		if (event.entity is PigEntity) {
+		if (event.entity is Pig) {
 			lastClickedPig = event.entity
 		}
 	}
@@ -203,12 +203,12 @@ object AnniversaryFeatures {
 
 			@OptIn(ExpensiveItemCacheApi::class)
 			@Bind
-			fun name(): Text {
+			fun name(): Component {
 				return when (backedBy) {
-					is Reward.Coins -> Text.literal("Coins")
-					is Reward.EXP -> Text.literal(backedBy.skill)
-					is Reward.Items -> itemStack.asImmutableItemStack().name
-					is Reward.Unknown -> Text.literal(backedBy.text)
+					is Reward.Coins -> Component.literal("Coins")
+					is Reward.EXP -> Component.literal(backedBy.skill)
+					is Reward.Items -> itemStack.asImmutableItemStack().hoverName
+					is Reward.Unknown -> Component.literal(backedBy.text)
 				}
 			}
 

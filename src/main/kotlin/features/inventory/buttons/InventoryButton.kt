@@ -5,14 +5,14 @@ import me.shedaniel.math.Dimension
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
 import kotlinx.serialization.Serializable
-import net.minecraft.client.gl.RenderPipelines
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.command.CommandRegistryAccess
-import net.minecraft.command.argument.ItemStackArgumentType
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.resource.featuretoggle.FeatureFlags
-import net.minecraft.util.Identifier
+import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.commands.CommandBuildContext
+import net.minecraft.commands.arguments.item.ItemArgument
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import net.minecraft.world.flag.FeatureFlags
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
 import moe.nea.firmament.repo.ItemCache.asItemStack
 import moe.nea.firmament.repo.ItemCache.isBroken
@@ -40,10 +40,10 @@ data class InventoryButton(
 
 	companion object {
 		val itemStackParser by lazy {
-			ItemStackArgumentType.itemStack(
-				CommandRegistryAccess.of(
+			ItemArgument.item(
+				CommandBuildContext.simple(
 					MC.defaultRegistries,
-					FeatureFlags.VANILLA_FEATURES
+					FeatureFlags.VANILLA_SET
 				)
 			)
 		}
@@ -71,7 +71,7 @@ data class InventoryButton(
 						else icon
 						val componentItem =
 							runCatching {
-								itemStackParser.parse(StringReader(giveSyntaxItem)).createStack(1, false)
+								itemStackParser.parse(StringReader(giveSyntaxItem)).createItemStack(1, false)
 							}.getOrNull()
 						if (componentItem != null)
 							itemStack = componentItem
@@ -84,23 +84,23 @@ data class InventoryButton(
 		}
 	}
 
-	fun render(context: DrawContext) {
-		context.drawGuiTexture(
+	fun render(context: GuiGraphics) {
+		context.blitSprite(
 			RenderPipelines.GUI_TEXTURED,
-			Identifier.of("firmament:inventory_button_background"),
+			ResourceLocation.parse("firmament:inventory_button_background"),
 			0,
 			0,
 			myDimension.width,
 			myDimension.height,
 		)
 		if (isGigantic) {
-			context.matrices.pushMatrix()
-			context.matrices.translate(myDimension.width / 2F, myDimension.height / 2F)
-			context.matrices.scale(2F)
-			context.drawItem(getItem(), -8, -8)
-			context.matrices.popMatrix()
+			context.pose().pushMatrix()
+			context.pose().translate(myDimension.width / 2F, myDimension.height / 2F)
+			context.pose().scale(2F)
+			context.renderItem(getItem(), -8, -8)
+			context.pose().popMatrix()
 		} else {
-			context.drawItem(getItem(), 1, 1)
+			context.renderItem(getItem(), 1, 1)
 		}
 	}
 

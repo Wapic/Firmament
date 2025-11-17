@@ -12,8 +12,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import net.minecraft.nbt.NbtString
-import net.minecraft.text.Text
+import net.minecraft.nbt.StringTag
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.util.json.intoGson
 import moe.nea.firmament.util.json.intoKotlinJson
 import moe.nea.firmament.util.removeColorCodes
@@ -21,7 +21,7 @@ import moe.nea.firmament.util.removeColorCodes
 @Serializable(with = StringMatcher.Serializer::class)
 interface StringMatcher {
 	fun matches(string: String): Boolean
-	fun matches(text: Text): Boolean {
+	fun matches(text: Component): Boolean {
 		return matches(text.string)
 	}
 
@@ -29,7 +29,7 @@ interface StringMatcher {
 
 	fun matchWithGroups(string: String): MatchNamedGroupCollection?
 
-	fun matches(nbt: NbtString): Boolean {
+	fun matches(nbt: StringTag): Boolean {
 		val string = nbt.value
 		val jsonStart = string.indexOf('{')
 		val stringStart = string.indexOf('"')

@@ -2,9 +2,9 @@ package moe.nea.firmament.features.fixes
 
 import org.joml.Vector2i
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.option.KeyBinding
-import net.minecraft.text.Text
+import net.minecraft.client.Minecraft
+import net.minecraft.client.KeyMapping
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HudRenderEvent
 import moe.nea.firmament.events.WorldKeyboardEvent
@@ -34,37 +34,37 @@ object Fixes {
 	}
 
 	fun handleIsPressed(
-		keyBinding: KeyBinding,
-		cir: CallbackInfoReturnable<Boolean>
+        keyBinding: KeyMapping,
+        cir: CallbackInfoReturnable<Boolean>
 	) {
-		if (keyBinding !== MinecraftClient.getInstance().options.sprintKey) return
+		if (keyBinding !== Minecraft.getInstance().options.keySprint) return
 		if (!TConfig.autoSprint) return
 		val player = MC.player ?: return
 		if (player.isSprinting) return
-		if (!TConfig.autoSprintUnderWater && player.isTouchingWater) return
+		if (!TConfig.autoSprintUnderWater && player.isInWater) return
 		cir.returnValue = true
 	}
 
 	@Subscribe
 	fun onRenderHud(it: HudRenderEvent) {
 		if (!TConfig.autoSprintKeyBinding.isBound) return
-		it.context.matrices.pushMatrix()
-		TConfig.autoSprintHud.applyTransformations(it.context.matrices)
-		it.context.drawText(
+		it.context.pose().pushMatrix()
+		TConfig.autoSprintHud.applyTransformations(it.context.pose())
+		it.context.drawString(
 			MC.font, (
 				if (MC.player?.isSprinting == true) {
-					Text.translatable("firmament.fixes.auto-sprint.sprinting")
+					Component.translatable("firmament.fixes.auto-sprint.sprinting")
 				} else if (TConfig.autoSprint) {
-					if (!TConfig.autoSprintUnderWater && MC.player?.isTouchingWater == true)
+					if (!TConfig.autoSprintUnderWater && MC.player?.isInWater == true)
 						tr("firmament.fixes.auto-sprint.under-water", "In Water")
 					else
-						Text.translatable("firmament.fixes.auto-sprint.on")
+						Component.translatable("firmament.fixes.auto-sprint.on")
 				} else {
-					Text.translatable("firmament.fixes.auto-sprint.not-sprinting")
+					Component.translatable("firmament.fixes.auto-sprint.not-sprinting")
 				}
 				), 0, 0, -1, true
 		)
-		it.context.matrices.popMatrix()
+		it.context.pose().popMatrix()
 	}
 
 	@Subscribe

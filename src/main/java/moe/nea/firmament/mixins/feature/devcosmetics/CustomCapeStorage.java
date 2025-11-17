@@ -1,12 +1,12 @@
 package moe.nea.firmament.mixins.feature.devcosmetics;
 
 import moe.nea.firmament.features.misc.CustomCapes;
-import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
-@Mixin(PlayerEntityRenderState.class)
+@Mixin(AvatarRenderState.class)
 public class CustomCapeStorage implements CustomCapes.CapeStorage {
 	@Unique
 	CustomCapes.CustomCape customCape;

@@ -1,10 +1,10 @@
 package moe.nea.firmament.events
 
-import net.minecraft.client.render.GameRenderer
-import net.minecraft.client.render.OverlayTexture
-import net.minecraft.client.render.entity.state.EntityRenderState
-import net.minecraft.entity.Entity
-import net.minecraft.entity.LivingEntity
+import net.minecraft.client.renderer.GameRenderer
+import net.minecraft.client.renderer.texture.OverlayTexture
+import net.minecraft.client.renderer.entity.state.EntityRenderState
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.LivingEntity
 import moe.nea.firmament.events.EntityRenderTintEvent.Companion.overlayOverride
 import moe.nea.firmament.util.render.TintedOverlayTexture
 
@@ -12,8 +12,8 @@ import moe.nea.firmament.util.render.TintedOverlayTexture
  * Change the tint color of a [LivingEntity]
  */
 class EntityRenderTintEvent(
-	val entity: Entity,
-	val renderState: HasTintRenderState
+    val entity: Entity,
+    val renderState: HasTintRenderState
 ) : FirmamentEvent.Cancellable() {
 	init {
 		if (entity !is LivingEntity) {

@@ -1,6 +1,6 @@
 package moe.nea.firmament.features.debug
 
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.thenExecute
 import moe.nea.firmament.commands.thenLiteral
@@ -43,7 +43,7 @@ object SoundVisualizer {
 			sounds.forEach { event ->
 				withFacingThePlayer(event.position) {
 					text(
-						Text.literal(event.sound.value().id.toString()).also {
+						Component.literal(event.sound.value().location.toString()).also {
 							if (event.cancelled)
 								it.red()
 						},

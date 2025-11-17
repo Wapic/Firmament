@@ -22,28 +22,28 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.serializer
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.block.Block
-import net.minecraft.block.BlockState
-import net.minecraft.block.Blocks
-import net.minecraft.client.render.model.Baker
-import net.minecraft.client.render.model.BlockStateModel
-import net.minecraft.client.render.model.BlockStatesLoader
-import net.minecraft.client.render.model.ReferencedModelsCollector
-import net.minecraft.client.render.model.SimpleBlockStateModel
-import net.minecraft.client.render.model.json.BlockModelDefinition
-import net.minecraft.client.render.model.json.ModelVariant
-import net.minecraft.registry.Registries
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.resource.Resource
-import net.minecraft.resource.ResourceManager
-import net.minecraft.resource.SinglePreparationResourceReloader
-import net.minecraft.state.StateManager
-import net.minecraft.util.Identifier
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Box
-import net.minecraft.util.profiler.Profiler
-import net.minecraft.util.thread.AsyncHelper
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.client.resources.model.ModelBaker
+import net.minecraft.client.renderer.block.model.BlockStateModel
+import net.minecraft.client.resources.model.BlockStateModelLoader
+import net.minecraft.client.resources.model.ModelDiscovery
+import net.minecraft.client.renderer.block.model.SingleVariant
+import net.minecraft.client.renderer.block.model.BlockModelDefinition
+import net.minecraft.client.renderer.block.model.Variant
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.registries.Registries
+import net.minecraft.server.packs.resources.Resource
+import net.minecraft.server.packs.resources.ResourceManager
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener
+import net.minecraft.world.level.block.state.StateDefinition
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.core.BlockPos
+import net.minecraft.world.phys.AABB
+import net.minecraft.util.profiling.ProfilerFiller
+import net.minecraft.util.thread.ParallelMapTransform
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.EarlyResourceReloadEvent
@@ -64,15 +64,15 @@ import moe.nea.firmament.util.json.SingletonSerializableList
 object CustomBlockTextures {
 	@Serializable
 	data class CustomBlockOverride(
-		val modes: @Serializable(SingletonSerializableList::class) List<String>,
-		val area: List<Area>? = null,
-		val replacements: Map<Identifier, Replacement>,
+        val modes: @Serializable(SingletonSerializableList::class) List<String>,
+        val area: List<Area>? = null,
+        val replacements: Map<ResourceLocation, Replacement>,
 	)
 
 	@Serializable(with = Replacement.Serializer::class)
 	data class Replacement(
-		val block: Identifier,
-		val sound: Identifier?,
+        val block: ResourceLocation,
+        val sound: ResourceLocation?,
 	) {
 		fun replace(block: BlockState): BlockStateModel? {
 			blockStateMap?.let { return it[block] }
@@ -83,7 +83,7 @@ object CustomBlockTextures {
 		lateinit var overridingBlock: Block
 
 		@Transient
-		val blockModelIdentifier get() = block.withPrefixedPath("block/")
+		val blockModelIdentifier get() = block.withPrefix("block/")
 
 		/**
 		 * Guaranteed to be set after [BakedReplacements.modelBakingFuture] is complete, if [unbakedBlockStateMap] is set.
@@ -92,7 +92,7 @@ object CustomBlockTextures {
 		var blockStateMap: Map<BlockState, BlockStateModel>? = null
 
 		@Transient
-		var unbakedBlockStateMap: Map<BlockState, BlockStateModel.UnbakedGrouped>? = null
+		var unbakedBlockStateMap: Map<BlockState, BlockStateModel.UnbakedRoot>? = null
 
 		/**
 		 * Guaranteed to be set after [BakedReplacements.modelBakingFuture] is complete. Prefer [blockStateMap] if present.
@@ -113,7 +113,7 @@ object CustomBlockTextures {
 				val jsonElement = decoder.decodeSerializableValue(delegate)
 				if (jsonElement is JsonPrimitive) {
 					require(jsonElement.isString)
-					return Replacement(Identifier.tryParse(jsonElement.content)!!, null)
+					return Replacement(ResourceLocation.tryParse(jsonElement.content)!!, null)
 				}
 				return (decoder as JsonDecoder).json.decodeFromJsonElement(DefaultSerializer, jsonElement)
 			}
@@ -126,8 +126,8 @@ object CustomBlockTextures {
 
 	@Serializable
 	data class Area(
-		val min: BlockPos,
-		val max: BlockPos,
+        val min: BlockPos,
+        val max: BlockPos,
 	) {
 		@Transient
 		val realMin = BlockPos(
@@ -164,8 +164,8 @@ object CustomBlockTextures {
 				(blockPos.z in realMin.z..realMax.z)
 		}
 
-		fun toBox(): Box {
-			return Box(
+		fun toBox(): AABB {
+			return AABB(
 				realMin.x.toDouble(),
 				realMin.y.toDouble(),
 				realMin.z.toDouble(),
@@ -227,9 +227,10 @@ object CustomBlockTextures {
 		currentIslandReplacements = replacements
 		if (lastReplacements != replacements) {
 			MC.nextTick {
-				MC.worldRenderer.chunks?.chunks?.forEach {
+				MC.worldRenderer.viewArea?.sections?.forEach {
 					// false schedules rebuilds outside a 27 block radius to happen async
-					it.scheduleRebuild(false)
+					// nb: this sets the dirty but to true, the boolean parameter specifies the update behaviour
+					it.setDirty(false)
 				}
 				sodiumReloadTask?.run()
 			}
@@ -313,13 +314,13 @@ object CustomBlockTextures {
 	}
 
 	private fun prepare(manager: ResourceManager): BakedReplacements {
-		val resources = manager.findResources("overrides/blocks") {
+		val resources = manager.listResources("overrides/blocks") {
 			it.namespace == "firmskyblock" && it.path.endsWith(".json")
 		}
 		val map = mutableMapOf<SkyBlockIsland, MutableMap<Block, MutableList<BlockReplacement>>>()
 		for ((file, resource) in resources) {
 			val json =
-				Firmament.tryDecodeJsonFromStream<CustomBlockOverride>(resource.inputStream)
+				Firmament.tryDecodeJsonFromStream<CustomBlockOverride>(resource.open())
 					.getOrElse { ex ->
 						logger.error("Failed to load block texture override at $file", ex)
 						continue
@@ -328,8 +329,8 @@ object CustomBlockTextures {
 				val island = SkyBlockIsland.forMode(mode)
 				val islandMpa = map.getOrPut(island, ::mutableMapOf)
 				for ((blockId, replacement) in json.replacements) {
-					val block = MC.defaultRegistries.getOrThrow(RegistryKeys.BLOCK)
-						.getOptional(RegistryKey.of(RegistryKeys.BLOCK, blockId))
+					val block = MC.defaultRegistries.lookupOrThrow(Registries.BLOCK)
+						.get(ResourceKey.create(Registries.BLOCK, blockId))
 						.getOrNull()
 					if (block == null) {
 						logger.error("Failed to load block texture override at ${file}: unknown block '$blockId'")
@@ -346,25 +347,25 @@ object CustomBlockTextures {
 
 	@Subscribe
 	fun onStart(event: FinalizeResourceManagerEvent) {
-		event.resourceManager.registerReloader(object :
-			SinglePreparationResourceReloader<BakedReplacements>() {
-			override fun prepare(manager: ResourceManager, profiler: Profiler): BakedReplacements {
+		event.resourceManager.registerReloadListener(object :
+			SimplePreparableReloadListener<BakedReplacements>() {
+			override fun prepare(manager: ResourceManager, profiler: ProfilerFiller): BakedReplacements {
 				return preparationFuture.join().also {
 					it.modelBakingFuture.join()
 				}
 			}
 
-			override fun apply(prepared: BakedReplacements, manager: ResourceManager, profiler: Profiler?) {
+			override fun apply(prepared: BakedReplacements, manager: ResourceManager, profiler: ProfilerFiller?) {
 				allLocationReplacements = prepared
 				refreshReplacements()
 			}
 		})
 	}
 
-	fun simpleBlockModel(blockId: Identifier): SimpleBlockStateModel.Unbaked {
+	fun simpleBlockModel(blockId: ResourceLocation): SingleVariant.Unbaked {
 		// TODO: does this need to be shared between resolving and baking? I think not, but it would probably be wise to do so in the future.
-		return SimpleBlockStateModel.Unbaked(
-			ModelVariant(blockId)
+		return SingleVariant.Unbaked(
+			Variant(blockId)
 		)
 	}
 
@@ -378,18 +379,18 @@ object CustomBlockTextures {
 	}
 
 	@JvmStatic
-	fun collectExtraModels(modelsCollector: ReferencedModelsCollector) {
+	fun collectExtraModels(modelsCollector: ModelDiscovery) {
 		preparationFuture.join().collectAllReplacements()
 			.forEach {
-				modelsCollector.resolve(simpleBlockModel(it.blockModelIdentifier))
+				modelsCollector.addRoot(simpleBlockModel(it.blockModelIdentifier))
 				it.unbakedBlockStateMap?.values?.forEach {
-					modelsCollector.resolve(it)
+					modelsCollector.addRoot(it)
 				}
 			}
 	}
 
 	@JvmStatic
-	fun createBakedModels(baker: Baker, executor: Executor): CompletableFuture<Void?> {
+	fun createBakedModels(baker: ModelBaker, executor: Executor): CompletableFuture<Void?> {
 		return preparationFuture.thenComposeAsync(Function { replacements ->
 			val allBlockStates = CompletableFuture.allOf(
 				*replacements.collectAllReplacements().filter { it.unbakedBlockStateMap != null }.map {
@@ -403,9 +404,9 @@ object CustomBlockTextures {
 				}.toList().toTypedArray()
 			)
 			val byModel = replacements.collectAllReplacements().groupBy { it.blockModelIdentifier }
-			val modelBakingTask = AsyncHelper.mapValues(byModel, { blockId, replacements ->
-				val unbakedModel = SimpleBlockStateModel.Unbaked(
-					ModelVariant(blockId)
+			val modelBakingTask = ParallelMapTransform.schedule(byModel, { blockId, replacements ->
+				val unbakedModel = SingleVariant.Unbaked(
+					Variant(blockId)
 				)
 				val baked = unbakedModel.bake(baker)
 				replacements.forEach {
@@ -422,38 +423,38 @@ object CustomBlockTextures {
 
 	@JvmStatic
 	fun collectExtraBlockStateMaps(
-		extra: BakedReplacements,
-		original: Map<Identifier, List<Resource>>,
-		stateManagers: Function<Identifier, StateManager<Block, BlockState>?>
+        extra: BakedReplacements,
+        original: Map<ResourceLocation, List<Resource>>,
+        stateManagers: Function<ResourceLocation, StateDefinition<Block, BlockState>?>
 	) {
 		extra.collectAllReplacements().forEach {
-			val blockId = Registries.BLOCK.getKey(it.overridingBlock).getOrNull()?.value ?: return@forEach
-			val allModels = mutableListOf<BlockStatesLoader.LoadedBlockStateDefinition>()
+			val blockId = BuiltInRegistries.BLOCK.getResourceKey(it.overridingBlock).getOrNull()?.location() ?: return@forEach
+			val allModels = mutableListOf<BlockStateModelLoader.LoadedBlockModelDefinition>()
 			val stateManager = stateManagers.apply(blockId) ?: return@forEach
-			for (resource in original[BlockStatesLoader.FINDER.toResourcePath(it.block)] ?: return@forEach) {
+			for (resource in original[BlockStateModelLoader.BLOCKSTATE_LISTER.idToFile(it.block)] ?: return@forEach) {
 				try {
-					resource.reader.use { reader ->
+					resource.openAsReader().use { reader ->
 						val jsonElement = JsonParser.parseReader(reader)
 						val blockModelDefinition =
 							BlockModelDefinition.CODEC.parse(JsonOps.INSTANCE, jsonElement)
 								.getOrThrow { msg: String? -> JsonParseException(msg) }
 						allModels.add(
-							BlockStatesLoader.LoadedBlockStateDefinition(
-								resource.getPackId(),
+							BlockStateModelLoader.LoadedBlockModelDefinition(
+								resource.sourcePackId(),
 								blockModelDefinition
 							)
 						)
 					}
 				} catch (exception: Exception) {
 					ErrorUtil.softError(
-						"Failed to load custom blockstate definition ${it.block} from pack ${resource.packId}",
+						"Failed to load custom blockstate definition ${it.block} from pack ${resource.sourcePackId()}",
 						exception
 					)
 				}
 			}
 
 			try {
-				it.unbakedBlockStateMap = BlockStatesLoader.combine(
+				it.unbakedBlockStateMap = BlockStateModelLoader.loadBlockStateDefinitionStack(
 					blockId,
 					stateManager,
 					allModels

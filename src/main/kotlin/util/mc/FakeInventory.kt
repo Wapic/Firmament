@@ -1,14 +1,14 @@
 package util.mc
 
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.inventory.Inventory
-import net.minecraft.item.ItemStack
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.Container
+import net.minecraft.world.item.ItemStack
 
-class FakeInventory(val stack: ItemStack) : Inventory {
-	override fun clear() {
+class FakeInventory(val stack: ItemStack) : Container {
+	override fun clearContent() {
 	}
 
-	override fun size(): Int {
+	override fun getContainerSize(): Int {
 		return 1
 	}
 
@@ -16,26 +16,26 @@ class FakeInventory(val stack: ItemStack) : Inventory {
 		return stack.isEmpty
 	}
 
-	override fun getStack(slot: Int): ItemStack {
+	override fun getItem(slot: Int): ItemStack {
 		require(slot == 0)
 		return stack
 	}
 
-	override fun removeStack(slot: Int, amount: Int): ItemStack {
+	override fun removeItem(slot: Int, amount: Int): ItemStack {
 		return ItemStack.EMPTY
 	}
 
-	override fun removeStack(slot: Int): ItemStack {
+	override fun removeItemNoUpdate(slot: Int): ItemStack {
 		return ItemStack.EMPTY
 	}
 
-	override fun setStack(slot: Int, stack: ItemStack?) {
+	override fun setItem(slot: Int, stack: ItemStack?) {
 	}
 
-	override fun markDirty() {
+	override fun setChanged() {
 	}
 
-	override fun canPlayerUse(player: PlayerEntity?): Boolean {
+	override fun stillValid(player: Player?): Boolean {
 		return true
 	}
 }

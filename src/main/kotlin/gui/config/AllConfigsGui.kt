@@ -2,8 +2,8 @@ package moe.nea.firmament.gui.config
 
 import io.github.notenoughupdates.moulconfig.observer.ObservableList
 import io.github.notenoughupdates.moulconfig.xml.Bind
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.text.Text
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.RestArgumentType
 import moe.nea.firmament.commands.get
@@ -41,12 +41,12 @@ object AllConfigsGui {
 
 		@Bind
 		fun close() {
-			MC.screen?.close()
+			MC.screen?.onClose()
 		}
 
 		class EntryMapping(val config: ManagedConfig) {
 			@Bind
-			fun name() = Text.translatable("firmament.config.${config.name}")
+			fun name() = Component.translatable("firmament.config.${config.name}")
 
 			@Bind
 			fun openEditor() {

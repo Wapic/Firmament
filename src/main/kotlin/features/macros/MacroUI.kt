@@ -55,7 +55,7 @@ class MacroUI {
 
 	fun discard() {
 		dontSave = true
-		MC.screen?.close()
+		MC.screen?.onClose()
 	}
 
 	class Command(
@@ -102,7 +102,7 @@ class MacroUI {
 
 		@Bind
 		fun back() {
-			MC.screen?.close()
+			MC.screen?.onClose()
 		}
 
 		@Bind
@@ -169,7 +169,7 @@ class MacroUI {
 
 	fun saveAndClose() {
 		save()
-		MC.screen?.close()
+		MC.screen?.onClose()
 	}
 
 	inner class Combos {
@@ -268,7 +268,7 @@ class MacroUI {
 
 		@Bind
 		fun back() {
-			MC.screen?.close()
+			MC.screen?.onClose()
 		}
 
 		@Bind

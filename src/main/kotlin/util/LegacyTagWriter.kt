@@ -1,27 +1,27 @@
 package moe.nea.firmament.util
 
 import kotlinx.serialization.json.JsonPrimitive
-import net.minecraft.nbt.AbstractNbtList
-import net.minecraft.nbt.NbtByte
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtDouble
-import net.minecraft.nbt.NbtElement
-import net.minecraft.nbt.NbtEnd
-import net.minecraft.nbt.NbtFloat
-import net.minecraft.nbt.NbtInt
-import net.minecraft.nbt.NbtLong
-import net.minecraft.nbt.NbtShort
-import net.minecraft.nbt.NbtString
+import net.minecraft.nbt.CollectionTag
+import net.minecraft.nbt.ByteTag
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.DoubleTag
+import net.minecraft.nbt.Tag
+import net.minecraft.nbt.EndTag
+import net.minecraft.nbt.FloatTag
+import net.minecraft.nbt.IntTag
+import net.minecraft.nbt.LongTag
+import net.minecraft.nbt.ShortTag
+import net.minecraft.nbt.StringTag
 import moe.nea.firmament.util.mc.SNbtFormatter.Companion.SIMPLE_NAME
 
 class LegacyTagWriter(val compact: Boolean) {
 	companion object {
-		fun stringify(nbt: NbtElement, compact: Boolean): String {
+		fun stringify(nbt: Tag, compact: Boolean): String {
 			return LegacyTagWriter(compact).also { it.writeElement(nbt) }
 				.stringWriter.toString()
 		}
 
-		fun NbtElement.toLegacyString(pretty: Boolean = false): String {
+		fun Tag.toLegacyString(pretty: Boolean = false): String {
 			return stringify(this, !pretty)
 		}
 	}
@@ -36,22 +36,22 @@ class LegacyTagWriter(val compact: Boolean) {
 		}
 	}
 
-	fun writeElement(nbt: NbtElement) {
+	fun writeElement(nbt: Tag) {
 		when (nbt) {
-			is NbtInt -> stringWriter.append(nbt.value.toString())
-			is NbtString -> stringWriter.append(escapeString(nbt.value))
-			is NbtFloat -> stringWriter.append(nbt.value).append('F')
-			is NbtDouble -> stringWriter.append(nbt.value).append('D')
-			is NbtByte -> stringWriter.append(nbt.value).append('B')
-			is NbtLong -> stringWriter.append(nbt.value).append('L')
-			is NbtShort -> stringWriter.append(nbt.value).append('S')
-			is NbtCompound -> writeCompound(nbt)
-			is NbtEnd -> {}
-			is AbstractNbtList -> writeArray(nbt)
+			is IntTag -> stringWriter.append(nbt.value.toString())
+			is StringTag -> stringWriter.append(escapeString(nbt.value))
+			is FloatTag -> stringWriter.append(nbt.value).append('F')
+			is DoubleTag -> stringWriter.append(nbt.value).append('D')
+			is ByteTag -> stringWriter.append(nbt.value).append('B')
+			is LongTag -> stringWriter.append(nbt.value).append('L')
+			is ShortTag -> stringWriter.append(nbt.value).append('S')
+			is CompoundTag -> writeCompound(nbt)
+			is EndTag -> {}
+			is CollectionTag -> writeArray(nbt)
 		}
 	}
 
-	fun writeArray(nbt: AbstractNbtList) {
+	fun writeArray(nbt: CollectionTag) {
 		stringWriter.append('[')
 		indent++
 		newLine()
@@ -69,7 +69,7 @@ class LegacyTagWriter(val compact: Boolean) {
 		stringWriter.append(']')
 	}
 
-	fun writeCompound(nbt: NbtCompound) {
+	fun writeCompound(nbt: CompoundTag) {
 		stringWriter.append('{')
 		indent++
 		newLine()
@@ -83,7 +83,7 @@ class LegacyTagWriter(val compact: Boolean) {
 			}
 		}
 		indent--
-		if (nbt.size != 0)
+		if (nbt.size() != 0)
 			newLine()
 		stringWriter.append('}')
 	}

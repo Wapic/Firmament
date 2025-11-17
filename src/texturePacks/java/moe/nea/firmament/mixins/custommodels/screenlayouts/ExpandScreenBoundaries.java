@@ -1,16 +1,16 @@
 package moe.nea.firmament.mixins.custommodels.screenlayouts;
 
 import moe.nea.firmament.features.texturepack.CustomScreenLayouts;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.gui.screen.ingame.RecipeBookScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractRecipeBookScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin({HandledScreen.class, RecipeBookScreen.class})
+@Mixin({AbstractContainerScreen.class, AbstractRecipeBookScreen.class})
 public class ExpandScreenBoundaries {
-	@Inject(method = "isClickOutsideBounds", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "hasClickedOutside", at = @At("HEAD"), cancellable = true)
 	private void onClickOutsideBounds(double mouseX, double mouseY, int left, int top, CallbackInfoReturnable<Boolean> cir) {
 		var background = CustomScreenLayouts.getMover(CustomScreenLayouts.CustomScreenLayout::getBackground);
 		if (background == null) return;

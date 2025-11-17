@@ -1,13 +1,13 @@
 package moe.nea.firmament.features.debug
 
-import net.minecraft.command.argument.RegistryKeyArgumentType
-import net.minecraft.component.ComponentType
-import net.minecraft.entity.Entity
-import net.minecraft.entity.decoration.ArmorStandEntity
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NbtElement
+import net.minecraft.commands.arguments.ResourceKeyArgument
+import net.minecraft.core.component.DataComponentType
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.decoration.ArmorStand
+import net.minecraft.world.item.ItemStack
+import net.minecraft.nbt.Tag
 import net.minecraft.nbt.NbtOps
-import net.minecraft.registry.RegistryKeys
+import net.minecraft.core.registries.Registries
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.get
 import moe.nea.firmament.commands.thenArgument
@@ -27,11 +27,11 @@ object AnimatedClothingScanner {
 
 	data class LensOfFashionTheft<T>(
 		val prism: NbtPrism,
-		val component: ComponentType<T>,
+		val component: DataComponentType<T>,
 	) {
-		fun observe(itemStack: ItemStack): Collection<NbtElement> {
+		fun observe(itemStack: ItemStack): Collection<Tag> {
 			val x = itemStack.get(component) ?: return listOf()
-			val nbt = component.codecOrThrow.encodeStart(NbtOps.INSTANCE, x).orThrow
+			val nbt = component.codecOrThrow().encodeStart(NbtOps.INSTANCE, x).orThrow
 			return prism.access(nbt)
 		}
 	}
@@ -115,16 +115,16 @@ object AnimatedClothingScanner {
 								)
 							)
 							val p = MC.player!!
-							val nearestPet = p.world.getEntitiesByClass(
-								ArmorStandEntity::class.java,
-								p.boundingBox.expand(10.0),
+							val nearestPet = p.level.getEntitiesOfClass(
+								ArmorStand::class.java,
+								p.boundingBox.inflate(10.0),
 								{ it.isMarker })
-								.minBy { it.squaredDistanceTo(p) }
+								.minBy { it.distanceToSqr(p) }
 							toggleObserve(nearestPet)
 						}
 					}
 					thenExecute {
-						val ent = MC.instance.targetedEntity
+						val ent = MC.instance.crosshairPickEntity
 						if (ent == null) {
 							source.sendFeedback(
 								tr(
@@ -140,7 +140,7 @@ object AnimatedClothingScanner {
 				thenLiteral("path") {
 					thenArgument(
 						"component",
-						RegistryKeyArgumentType.registryKey(RegistryKeys.DATA_COMPONENT_TYPE)
+						ResourceKeyArgument.key(Registries.DATA_COMPONENT_TYPE)
 					) { component ->
 						thenArgument("path", NbtPrism.Argument) { path ->
 							thenExecute {
@@ -151,7 +151,7 @@ object AnimatedClothingScanner {
 								source.sendFeedback(
 									tr(
 										"firmament.fitstealer.lensset",
-										"Analyzing path ${get(path)} for component ${get(component).value}"
+										"Analyzing path ${get(path)} for component ${get(component).location()}"
 									)
 								)
 							}

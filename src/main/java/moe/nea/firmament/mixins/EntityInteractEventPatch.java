@@ -2,32 +2,32 @@
 package moe.nea.firmament.mixins;
 
 import moe.nea.firmament.events.EntityInteractionEvent;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.EntityHitResult;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(ClientPlayerInteractionManager.class)
+@Mixin(MultiPlayerGameMode.class)
 public class EntityInteractEventPatch {
-    @Inject(method = "attackEntity", at = @At("HEAD"))
-    private void onAttack(PlayerEntity player, Entity target, CallbackInfo ci) {
-        EntityInteractionEvent.Companion.publish(new EntityInteractionEvent(EntityInteractionEvent.InteractionKind.ATTACK, target, Hand.MAIN_HAND));
+    @Inject(method = "attack", at = @At("HEAD"))
+    private void onAttack(Player player, Entity target, CallbackInfo ci) {
+        EntityInteractionEvent.Companion.publish(new EntityInteractionEvent(EntityInteractionEvent.InteractionKind.ATTACK, target, InteractionHand.MAIN_HAND));
     }
 
-    @Inject(method = "interactEntity", at = @At("HEAD"))
-    private void onInteract(PlayerEntity player, Entity entity, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
+    @Inject(method = "interact", at = @At("HEAD"))
+    private void onInteract(Player player, Entity entity, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
         EntityInteractionEvent.Companion.publish(new EntityInteractionEvent(EntityInteractionEvent.InteractionKind.INTERACT, entity, hand));
     }
 
-    @Inject(method = "interactEntityAtLocation", at = @At("HEAD"))
-    private void onInteractAtLocation(PlayerEntity player, Entity entity, EntityHitResult hitResult, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
+    @Inject(method = "interactAt", at = @At("HEAD"))
+    private void onInteractAtLocation(Player player, Entity entity, EntityHitResult hitResult, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
         EntityInteractionEvent.Companion.publish(new EntityInteractionEvent(EntityInteractionEvent.InteractionKind.INTERACT_AT_LOCATION, entity, hand));
     }
 

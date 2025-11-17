@@ -2,7 +2,7 @@ package moe.nea.firmament.features.world
 
 import io.github.notenoughupdates.moulconfig.observer.ObservableList
 import io.github.notenoughupdates.moulconfig.xml.Bind
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.features.events.anniversity.AnniversaryFeatures.atOnce
 import moe.nea.firmament.keybindings.SavedKeyBinding
 
@@ -12,7 +12,7 @@ class NpcWaypointGui(
 
     data class NavigableWaypointW(val waypoint: NavigableWaypoint) {
         @Bind
-        fun name() = Text.literal(waypoint.name)
+        fun name() = Component.literal(waypoint.name)
 
         @Bind
         fun isSelected() = NavigationHelper.targetWaypoint == waypoint

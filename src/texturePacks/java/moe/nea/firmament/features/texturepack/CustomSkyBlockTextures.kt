@@ -5,11 +5,11 @@ import com.mojang.authlib.properties.Property
 import java.util.Optional
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.block.SkullBlock
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.render.RenderLayer
-import net.minecraft.component.type.ProfileComponent
-import net.minecraft.util.Identifier
+import net.minecraft.world.level.block.SkullBlock
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.RenderType
+import net.minecraft.world.item.component.ResolvableProfile
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.CustomItemModelEvent
 import moe.nea.firmament.events.FinalizeResourceManagerEvent
@@ -75,13 +75,13 @@ object CustomSkyBlockTextures {
 	fun onCustomModelId(it: CustomItemModelEvent) {
 		if (!TConfig.enabled) return
 		val id = it.itemStack.skyBlockId ?: return
-		it.overrideIfEmpty(Identifier.of("firmskyblock", id.identifier.path))
+		it.overrideIfEmpty(ResourceLocation.fromNamespaceAndPath("firmskyblock", id.identifier.path))
 	}
 
 	private val skullTextureCache =
-		WeakCache.memoize<ProfileComponent, Optional<Identifier>>("SkullTextureCache") { component ->
+		WeakCache.memoize<ResolvableProfile, Optional<ResourceLocation>>("SkullTextureCache") { component ->
 			val id = getSkullTexture(component) ?: return@memoize Optional.empty()
-			if (!MinecraftClient.getInstance().resourceManager.getResource(id).isPresent) {
+			if (!Minecraft.getInstance().resourceManager.getResource(id).isPresent) {
 				return@memoize Optional.empty()
 			}
 			return@memoize Optional.of(id)
@@ -97,21 +97,21 @@ object CustomSkyBlockTextures {
 		return mcUrlData.groupValues[1]
 	}
 
-	fun getSkullTexture(profile: ProfileComponent): Identifier? {
-		val id = getSkullId(profile.gameProfile.properties["textures"].firstOrNull() ?: return null) ?: return null
-		return Identifier.of("firmskyblock", "textures/placedskull/$id.png")
+	fun getSkullTexture(profile: ResolvableProfile): ResourceLocation? {
+		val id = getSkullId(profile.partialProfile().properties["textures"].firstOrNull() ?: return null) ?: return null
+		return ResourceLocation.fromNamespaceAndPath("firmskyblock", "textures/placedskull/$id.png")
 	}
 
 	fun modifySkullTexture(
-		type: SkullBlock.SkullType?,
-		component: ProfileComponent?,
-		cir: CallbackInfoReturnable<RenderLayer>
+        type: SkullBlock.Type?,
+        component: ResolvableProfile?,
+        cir: CallbackInfoReturnable<RenderType>
 	) {
-		if (type != SkullBlock.Type.PLAYER) return
+		if (type != SkullBlock.Types.PLAYER) return
 		if (!TConfig.skullsEnabled) return
 		if (component == null) return
 
 		val n = skullTextureCache.invoke(component).getOrNull() ?: return
-		cir.returnValue = RenderLayer.getEntityTranslucent(n)
+		cir.returnValue = RenderType.entityTranslucent(n)
 	}
 }

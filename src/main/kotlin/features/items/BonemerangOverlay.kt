@@ -2,11 +2,11 @@ package moe.nea.firmament.features.items
 
 import me.shedaniel.math.Color
 import org.joml.Vector2i
-import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.decoration.ArmorStandEntity
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.util.Formatting
-import net.minecraft.util.math.Box
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.decoration.ArmorStand
+import net.minecraft.world.entity.player.Player
+import net.minecraft.ChatFormatting
+import net.minecraft.world.phys.AABB
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.EntityRenderTintEvent
 import moe.nea.firmament.events.HudRenderEvent
@@ -31,18 +31,18 @@ object BonemerangOverlay {
 
 	fun getEntities(): MutableSet<LivingEntity> {
 		val entities = mutableSetOf<LivingEntity>()
-		val camera = MC.camera as? PlayerEntity ?: return entities
+		val camera = MC.camera as? Player ?: return entities
 		val player = MC.player ?: return entities
-		val world = player.world ?: return entities
+		val world = player.level ?: return entities
 
-		val cameraPos = camera.eyePos
-		val rayDirection = camera.rotationVector.normalize()
-		val endPos = cameraPos.add(rayDirection.multiply(15.0))
-		val foundEntities = world.getOtherEntities(camera, Box(cameraPos, endPos).expand(1.0))
+		val cameraPos = camera.eyePosition
+		val rayDirection = camera.lookAngle.normalize()
+		val endPos = cameraPos.add(rayDirection.scale(15.0))
+		val foundEntities = world.getEntities(camera, AABB(cameraPos, endPos).inflate(1.0))
 
 		for (entity in foundEntities) {
-			if (entity !is LivingEntity || entity is ArmorStandEntity || entity.isInvisible) continue
-			val hitResult = entity.boundingBox.expand(0.35).raycast(cameraPos, endPos).orElse(null)
+			if (entity !is LivingEntity || entity is ArmorStand || entity.isInvisible) continue
+			val hitResult = entity.boundingBox.inflate(0.35).clip(cameraPos, endPos).orElse(null)
 			if (hitResult != null) entities.add(entity)
 		}
 
@@ -66,7 +66,7 @@ object BonemerangOverlay {
 		if (event.entity !in entities) return
 
 		val tintOverlay by lazy {
-			TintedOverlayTexture().setColor(Color.ofOpaque(Formatting.BLUE.colorValue!!))
+			TintedOverlayTexture().setColor(Color.ofOpaque(ChatFormatting.BLUE.color!!))
 		}
 
 		event.renderState.overlayTexture_firmament = tintOverlay
@@ -80,15 +80,15 @@ object BonemerangOverlay {
 
 		val entities = getEntities()
 
-		it.context.matrices.pushMatrix()
-		TConfig.bonemerangOverlayHud.applyTransformations(it.context.matrices)
-		it.context.drawText(
+		it.context.pose().pushMatrix()
+		TConfig.bonemerangOverlayHud.applyTransformations(it.context.pose())
+		it.context.drawString(
 			MC.font, String.format(
 				tr(
 					"firmament.bonemerang-overlay.bonemerang-overlay.display", "Bonemerang Targets: %s"
 				).string, entities.size
 			), 0, 0, -1, true
 		)
-		it.context.matrices.popMatrix()
+		it.context.pose().popMatrix()
 	}
 }

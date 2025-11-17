@@ -9,7 +9,7 @@ import io.github.notenoughupdates.moulconfig.gui.component.TextFieldComponent
 import io.github.notenoughupdates.moulconfig.observer.GetSetter
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
-import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.gui.screens.Screen
 import moe.nea.firmament.events.HandledScreenKeyPressedEvent
 import moe.nea.firmament.gui.FirmButtonComponent
 import moe.nea.firmament.keybindings.SavedKeyBinding

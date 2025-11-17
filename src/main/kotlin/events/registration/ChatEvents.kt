@@ -5,8 +5,8 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.fabricmc.fabric.api.event.player.UseItemCallback
-import net.minecraft.text.Text
-import net.minecraft.util.ActionResult
+import net.minecraft.network.chat.Component
+import net.minecraft.world.InteractionResult
 import moe.nea.firmament.events.AllowChatEvent
 import moe.nea.firmament.events.AttackBlockEvent
 import moe.nea.firmament.events.JoinServerEvent
@@ -15,7 +15,7 @@ import moe.nea.firmament.events.ProcessChatEvent
 import moe.nea.firmament.events.UseBlockEvent
 import moe.nea.firmament.events.UseItemEvent
 
-private var lastReceivedMessage: Text? = null
+private var lastReceivedMessage: Component? = null
 
 fun registerFirmamentEvents() {
 	ClientReceiveMessageEvents.ALLOW_CHAT.register(ClientReceiveMessageEvents.AllowChat { message, signedMessage, sender, params, receptionTimestamp ->
@@ -45,22 +45,22 @@ fun registerFirmamentEvents() {
 
 	AttackBlockCallback.EVENT.register(AttackBlockCallback { player, world, hand, pos, direction ->
 		if (AttackBlockEvent.publish(AttackBlockEvent(player, world, hand, pos, direction)).cancelled)
-			ActionResult.FAIL
-		else ActionResult.PASS
+			InteractionResult.FAIL
+		else InteractionResult.PASS
 	})
 	UseBlockCallback.EVENT.register(UseBlockCallback { player, world, hand, hitResult ->
 		if (UseBlockEvent.publish(UseBlockEvent(player, world, hand, hitResult)).cancelled)
-			ActionResult.FAIL
-		else ActionResult.PASS
+			InteractionResult.FAIL
+		else InteractionResult.PASS
 	})
 	UseBlockCallback.EVENT.register(UseBlockCallback { player, world, hand, hitResult ->
 		if (UseItemEvent.publish(UseItemEvent(player, world, hand)).cancelled)
-			ActionResult.FAIL
-		else ActionResult.PASS
+			InteractionResult.FAIL
+		else InteractionResult.PASS
 	})
 	UseItemCallback.EVENT.register(UseItemCallback { playerEntity, world, hand ->
-		if (UseItemEvent.publish(UseItemEvent(playerEntity, world, hand)).cancelled) ActionResult.FAIL
-		else ActionResult.PASS
+		if (UseItemEvent.publish(UseItemEvent(playerEntity, world, hand)).cancelled) InteractionResult.FAIL
+		else InteractionResult.PASS
 	})
 	ClientPlayConnectionEvents.JOIN.register { networkHandler, packetSender, _ ->
 		JoinServerEvent.publish(JoinServerEvent(networkHandler, packetSender))

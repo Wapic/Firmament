@@ -1,16 +1,16 @@
 
 package moe.nea.firmament.events
 
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.util.Hand
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Direction
-import net.minecraft.world.World
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.InteractionHand
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.world.level.Level
 
 data class AttackBlockEvent(
-    val player: PlayerEntity,
-    val world: World,
-    val hand: Hand,
+    val player: Player,
+    val world: Level,
+    val hand: InteractionHand,
     val blockPos: BlockPos,
     val direction: Direction
 ) : FirmamentEvent.Cancellable() {

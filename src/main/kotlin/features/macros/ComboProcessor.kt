@@ -1,7 +1,7 @@
 package moe.nea.firmament.features.macros
 
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HudRenderEvent
 import moe.nea.firmament.events.TickEvent
@@ -46,14 +46,14 @@ object ComboProcessor {
 	fun onRender(event: HudRenderEvent) {
 		if (!isInputting) return
 		if (!event.isRenderingHud) return
-		event.context.matrices.pushMatrix()
+		event.context.pose().pushMatrix()
 		val width = 120
-		event.context.matrices.translate(
-			(MC.window.scaledWidth - width) / 2F,
-			(MC.window.scaledHeight) / 2F + 8
+		event.context.pose().translate(
+			(MC.window.guiScaledWidth - width) / 2F,
+			(MC.window.guiScaledHeight) / 2F + 8
 		)
 		val breadCrumbText = breadCrumbs.joinToString(" > ")
-		event.context.drawText(
+		event.context.drawString(
 			MC.font,
 			tr("firmament.combo.active", "Current Combo: ").append(breadCrumbText),
 			0,
@@ -61,19 +61,19 @@ object ComboProcessor {
 			-1,
 			true
 		)
-		event.context.matrices.translate(0F, MC.font.fontHeight + 2F)
+		event.context.pose().translate(0F, MC.font.lineHeight + 2F)
 		for ((key, value) in activeTrie.nodes) {
-			event.context.drawText(
+			event.context.drawString(
 				MC.font,
-				Text.literal("$breadCrumbText > $key: ").append(value.label),
+				Component.literal("$breadCrumbText > $key: ").append(value.label),
 				0,
 				0,
 				-1,
 				true
 			)
-			event.context.matrices.translate(0F, MC.font.fontHeight + 1F)
+			event.context.pose().translate(0F, MC.font.lineHeight + 1F)
 		}
-		event.context.matrices.popMatrix()
+		event.context.pose().popMatrix()
 	}
 
 	@Subscribe

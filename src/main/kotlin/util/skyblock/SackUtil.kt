@@ -2,9 +2,9 @@ package moe.nea.firmament.util.skyblock
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
-import net.minecraft.text.HoverEvent
-import net.minecraft.text.Text
+import net.minecraft.client.gui.screens.inventory.ContainerScreen
+import net.minecraft.network.chat.HoverEvent
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ChestInventoryUpdateEvent
 import moe.nea.firmament.events.ProcessChatEvent
@@ -46,11 +46,11 @@ object SackUtil {
 
 	@Subscribe
 	fun storeDataFromInventory(event: ChestInventoryUpdateEvent) {
-		val screen = event.inventory as? GenericContainerScreen ?: return
+		val screen = event.inventory as? ContainerScreen ?: return
 		if (!screen.title.unformattedString.endsWith(" Sack")) return
-		val inv = screen.screenHandler?.inventory ?: return
-		if (inv.size() < 18) return
-		val backSlot = inv.getStack(inv.size() - 5)
+		val inv = screen.menu?.container ?: return
+		if (inv.containerSize < 18) return
+		val backSlot = inv.getItem(inv.containerSize - 5)
 		if (backSlot.displayNameAccordingToNbt.unformattedString != "Go Back") return
 		if (backSlot.loreAccordingToNbt.map { it.unformattedString } != listOf("To Sack of Sacks")) return
 		for (itemStack in inv.iterableView) {
@@ -74,7 +74,7 @@ object SackUtil {
 		getUpdatesFromMessage(event.text)
 	}
 
-	fun getUpdatesFromMessage(text: Text): List<SackUpdate> {
+	fun getUpdatesFromMessage(text: Component): List<SackUpdate> {
 		val update = ChatUpdate()
 		text.siblings.forEach(update::updateFromHoverText)
 		return update.updates
@@ -102,7 +102,7 @@ object SackUtil {
 			}
 		}
 
-		fun updateFromHoverText(text: Text) {
+		fun updateFromHoverText(text: Component) {
 			text.siblings.forEach(::updateFromHoverText)
 			val hoverText = (text.style.hoverEvent as? HoverEvent.ShowText)?.value ?: return
 			val cleanedText = hoverText.unformattedString

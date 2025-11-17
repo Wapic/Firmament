@@ -5,9 +5,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.text.MutableText
-import net.minecraft.text.Text
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.gui.FirmButtonComponent
 import moe.nea.firmament.jarvis.JarvisIntegration
@@ -15,11 +15,11 @@ import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.data.ManagedConfig
 
 class HudMetaHandler(
-	val config: ManagedConfig,
-	val propertyName: String,
-	val label: MutableText,
-	val width: Int,
-	val height: Int
+    val config: ManagedConfig,
+    val propertyName: String,
+    val label: MutableComponent,
+    val width: Int,
+    val height: Int
 ) :
 	ManagedConfig.OptionHandler<HudMeta> {
 	override fun toJson(element: HudMeta): JsonElement? {
@@ -42,7 +42,7 @@ class HudMetaHandler(
 			opt.labelText,
 			FirmButtonComponent(
 				TextComponent(
-					Text.stringifiedTranslatable("firmament.hud.edit", label).string
+					Component.translatableEscape("firmament.hud.edit", label).string
 				),
 			) {
 				openEditor(opt, guiAppender.screenAccessor())

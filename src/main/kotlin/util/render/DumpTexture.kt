@@ -4,7 +4,7 @@ import com.mojang.blaze3d.buffers.GpuBuffer
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.textures.GpuTexture
 import java.io.File
-import net.minecraft.client.texture.NativeImage
+import com.mojang.blaze3d.platform.NativeImage
 
 fun dumpTexture(gpuTexture: GpuTexture, name: String) {
 	val w = gpuTexture.getWidth(0)
@@ -23,12 +23,12 @@ fun dumpTexture(gpuTexture: GpuTexture, name: String) {
 				for (i in 0..<w) {
 					for (j in 0..<h) {
 						val color = mappedView.data().getInt((j + i * w) * gpuTexture.format.pixelSize())
-						nativeImage.setColor(j, h - i - 1, color)
+						nativeImage.setPixelABGR(j, h - i - 1, color)
 					}
 				}
 			}
 			buffer.close()
-			nativeImage.writeTo(File("$name.png"))
+			nativeImage.writeToFile(File("$name.png"))
 		}, 0
 	)
 }

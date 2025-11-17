@@ -1,8 +1,8 @@
 package moe.nea.firmament.features.inventory
 
 import org.lwjgl.glfw.GLFW
-import net.minecraft.text.Text
-import net.minecraft.util.StringIdentifiable
+import net.minecraft.network.chat.Component
+import net.minecraft.util.StringRepresentable
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ItemTooltipEvent
 import moe.nea.firmament.repo.HypixelStaticData
@@ -34,25 +34,25 @@ object PriceData {
 		}
 	}
 
-	enum class AvgLowestBin : StringIdentifiable {
+	enum class AvgLowestBin : StringRepresentable {
 		OFF,
 		ONEDAYAVGLOWESTBIN,
 		THREEDAYAVGLOWESTBIN,
 		SEVENDAYAVGLOWESTBIN;
 
-		override fun asString(): String {
+		override fun getSerializedName(): String {
 			return name
 		}
 	}
 
-	fun formatPrice(label: Text, price: Double): Text {
-		return Text.literal("")
+	fun formatPrice(label: Component, price: Double): Component {
+		return Component.literal("")
 			.yellow()
 			.bold()
 			.append(label)
 			.append(": ")
 			.append(
-				Text.literal(formatCommas(price, fractionalDigits = 1))
+				Component.literal(formatCommas(price, fractionalDigits = 1))
 					.append(if (price != 1.0) " coins" else " coin")
 					.gold()
 					.bold()
@@ -84,7 +84,7 @@ object PriceData {
 			AvgLowestBin.OFF -> null
 		}
 		if (bazaarData != null) {
-			it.lines.add(Text.literal(""))
+			it.lines.add(Component.literal(""))
 			it.lines.add(multiplierText)
 			it.lines.add(
 				formatPrice(
@@ -99,7 +99,7 @@ object PriceData {
 				)
 			)
 		} else if (lowestBin != null) {
-			it.lines.add(Text.literal(""))
+			it.lines.add(Component.literal(""))
 			it.lines.add(multiplierText)
 			it.lines.add(
 				formatPrice(

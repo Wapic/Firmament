@@ -5,14 +5,14 @@ import com.mojang.serialization.codecs.RecordCodecBuilder
 import io.github.moulberry.repo.constants.PetNumbers
 import io.github.moulberry.repo.data.NEUIngredient
 import io.github.moulberry.repo.data.NEUItem
-import net.minecraft.item.ItemStack
-import net.minecraft.network.RegistryByteBuf
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.codec.PacketCodecs
-import net.minecraft.text.Style
-import net.minecraft.text.Text
-import net.minecraft.text.TextColor
-import net.minecraft.util.Formatting
+import net.minecraft.world.item.ItemStack
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.codec.ByteBufCodecs
+import net.minecraft.network.chat.Style
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.TextColor
+import net.minecraft.ChatFormatting
 import moe.nea.firmament.repo.ItemCache.asItemStack
 import moe.nea.firmament.repo.ItemCache.withFallback
 import moe.nea.firmament.util.FirmFormatters
@@ -48,7 +48,7 @@ data class SBItemStack constructor(
 	val neuItem: NEUItem?,
 	private var stackSize: Int,
 	private var petData: PetData?,
-	val extraLore: List<Text> = emptyList(),
+	val extraLore: List<Component> = emptyList(),
 	val stars: Int = 0,
 	val fallback: ItemStack? = null,
 	val reforge: ReforgeId? = null,
@@ -67,9 +67,9 @@ data class SBItemStack constructor(
 	}
 
 	companion object {
-		val PACKET_CODEC: PacketCodec<in RegistryByteBuf, SBItemStack> = PacketCodec.tuple(
+		val PACKET_CODEC: StreamCodec<in RegistryFriendlyByteBuf, SBItemStack> = StreamCodec.composite(
 			SkyblockId.PACKET_CODEC, { it.skyblockId },
-			PacketCodecs.VAR_INT, { it.stackSize },
+			ByteBufCodecs.VAR_INT, { it.stackSize },
 			{ id, count -> SBItemStack(id, count) }
 		)
 		val CODEC: Codec<SBItemStack> = RecordCodecBuilder.create {
@@ -136,7 +136,7 @@ data class SBItemStack constructor(
 				loreMut[i] = statLine.addStat(statBuff, buffKind).reconstitute()
 			}
 			if (namedReforgeStats.isNotEmpty() && statBlockLastIndex == -1) {
-				loreMut.add(0, Text.literal(""))
+				loreMut.add(0, Component.literal(""))
 			}
 			// If there is no stat block the statBlockLastIndex falls through to -1
 			// TODO: this is good enough for some items. some other items might have their stats at a different place.
@@ -149,47 +149,47 @@ data class SBItemStack constructor(
 
 		data class StatFormatting(
 			val postFix: String,
-			val color: Formatting,
+			val color: ChatFormatting,
 			val isStarAffected: Boolean = true,
 		)
 
 		val formattingOverrides = mapOf(
-			"Sea Creature Chance" to StatFormatting("%", Formatting.RED),
-			"Strength" to StatFormatting("", Formatting.RED),
-			"Damage" to StatFormatting("", Formatting.RED),
-			"Bonus Attack Speed" to StatFormatting("%", Formatting.RED),
-			"Shot Cooldown" to StatFormatting("s", Formatting.GREEN, false),
-			"Ability Damage" to StatFormatting("%", Formatting.RED),
-			"Crit Damage" to StatFormatting("%", Formatting.RED),
-			"Crit Chance" to StatFormatting("%", Formatting.RED),
-			"Ability Damage" to StatFormatting("%", Formatting.RED),
-			"Trophy Fish Chance" to StatFormatting("%", Formatting.GREEN),
-			"Health" to StatFormatting("", Formatting.GREEN),
-			"Defense" to StatFormatting("", Formatting.GREEN),
-			"Fishing Speed" to StatFormatting("", Formatting.GREEN),
-			"Double Hook Chance" to StatFormatting("%", Formatting.GREEN),
-			"Mining Speed" to StatFormatting("", Formatting.GREEN),
-			"Mining Fortune" to StatFormatting("", Formatting.GREEN),
-			"Heat Resistance" to StatFormatting("", Formatting.GREEN),
-			"Swing Range" to StatFormatting("", Formatting.GREEN),
-			"Rift Time" to StatFormatting("", Formatting.GREEN),
-			"Speed" to StatFormatting("", Formatting.GREEN),
-			"Farming Fortune" to StatFormatting("", Formatting.GREEN),
-			"True Defense" to StatFormatting("", Formatting.GREEN),
-			"Mending" to StatFormatting("", Formatting.GREEN),
-			"Foraging Wisdom" to StatFormatting("", Formatting.GREEN),
-			"Farming Wisdom" to StatFormatting("", Formatting.GREEN),
-			"Foraging Fortune" to StatFormatting("", Formatting.GREEN),
-			"Magic Find" to StatFormatting("", Formatting.GREEN),
-			"Ferocity" to StatFormatting("", Formatting.GREEN),
-			"Bonus Pest Chance" to StatFormatting("%", Formatting.GREEN),
-			"Cold Resistance" to StatFormatting("", Formatting.GREEN),
-			"Pet Luck" to StatFormatting("", Formatting.GREEN),
-			"Fear" to StatFormatting("", Formatting.GREEN),
-			"Mana Regen" to StatFormatting("%", Formatting.GREEN),
-			"Rift Damage" to StatFormatting("", Formatting.GREEN),
-			"Hearts" to StatFormatting("", Formatting.GREEN),
-			"Vitality" to StatFormatting("", Formatting.GREEN),
+			"Sea Creature Chance" to StatFormatting("%", ChatFormatting.RED),
+			"Strength" to StatFormatting("", ChatFormatting.RED),
+			"Damage" to StatFormatting("", ChatFormatting.RED),
+			"Bonus Attack Speed" to StatFormatting("%", ChatFormatting.RED),
+			"Shot Cooldown" to StatFormatting("s", ChatFormatting.GREEN, false),
+			"Ability Damage" to StatFormatting("%", ChatFormatting.RED),
+			"Crit Damage" to StatFormatting("%", ChatFormatting.RED),
+			"Crit Chance" to StatFormatting("%", ChatFormatting.RED),
+			"Ability Damage" to StatFormatting("%", ChatFormatting.RED),
+			"Trophy Fish Chance" to StatFormatting("%", ChatFormatting.GREEN),
+			"Health" to StatFormatting("", ChatFormatting.GREEN),
+			"Defense" to StatFormatting("", ChatFormatting.GREEN),
+			"Fishing Speed" to StatFormatting("", ChatFormatting.GREEN),
+			"Double Hook Chance" to StatFormatting("%", ChatFormatting.GREEN),
+			"Mining Speed" to StatFormatting("", ChatFormatting.GREEN),
+			"Mining Fortune" to StatFormatting("", ChatFormatting.GREEN),
+			"Heat Resistance" to StatFormatting("", ChatFormatting.GREEN),
+			"Swing Range" to StatFormatting("", ChatFormatting.GREEN),
+			"Rift Time" to StatFormatting("", ChatFormatting.GREEN),
+			"Speed" to StatFormatting("", ChatFormatting.GREEN),
+			"Farming Fortune" to StatFormatting("", ChatFormatting.GREEN),
+			"True Defense" to StatFormatting("", ChatFormatting.GREEN),
+			"Mending" to StatFormatting("", ChatFormatting.GREEN),
+			"Foraging Wisdom" to StatFormatting("", ChatFormatting.GREEN),
+			"Farming Wisdom" to StatFormatting("", ChatFormatting.GREEN),
+			"Foraging Fortune" to StatFormatting("", ChatFormatting.GREEN),
+			"Magic Find" to StatFormatting("", ChatFormatting.GREEN),
+			"Ferocity" to StatFormatting("", ChatFormatting.GREEN),
+			"Bonus Pest Chance" to StatFormatting("%", ChatFormatting.GREEN),
+			"Cold Resistance" to StatFormatting("", ChatFormatting.GREEN),
+			"Pet Luck" to StatFormatting("", ChatFormatting.GREEN),
+			"Fear" to StatFormatting("", ChatFormatting.GREEN),
+			"Mana Regen" to StatFormatting("%", ChatFormatting.GREEN),
+			"Rift Damage" to StatFormatting("", ChatFormatting.GREEN),
+			"Hearts" to StatFormatting("", ChatFormatting.GREEN),
+			"Vitality" to StatFormatting("", ChatFormatting.GREEN),
 			// TODO: make this a repo json
 		)
 
@@ -197,21 +197,21 @@ data class SBItemStack constructor(
 		private val statLabelRegex = "(?<statName>.*): ".toPattern()
 
 		enum class BuffKind(
-			val color: Formatting,
+			val color: ChatFormatting,
 			val prefix: String,
 			val postFix: String,
 			val isHidden: Boolean,
 		) {
-			REFORGE(Formatting.BLUE, "(", ")", false),
-			STAR_BUFF(Formatting.RESET, "", "", true),
-			CATA_STAR_BUFF(Formatting.DARK_GRAY, "(", ")", false),
+			REFORGE(ChatFormatting.BLUE, "(", ")", false),
+			STAR_BUFF(ChatFormatting.RESET, "", "", true),
+			CATA_STAR_BUFF(ChatFormatting.DARK_GRAY, "(", ")", false),
 			;
 		}
 
 		data class StatLine(
 			val statName: String,
-			val value: Text?,
-			val rest: List<Text> = listOf(),
+			val value: Component?,
+			val rest: List<Component> = listOf(),
 			val valueNum: Double? = value?.directLiteralStringContent?.trim(' ', 's', '%', '+')?.toDoubleOrNull()
 		) {
 			fun addStat(amount: Double, buffKind: BuffKind): StatLine {
@@ -222,7 +222,7 @@ data class SBItemStack constructor(
 					rest = rest +
 						if (buffKind.isHidden) emptyList()
 						else listOf(
-							Text.literal(
+							Component.literal(
 								buffKind.prefix + formattedAmount +
 									statFormatting.postFix +
 									buffKind.postFix + " "
@@ -233,7 +233,7 @@ data class SBItemStack constructor(
 			}
 
 			fun formatValue() =
-				Text.literal(
+				Component.literal(
 					FirmFormatters.formatCommas(
 						valueNum ?: 0.0,
 						1,
@@ -242,7 +242,7 @@ data class SBItemStack constructor(
 				)
 					.setStyle(Style.EMPTY.withColor(statFormatting.color))
 
-			val statFormatting = formattingOverrides[statName] ?: StatFormatting("", Formatting.GREEN)
+			val statFormatting = formattingOverrides[statName] ?: StatFormatting("", ChatFormatting.GREEN)
 			private fun abbreviate(abbreviateTo: Int): String {
 				if (abbreviateTo >= statName.length) return statName
 				val segments = statName.split(" ")
@@ -251,9 +251,9 @@ data class SBItemStack constructor(
 				}
 			}
 
-			fun reconstitute(abbreviateTo: Int = Int.MAX_VALUE): Text =
-				Text.literal("").setStyle(Style.EMPTY.withItalic(false))
-					.append(Text.literal("${abbreviate(abbreviateTo)}: ").grey())
+			fun reconstitute(abbreviateTo: Int = Int.MAX_VALUE): Component =
+				Component.literal("").setStyle(Style.EMPTY.withItalic(false))
+					.append(Component.literal("${abbreviate(abbreviateTo)}: ").grey())
 					.append(value ?: formatValue())
 					.also { rest.forEach(it::append) }
 		}
@@ -263,10 +263,10 @@ data class SBItemStack constructor(
 			return segments.joinToString(" ") { it.replaceFirstChar { it.uppercaseChar() } }
 		}
 
-		fun parseStatLine(line: Text): StatLine? {
+		fun parseStatLine(line: Component): StatLine? {
 			val sibs = line.siblings
 			val stat = sibs.firstOrNull() ?: return null
-			if (stat.style.color != TextColor.fromFormatting(Formatting.GRAY)) return null
+			if (stat.style.color != TextColor.fromLegacyFormat(ChatFormatting.GRAY)) return null
 			val statLabel = stat.directLiteralStringContent ?: return null
 			val statName = statLabelRegex.useMatch(statLabel) { group("statName") } ?: return null
 			return StatLine(statName, sibs[1], sibs.subList(2, sibs.size))
@@ -329,7 +329,7 @@ data class SBItemStack constructor(
 		val reforge = ReforgeStore.modifierLut[reforgeId] ?: return
 		val reforgeStats = reforge.reforgeStats?.get(rarity) ?: mapOf()
 		itemStack.displayNameAccordingToNbt = itemStack.displayNameAccordingToNbt.copy()
-			.prepend(Text.literal(reforge.reforgeName + " ").formatted(Rarity.colourMap[rarity] ?: Formatting.WHITE))
+			.prepend(Component.literal(reforge.reforgeName + " ").withStyle(Rarity.colourMap[rarity] ?: ChatFormatting.WHITE))
 		val data = itemStack.extraAttributes.copy()
 		data.putString("modifier", reforgeId.id)
 		itemStack.extraAttributes = data
@@ -339,11 +339,11 @@ data class SBItemStack constructor(
 				.grey()
 			itemStack.modifyLore {
 				val lastBlank = it.indexOfLast { it.unformattedString.isBlank() }
-				val newList = mutableListOf<Text>()
+				val newList = mutableListOf<Component>()
 				newList.addAll(it.subList(0, lastBlank))
-				newList.add(Text.literal(""))
-				newList.add(Text.literal("${reforge.reforgeName} Bonus").blue())
-				MC.font.textHandler.wrapLines(formattedReforgeAbility, 180, Style.EMPTY).mapTo(newList) {
+				newList.add(Component.literal(""))
+				newList.add(Component.literal("${reforge.reforgeName} Bonus").blue())
+				MC.font.splitter.splitLines(formattedReforgeAbility, 180, Style.EMPTY).mapTo(newList) {
 					it.reconstitute()
 				}
 				newList.addAll(it.subList(lastBlank, it.size))
@@ -391,8 +391,8 @@ data class SBItemStack constructor(
 		}
 
 
-	private fun starString(stars: Int): Text {
-		if (stars <= 0) return Text.empty()
+	private fun starString(stars: Int): Component {
+		if (stars <= 0) return Component.empty()
 		// TODO: idk master stars
 		val tiers = listOf(
 			LegacyFormattingCode.GOLD,
@@ -400,15 +400,15 @@ data class SBItemStack constructor(
 			LegacyFormattingCode.AQUA,
 		)
 		val maxStars = 5
-		if (stars > tiers.size * maxStars) return Text.literal(" ${stars}✪").withColor(Formatting.RED)
+		if (stars > tiers.size * maxStars) return Component.literal(" ${stars}✪").withColor(ChatFormatting.RED)
 		val starBaseTier = (stars - 1) / maxStars
 		val starBaseColor = tiers[starBaseTier]
 		val starsInCurrentTier = stars - starBaseTier * maxStars
-		val starString = Text.literal(" " + "✪".repeat(starsInCurrentTier)).withColor(starBaseColor.modern)
+		val starString = Component.literal(" " + "✪".repeat(starsInCurrentTier)).withColor(starBaseColor.modern)
 		if (starBaseTier > 0) {
 			val starLastTier = tiers[starBaseTier - 1]
 			val starsInLastTier = 5 - starsInCurrentTier
-			starString.append(Text.literal("✪".repeat(starsInLastTier)).withColor(starLastTier.modern))
+			starString.append(Component.literal("✪".repeat(starsInLastTier)).withColor(starLastTier.modern))
 		}
 		return starString
 	}

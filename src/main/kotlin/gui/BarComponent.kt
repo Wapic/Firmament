@@ -6,9 +6,9 @@ import io.github.notenoughupdates.moulconfig.gui.GuiImmediateContext
 import io.github.notenoughupdates.moulconfig.observer.GetSetter
 import io.github.notenoughupdates.moulconfig.platform.MoulConfigRenderContext
 import me.shedaniel.math.Color
-import net.minecraft.client.gl.RenderPipelines
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.util.Identifier
+import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.Firmament
 
 class BarComponent(
@@ -25,12 +25,12 @@ class BarComponent(
 	}
 
 	data class Texture(
-		val identifier: Identifier,
-		val u1: Float, val v1: Float,
-		val u2: Float, val v2: Float,
+        val identifier: ResourceLocation,
+        val u1: Float, val v1: Float,
+        val u2: Float, val v2: Float,
 	) {
-		fun draw(context: DrawContext, x: Int, y: Int, width: Int, height: Int, color: Color) {
-			context.drawTexturedQuad(
+		fun draw(context: GuiGraphics, x: Int, y: Int, width: Int, height: Int, color: Color) {
+			context.innerBlit(
 				RenderPipelines.GUI_TEXTURED,
 				identifier,
 				x, y, x + width, x + height,
@@ -49,13 +49,13 @@ class BarComponent(
 	}
 
 	private fun drawSection(
-		context: DrawContext,
-		texture: Texture,
-		x: Int,
-		y: Int,
-		width: Int,
-		sectionStart: Double,
-		sectionEnd: Double
+        context: GuiGraphics,
+        texture: Texture,
+        x: Int,
+        y: Int,
+        width: Int,
+        sectionStart: Double,
+        sectionEnd: Double
 	) {
 		if (sectionEnd < progress.get() && width == 4) {
 			texture.draw(context, x, y, 4, 8, fillColor)
@@ -107,6 +107,6 @@ class BarComponent(
 
 }
 
-fun Identifier.toMoulConfig(): MyResourceLocation {
+fun ResourceLocation.toMoulConfig(): MyResourceLocation {
 	return MyResourceLocation(this.namespace, this.path)
 }

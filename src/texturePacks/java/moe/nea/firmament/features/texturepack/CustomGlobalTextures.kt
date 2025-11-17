@@ -8,11 +8,11 @@ import org.slf4j.LoggerFactory
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.resource.ResourceManager
-import net.minecraft.resource.SinglePreparationResourceReloader
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
-import net.minecraft.util.profiler.Profiler
+import net.minecraft.server.packs.resources.ResourceManager
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.profiling.ProfilerFiller
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.CustomItemModelEvent
@@ -25,16 +25,16 @@ import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.json.SingletonSerializableList
 import moe.nea.firmament.util.runNull
 
-object CustomGlobalTextures : SinglePreparationResourceReloader<CustomGlobalTextures.CustomGuiTextureOverride>() {
+object CustomGlobalTextures : SimplePreparableReloadListener<CustomGlobalTextures.CustomGuiTextureOverride>() {
 	class CustomGuiTextureOverride(
 		val classes: List<ItemOverrideCollection>
 	)
 
 	@Serializable
 	data class GlobalItemOverride(
-		val screen: @Serializable(SingletonSerializableList::class) List<Identifier>,
-		val model: Identifier,
-		val predicate: FirmamentModelPredicate,
+        val screen: @Serializable(SingletonSerializableList::class) List<ResourceLocation>,
+        val model: ResourceLocation,
+        val predicate: FirmamentModelPredicate,
 	)
 
 	@Serializable
@@ -49,7 +49,7 @@ object CustomGlobalTextures : SinglePreparationResourceReloader<CustomGlobalText
 
 	@Subscribe
 	fun onStart(event: FinalizeResourceManagerEvent) {
-		MC.resourceManager.registerReloader(this)
+		MC.resourceManager.registerReloadListener(this)
 	}
 
 	@Subscribe
@@ -67,20 +67,20 @@ object CustomGlobalTextures : SinglePreparationResourceReloader<CustomGlobalText
 		CustomGuiTextureOverride(listOf())
 	)
 
-	override fun prepare(manager: ResourceManager?, profiler: Profiler?): CustomGuiTextureOverride {
+	override fun prepare(manager: ResourceManager?, profiler: ProfilerFiller?): CustomGuiTextureOverride {
 		return preparationFuture.join()
 	}
 
-	override fun apply(prepared: CustomGuiTextureOverride, manager: ResourceManager?, profiler: Profiler?) {
+	override fun apply(prepared: CustomGuiTextureOverride, manager: ResourceManager?, profiler: ProfilerFiller?) {
 		guiClassOverrides = prepared
 	}
 
 	val logger = LoggerFactory.getLogger(CustomGlobalTextures::class.java)
 	fun prepare(manager: ResourceManager): CustomGuiTextureOverride {
 		val overrideResources =
-			manager.findResources("overrides/item") { it.namespace == "firmskyblock" && it.path.endsWith(".json") }
+			manager.listResources("overrides/item") { it.namespace == "firmskyblock" && it.path.endsWith(".json") }
 				.mapNotNull {
-					Firmament.tryDecodeJsonFromStream<GlobalItemOverride>(it.value.inputStream).getOrElse { ex ->
+					Firmament.tryDecodeJsonFromStream<GlobalItemOverride>(it.value.open()).getOrElse { ex ->
 						ErrorUtil.softError("Failed to load global item override at ${it.key}", ex)
 						null
 					}
@@ -92,13 +92,13 @@ object CustomGlobalTextures : SinglePreparationResourceReloader<CustomGlobalText
 			.mapNotNull {
 				val key = it.key
 				val guiClassResource =
-					manager.getResource(Identifier.of(key.namespace, "filters/screen/${key.path}.json"))
+					manager.getResource(ResourceLocation.fromNamespaceAndPath(key.namespace, "filters/screen/${key.path}.json"))
 						.getOrNull()
 						?: return@mapNotNull runNull {
 							ErrorUtil.softError("Failed to locate screen filter at $key used by ${it.value.map { it.first }}")
 						}
 				val screenFilter =
-					Firmament.tryDecodeJsonFromStream<ScreenFilter>(guiClassResource.inputStream)
+					Firmament.tryDecodeJsonFromStream<ScreenFilter>(guiClassResource.open())
 						.getOrElse { ex ->
 							ErrorUtil.softError(
 								"Failed to load screen filter at $key used by ${it.value.map { it.first }}",
@@ -118,7 +118,7 @@ object CustomGlobalTextures : SinglePreparationResourceReloader<CustomGlobalText
 
 	@Subscribe
 	fun onOpenGui(event: ScreenChangeEvent) {
-		val newTitle = event.new?.title ?: Text.empty()
+		val newTitle = event.new?.title ?: Component.empty()
 		matchingOverrides = guiClassOverrides.classes
 			.filterTo(mutableSetOf()) { it.screenFilter.title.matches(newTitle) }
 	}

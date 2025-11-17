@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
 import kotlin.streams.asStream
-import net.minecraft.util.math.Vec2f
+import net.minecraft.world.phys.Vec2
 import moe.nea.firmament.util.math.Projections
 
 class ProjectionsBoxTest {
@@ -14,8 +14,8 @@ class ProjectionsBoxTest {
 	@TestFactory
 	fun testProjections(): Stream<DynamicTest> {
 		return sequenceOf(
-			0.0.degrees to Vec2f(1F, 0F),
-			63.4349.degrees to Vec2f(0.5F, 1F),
+			0.0.degrees to Vec2(1F, 0F),
+			63.4349.degrees to Vec2(0.5F, 1F),
 		).map { (angle, expected) ->
 			DynamicTest.dynamicTest("ProjectionsBoxTest::projectAngleOntoUnitBox(${angle})") {
 				val actual = Projections.Two.projectAngleOntoUnitBox(angle)

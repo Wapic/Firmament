@@ -7,7 +7,7 @@ import io.github.notenoughupdates.moulconfig.gui.component.RowComponent
 import io.github.notenoughupdates.moulconfig.gui.component.TextComponent
 import kotlinx.serialization.json.JsonElement
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.util.StringIdentifiable
+import net.minecraft.util.StringRepresentable
 import moe.nea.firmament.gui.CheckboxComponent
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.data.ManagedConfig
@@ -16,8 +16,8 @@ import moe.nea.firmament.util.json.KJsonOps
 class ChoiceHandler<E>(
 	val enumClass: Class<E>,
 	val universe: List<E>,
-) : ManagedConfig.OptionHandler<E> where E : Enum<E>, E : StringIdentifiable {
-	val codec = StringIdentifiable.createCodec {
+) : ManagedConfig.OptionHandler<E> where E : Enum<E>, E : StringRepresentable {
+	val codec = StringRepresentable.fromEnum {
 		@Suppress("UNCHECKED_CAST", "PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 		(universe as java.util.List<*>).toArray(arrayOfNulls<Enum<E>>(0)) as Array<E>
 	}

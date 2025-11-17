@@ -2,12 +2,12 @@ package moe.nea.firmament.features.items
 
 import io.github.notenoughupdates.moulconfig.ChromaColour
 import java.util.LinkedList
-import net.minecraft.block.Block
-import net.minecraft.block.BlockState
-import net.minecraft.block.Blocks
-import net.minecraft.util.hit.BlockHitResult
-import net.minecraft.util.hit.HitResult
-import net.minecraft.util.math.BlockPos
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.HitResult
+import net.minecraft.core.BlockPos
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.WorldKeyboardEvent
 import moe.nea.firmament.events.WorldRenderLastEvent
@@ -64,10 +64,10 @@ object BlockZapperOverlay {
 	fun renderBlockZapperOverlay(event: WorldRenderLastEvent) {
 		if (!TConfig.blockZapperOverlay) return
 		val player = MC.player ?: return
-		val world = player.world ?: return
+		val world = player.level ?: return
 		val heldItem = MC.stackInHand
 		if (heldItem.skyBlockId != SkyBlockItems.BLOCK_ZAPPER) return
-		val hitResult = MC.instance.crosshairTarget ?: return
+		val hitResult = MC.instance.hitResult ?: return
 
 		val zapperBlocks: HashSet<BlockPos> = HashSet()
 		val returnablePositions = LinkedList<BlockPos>()
@@ -77,7 +77,7 @@ object BlockZapperOverlay {
 			val firstBlockState: BlockState = world.getBlockState(pos)
 			val block = firstBlockState.block
 
-			val initialAboveBlock = world.getBlockState(pos.up()).block
+			val initialAboveBlock = world.getBlockState(pos.above()).block
 			if (!bannedZapper.contains(initialAboveBlock) && !bannedZapper.contains(block)) {
 				var i = 0
 				while (i < 164) {
@@ -87,13 +87,13 @@ object BlockZapperOverlay {
 					val availableNeighbors: MutableList<BlockPos> = ArrayList()
 
 					for (offset in zapperOffsets) {
-						val newPos = pos.add(offset)
+						val newPos = pos.offset(offset)
 
 						if (zapperBlocks.contains(newPos)) continue
 
 						val state: BlockState? = world.getBlockState(newPos)
 						if (state != null && state.block === block) {
-							val above = newPos.up()
+							val above = newPos.above()
 							val aboveBlock = world.getBlockState(above).block
 							if (!bannedZapper.contains(aboveBlock)) {
 								availableNeighbors.add(newPos)
@@ -118,7 +118,7 @@ object BlockZapperOverlay {
 			}
 
 			RenderInWorldContext.renderInWorld(event) {
-				if (MC.player?.isSneaking ?: false) {
+				if (MC.player?.isShiftKeyDown ?: false) {
 					zapperBlocks.forEach {
 						block(it, TConfig.color.getEffectiveColourRGB())
 					}

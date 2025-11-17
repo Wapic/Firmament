@@ -1,7 +1,7 @@
 package moe.nea.firmament.gui.config
 
 import com.google.auto.service.AutoService
-import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.gui.screens.Screen
 
 @AutoService(FirmamentConfigScreenProvider::class)
 class BuiltInConfigScreenProvider : FirmamentConfigScreenProvider {

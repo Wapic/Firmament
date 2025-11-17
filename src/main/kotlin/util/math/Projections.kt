@@ -3,7 +3,7 @@ package moe.nea.firmament.util.math
 import kotlin.math.absoluteValue
 import kotlin.math.cos
 import kotlin.math.sin
-import net.minecraft.util.math.Vec2f
+import net.minecraft.world.phys.Vec2
 import moe.nea.firmament.util.render.wrapAngle
 
 object Projections {
@@ -14,14 +14,14 @@ object Projections {
 
 		fun isNullish(float: Float) = float.absoluteValue < ε
 
-		fun xInterceptOfLine(origin: Vec2f, direction: Vec2f): Vec2f? {
+		fun xInterceptOfLine(origin: Vec2, direction: Vec2): Vec2? {
 			if (isNullish(direction.x))
-				return Vec2f(origin.x, 0F)
+				return Vec2(origin.x, 0F)
 			if (isNullish(direction.y))
 				return null
 
 			val slope = direction.y / direction.x
-			return Vec2f(origin.x - origin.y / slope, 0F)
+			return Vec2(origin.x - origin.y / slope, 0F)
 		}
 
 		fun interceptAlongCardinal(distanceFromAxis: Float, slope: Float): Float? {
@@ -30,7 +30,7 @@ object Projections {
 			return -distanceFromAxis / slope
 		}
 
-		fun projectAngleOntoUnitBox(angleRadians: Double): Vec2f {
+		fun projectAngleOntoUnitBox(angleRadians: Double): Vec2 {
 			val angleRadians = wrapAngle(angleRadians)
 			val cx = cos(angleRadians)
 			val cy = sin(angleRadians)
@@ -40,7 +40,7 @@ object Projections {
 
 			val e = minOf(ex, ey)
 
-			return Vec2f((cx * e).toFloat(), (cy * e).toFloat())
+			return Vec2((cx * e).toFloat(), (cy * e).toFloat())
 		}
 	}
 }

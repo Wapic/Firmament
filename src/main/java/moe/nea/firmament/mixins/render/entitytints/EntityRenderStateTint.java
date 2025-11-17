@@ -2,7 +2,7 @@ package moe.nea.firmament.mixins.render.entitytints;
 
 import moe.nea.firmament.events.EntityRenderTintEvent;
 import moe.nea.firmament.util.render.TintedOverlayTexture;
-import net.minecraft.client.render.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;

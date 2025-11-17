@@ -5,13 +5,13 @@ import java.util.regex.Pattern
 import kotlin.jvm.optionals.getOrNull
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.toast.SystemToast
-import net.minecraft.item.ItemStack
-import net.minecraft.util.DyeColor
-import net.minecraft.util.Hand
-import net.minecraft.util.Identifier
-import net.minecraft.util.StringIdentifiable
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.components.toasts.SystemToast
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.DyeColor
+import net.minecraft.world.InteractionHand
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.StringRepresentable
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HudRenderEvent
 import moe.nea.firmament.events.ProcessChatEvent
@@ -48,13 +48,13 @@ object PickaxeAbility {
 	val identifier: String
 		get() = "pickaxe-info"
 
-	enum class ShowOnTools(val label: String, val items: Set<ItemType>) : StringIdentifiable {
+	enum class ShowOnTools(val label: String, val items: Set<ItemType>) : StringRepresentable {
 		ALL("all", ItemType.DRILL, ItemType.PICKAXE, ItemType.SHOVEL, ItemType.AXE),
 		PICKAXES_AND_DRILLS("pick-and-drill", ItemType.PICKAXE, ItemType.DRILL),
 		DRILLS("drills", ItemType.DRILL),
 		;
 
-		override fun asString(): String? {
+		override fun getSerializedName(): String? {
 			return label
 		}
 
@@ -79,12 +79,12 @@ object PickaxeAbility {
 		}
 	}
 
-	enum class BlockPickaxeAbility : StringIdentifiable {
+	enum class BlockPickaxeAbility : StringRepresentable {
 		NEVER,
 		ALWAYS,
 		ONLY_DESTRUCTIVE;
 
-		override fun asString(): String {
+		override fun getSerializedName(): String {
 			return name
 		}
 	}
@@ -195,11 +195,11 @@ object PickaxeAbility {
 			val ability = group("name")
 			lastUsage[ability] = TimeMark.farPast()
 			if (!TConfig.cooldownReadyToast) return
-			val mc: MinecraftClient = MinecraftClient.getInstance()
-			mc.toastManager.add(
-				SystemToast.create(
+			val mc: Minecraft = Minecraft.getInstance()
+			mc.toastManager.addToast(
+				SystemToast.multiline(
 					mc,
-					SystemToast.Type.NARRATOR_TOGGLE,
+					SystemToast.SystemToastId.NARRATOR_TOGGLE,
 					tr("firmament.pickaxe.ability-ready", "Pickaxe Cooldown"),
 					tr("firmament.pickaxe.ability-ready.desc", "Pickaxe ability is ready!")
 				)
@@ -248,7 +248,7 @@ object PickaxeAbility {
 		if (!TConfig.cooldownEnabled) return
 		if (TConfig.disableInDungeons && DungeonUtil.isInDungeonIsland) return
 		if (!event.isRenderingCursor) return
-		val stack = MC.player?.getStackInHand(Hand.MAIN_HAND) ?: return
+		val stack = MC.player?.getItemInHand(InteractionHand.MAIN_HAND) ?: return
 		if (!TConfig.showOnTools.matches(ItemType.fromItemStack(stack) ?: ItemType.NIL))
 			return
 		var ability = getCooldownFromLore(stack)?.also { ability ->
@@ -258,15 +258,15 @@ object PickaxeAbility {
 		if (ability == null || (ao != ability.name && ao != null)) {
 			ability = PickaxeAbilityData(ao ?: return, defaultAbilityDurations[ao] ?: 120.seconds)
 		}
-		event.context.matrices.pushMatrix()
-		event.context.matrices.translate(MC.window.scaledWidth / 2F, MC.window.scaledHeight / 2F)
-		event.context.matrices.scale(TConfig.cooldownScale.toFloat(), TConfig.cooldownScale.toFloat())
+		event.context.pose().pushMatrix()
+		event.context.pose().translate(MC.window.guiScaledWidth / 2F, MC.window.guiScaledHeight / 2F)
+		event.context.pose().scale(TConfig.cooldownScale.toFloat(), TConfig.cooldownScale.toFloat())
 		RenderCircleProgress.renderCircle(
-			event.context, Identifier.of("firmament", "textures/gui/circle.png"),
+			event.context, ResourceLocation.fromNamespaceAndPath("firmament", "textures/gui/circle.png"),
 			getCooldownPercentage(ability.name, ability.cooldown).toFloat(),
 			0f, 1f, 0f, 1f,
 			color = TConfig.cooldownColour.getEffectiveColourRGB()
 		)
-		event.context.matrices.popMatrix()
+		event.context.pose().popMatrix()
 	}
 }

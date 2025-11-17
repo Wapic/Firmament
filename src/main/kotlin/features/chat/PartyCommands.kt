@@ -5,7 +5,7 @@ import com.mojang.brigadier.StringReader
 import com.mojang.brigadier.exceptions.CommandSyntaxException
 import com.mojang.brigadier.tree.LiteralCommandNode
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.util.math.BlockPos
+import net.minecraft.core.BlockPos
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.CaseInsensitiveLiteralCommandNode
 import moe.nea.firmament.commands.thenExecute
@@ -80,7 +80,7 @@ object PartyCommands {
 
 		register("coords") {
 			executes {
-				val p = MC.player?.blockPos ?: BlockPos.ORIGIN
+				val p = MC.player?.blockPosition() ?: BlockPos.ZERO
 				MC.sendCommand("pc x: ${p.x}, y: ${p.y}, z: ${p.z}")
 				0
 			}

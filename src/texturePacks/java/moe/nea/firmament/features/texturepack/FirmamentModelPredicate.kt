@@ -1,8 +1,8 @@
 package moe.nea.firmament.features.texturepack
 
 import kotlinx.serialization.Serializable
-import net.minecraft.entity.LivingEntity
-import net.minecraft.item.ItemStack
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.ItemStack
 
 @Serializable(with = FirmamentRootPredicateSerializer::class)
 interface FirmamentModelPredicate {

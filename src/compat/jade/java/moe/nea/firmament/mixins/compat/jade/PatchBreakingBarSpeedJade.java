@@ -11,14 +11,14 @@ import snownee.jade.JadeClient;
 public class PatchBreakingBarSpeedJade {
 	@ModifyExpressionValue(
 		method = "drawBreakingProgress",
-		at = @At(value = "FIELD", target = "Lnet/minecraft/client/network/ClientPlayerInteractionManager;currentBreakingProgress:F", opcode = Opcodes.GETFIELD)
+		at = @At(value = "FIELD", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;destroyProgress:F", opcode = Opcodes.GETFIELD)
 	)
 	private static float replaceBlockBreakingProgress(float original) {
 		return CustomMiningHardnessProvider.replaceBreakProgress(original);
 	}
 
 	@ModifyExpressionValue(method = "drawBreakingProgress",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;calcBlockBreakingDelta(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;)F"))
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;calcBlockBreakingDelta(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)F"))
 	private static float replacePlayerSpecificBreakingProgress(float original) {
 		return CustomMiningHardnessProvider.replaceBlockBreakSpeed(original);
 	}

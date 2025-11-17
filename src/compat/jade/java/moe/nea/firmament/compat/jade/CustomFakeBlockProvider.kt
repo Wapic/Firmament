@@ -4,7 +4,7 @@ import snownee.jade.api.Accessor
 import snownee.jade.api.BlockAccessor
 import snownee.jade.api.IWailaClientRegistration
 import snownee.jade.api.callback.JadeRayTraceCallback
-import net.minecraft.util.hit.HitResult
+import net.minecraft.world.phys.HitResult
 import moe.nea.firmament.repo.MiningRepoData
 import moe.nea.firmament.util.mc.FirmamentDataComponentTypes
 

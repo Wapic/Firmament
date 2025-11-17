@@ -1,6 +1,6 @@
 package moe.nea.firmament.test
 
-import net.minecraft.Bootstrap
+import net.minecraft.server.Bootstrap
 import net.minecraft.SharedConstants
 import moe.nea.firmament.util.TimeMark
 
@@ -12,8 +12,8 @@ object FirmTestBootstrap {
 	}
 
 	init {
-		SharedConstants.createGameVersion()
-		Bootstrap.initialize()
+		SharedConstants.tryDetectVersion()
+		Bootstrap.bootStrap()
 	}
 
 	val loadEnd = TimeMark.now()

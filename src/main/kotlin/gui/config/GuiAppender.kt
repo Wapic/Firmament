@@ -6,8 +6,8 @@ import io.github.notenoughupdates.moulconfig.gui.GuiComponent
 import io.github.notenoughupdates.moulconfig.gui.component.RowComponent
 import io.github.notenoughupdates.moulconfig.gui.component.TextComponent
 import io.github.notenoughupdates.moulconfig.observer.GetSetter
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.text.Text
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.gui.FixedComponent
 
 class GuiAppender(val width: Int, val screenAccessor: () -> Screen) {
@@ -18,7 +18,7 @@ class GuiAppender(val width: Int, val screenAccessor: () -> Screen) {
         reloadables.add(reloadable)
     }
 
-    fun appendLabeledRow(label: Text, right: GuiComponent) {
+    fun appendLabeledRow(label: Component, right: GuiComponent) {
         appendSplitRow(
             TextComponent(label.string),
             right

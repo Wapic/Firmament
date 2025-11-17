@@ -3,9 +3,9 @@ package moe.nea.firmament.gui.hud
 import io.github.notenoughupdates.moulconfig.gui.GuiContext
 import io.github.notenoughupdates.moulconfig.gui.component.TextComponent
 import io.github.notenoughupdates.moulconfig.platform.MoulConfigScreenComponent
-import net.minecraft.resource.ResourceManager
-import net.minecraft.resource.SynchronousResourceReloader
-import net.minecraft.text.Text
+import net.minecraft.server.packs.resources.ResourceManager
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.events.FinalizeResourceManagerEvent
 import moe.nea.firmament.events.HudRenderEvent
 import moe.nea.firmament.gui.config.HudMeta
@@ -19,9 +19,9 @@ abstract class MoulConfigHud(
 ) {
 	companion object {
 		private val componentWrapper by lazy {
-			object : MoulConfigScreenComponent(Text.empty(), GuiContext(TextComponent("§cERROR")), null) {
+			object : MoulConfigScreenComponent(Component.empty(), GuiContext(TextComponent("§cERROR")), null) {
 				init {
-					this.client = MC.instance
+					this.minecraft = MC.instance
 				}
 			}
 		}
@@ -43,18 +43,18 @@ abstract class MoulConfigHud(
 			val renderContext = componentWrapper.createContext(it.context)
 			if (fragment == null)
 				loadFragment()
-			it.context.matrices.pushMatrix()
-			hudMeta.applyTransformations(it.context.matrices)
+			it.context.pose().pushMatrix()
+			hudMeta.applyTransformations(it.context.pose())
 			val pos = hudMeta.getEffectivePosition(JarvisIntegration.jarvis)
 			val renderContextTranslated =
 				renderContext.translated(pos.x(), pos.y(), hudMeta.effectiveWidth, hudMeta.effectiveHeight)
 					.scaled(hudMeta.scale)
 			fragment!!.root.render(renderContextTranslated)
-			it.context.matrices.popMatrix()
+			it.context.pose().popMatrix()
 		}
 		FinalizeResourceManagerEvent.subscribe("MoulConfigHud:finalizeResourceManager") {
-			MC.resourceManager.registerReloader(object : SynchronousResourceReloader {
-				override fun reload(manager: ResourceManager?) {
+			MC.resourceManager.registerReloadListener(object : ResourceManagerReloadListener {
+				override fun onResourceManagerReload(manager: ResourceManager?) {
 					fragment = null
 				}
 			})

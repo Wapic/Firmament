@@ -2,7 +2,7 @@
 
 package moe.nea.firmament.features.debug
 
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ModifyChatEvent
 
@@ -20,6 +20,6 @@ object MinorTrolling {
         val (_, name, text) = m.groupValues
         if (name !in trollers) return
         if (!text.startsWith("c:")) return
-        it.replaceWith = Text.literal(text.substring(2).replace("&", "§"))
+        it.replaceWith = Component.literal(text.substring(2).replace("&", "§"))
     }
 }

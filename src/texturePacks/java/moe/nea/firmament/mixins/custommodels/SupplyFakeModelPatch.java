@@ -8,14 +8,14 @@ import moe.nea.firmament.features.texturepack.CustomSkyBlockTextures;
 import moe.nea.firmament.features.texturepack.HeadModelChooser;
 import moe.nea.firmament.features.texturepack.PredicateModel;
 import moe.nea.firmament.util.ErrorUtil;
-import net.minecraft.client.item.ItemAsset;
-import net.minecraft.client.item.ItemAssetsLoader;
-import net.minecraft.client.render.item.model.BasicItemModel;
-import net.minecraft.client.render.item.model.ItemModel;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.ResourcePack;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.item.ClientItem;
+import net.minecraft.client.resources.model.ClientItemInfoLoader;
+import net.minecraft.client.renderer.item.BlockModelWrapper;
+import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.PackResources;
+import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -30,15 +30,15 @@ import java.util.concurrent.Executor;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-@Mixin(ItemAssetsLoader.class)
+@Mixin(ClientItemInfoLoader.class)
 public class SupplyFakeModelPatch {
 
 	@ModifyReturnValue(
-		method = "load",
+		method = "scheduleLoad",
 		at = @At("RETURN")
 	)
-	private static CompletableFuture<ItemAssetsLoader.Result> injectFakeGeneratedModels(
-		CompletableFuture<ItemAssetsLoader.Result> original,
+	private static CompletableFuture<ClientItemInfoLoader.LoadedClientInfos> injectFakeGeneratedModels(
+		CompletableFuture<ClientItemInfoLoader.LoadedClientInfos> original,
 		@Local(argsOnly = true) ResourceManager resourceManager,
 		@Local(argsOnly = true) Executor executor
 	) {
@@ -46,46 +46,46 @@ public class SupplyFakeModelPatch {
 	}
 
 	@Unique
-	private static ItemAssetsLoader.Result supplyExtraModels(ResourceManager resourceManager, ItemAssetsLoader.Result oldModels) {
+	private static ClientItemInfoLoader.LoadedClientInfos supplyExtraModels(ResourceManager resourceManager, ClientItemInfoLoader.LoadedClientInfos oldModels) {
 		if (!CustomSkyBlockTextures.TConfig.INSTANCE.getEnableLegacyMinecraftCompat()) return oldModels;
-		Map<Identifier, ItemAsset> newModels = new HashMap<>(oldModels.contents());
-		var resources = resourceManager.findResources(
+		Map<ResourceLocation, ClientItem> newModels = new HashMap<>(oldModels.contents());
+		var resources = resourceManager.listResources(
 			"models/item",
 			id -> (id.getNamespace().equals("firmskyblock") || id.getNamespace().equals("cittofirmgenerated"))
 				      && id.getPath().endsWith(".json"));
-		for (Map.Entry<Identifier, Resource> model : resources.entrySet()) {
+		for (Map.Entry<ResourceLocation, Resource> model : resources.entrySet()) {
 			var resource = model.getValue();
 			var itemModelId = model.getKey().withPath(it -> it.substring("models/item/".length(), it.length() - ".json".length()));
-			var genericModelId = itemModelId.withPrefixedPath("item/");
-			var itemAssetId = itemModelId.withPrefixedPath("items/");
+			var genericModelId = itemModelId.withPrefix("item/");
+			var itemAssetId = itemModelId.withPrefix("items/");
 			// TODO: inject tint indexes based on the json data here
-			ItemModel.Unbaked unbakedModel = new BasicItemModel.Unbaked(genericModelId, List.of());
+			ItemModel.Unbaked unbakedModel = new BlockModelWrapper.Unbaked(genericModelId, List.of());
 			// TODO: add a filter using the pack.mcmeta to opt out of this behaviour
-			try (var is = resource.getInputStream()) {
+			try (var is = resource.open()) {
 				var jsonObject = Firmament.INSTANCE.getGson().fromJson(new InputStreamReader(is), JsonObject.class);
 				unbakedModel = PredicateModel.Unbaked.fromLegacyJson(jsonObject, unbakedModel);
 				unbakedModel = HeadModelChooser.Unbaked.fromLegacyJson(jsonObject, unbakedModel);
 			} catch (Exception e) {
 				ErrorUtil.INSTANCE.softError("Could not create resource for fake model supplication: " + model.getKey(), e);
 			}
-			if (resourceManager.getResource(itemAssetId.withSuffixedPath(".json"))
-			                   .map(Resource::getPack)
-			                   .map(it -> isResourcePackNewer(resourceManager, it, resource.getPack()))
+			if (resourceManager.getResource(itemAssetId.withSuffix(".json"))
+			                   .map(Resource::source)
+			                   .map(it -> isResourcePackNewer(resourceManager, it, resource.source()))
 			                   .orElse(true)) {
-				newModels.put(itemModelId, new ItemAsset(
+				newModels.put(itemModelId, new ClientItem(
 					unbakedModel,
-					new ItemAsset.Properties(true, true)
+					new ClientItem.Properties(true, true)
 				));
 			}
 		}
-		return new ItemAssetsLoader.Result(newModels);
+		return new ClientItemInfoLoader.LoadedClientInfos(newModels);
 	}
 
 	@Unique
 	private static boolean isResourcePackNewer(
-		ResourceManager manager,
-		ResourcePack null_, ResourcePack proposal) {
-		var pack = manager.streamResourcePacks()
+            ResourceManager manager,
+            PackResources null_, PackResources proposal) {
+		var pack = manager.listPacks()
 		                  .filter(it -> it == null_ || it == proposal)
 		                  .collect(findLast());
 		return pack.orElse(null_) != null_;

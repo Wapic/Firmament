@@ -1,12 +1,12 @@
 package moe.nea.firmament.features.macros
 
 import kotlinx.serialization.Serializable
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.keybindings.SavedKeyBinding
 import moe.nea.firmament.util.ErrorUtil
 
 sealed interface KeyComboTrie {
-	val label: Text
+	val label: Component
 
 	companion object {
 		fun fromComboList(
@@ -57,7 +57,7 @@ data class ComboKeyAction(
 )
 
 data class Leaf(val action: HotkeyAction) : KeyComboTrie {
-	override val label: Text
+	override val label: Component
 		get() = action.label
 
 	fun execute() {
@@ -68,6 +68,6 @@ data class Leaf(val action: HotkeyAction) : KeyComboTrie {
 data class Branch(
 	val nodes: Map<SavedKeyBinding, KeyComboTrie>
 ) : KeyComboTrie {
-	override val label: Text
-		get() = Text.literal("...") // TODO: better labels
+	override val label: Component
+		get() = Component.literal("...") // TODO: better labels
 }

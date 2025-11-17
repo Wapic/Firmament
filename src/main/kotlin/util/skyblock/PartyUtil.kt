@@ -7,7 +7,7 @@ import net.hypixel.modapi.packet.impl.clientbound.ClientboundPartyInfoPacket.Par
 import net.hypixel.modapi.packet.impl.serverbound.ServerboundPartyInfoPacket
 import org.intellij.lang.annotations.Language
 import kotlinx.coroutines.launch
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.apis.Routes
@@ -53,7 +53,7 @@ object PartyUtil {
 					}
 					thenExecute {
 						val p = party
-						val text = Text.empty()
+						val text = Component.empty()
 						text.append(
 							tr("firmament.dev.partyinfo", "Party Info: ")
 								.boolColour(p != null)
@@ -64,7 +64,7 @@ object PartyUtil {
 							text.append(tr("firmament.dev.partyinfo.count", "${p.members.size} members").grey())
 							p.members.forEach {
 								text.append("\n")
-									.append(Text.literal(" - ${it.name}"))
+									.append(Component.literal(" - ${it.name}"))
 									.append(" (")
 									.append(
 										when (it.role) {

@@ -13,12 +13,12 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NbtCompound
+import net.minecraft.world.item.ItemStack
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtIo
-import net.minecraft.nbt.NbtList
+import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.NbtOps
-import net.minecraft.nbt.NbtSizeTracker
+import net.minecraft.nbt.NbtAccounter
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.features.inventory.storageoverlay.VirtualInventory.Serializer.writeToByteArray
 import moe.nea.firmament.util.Base64Util
@@ -44,21 +44,21 @@ data class VirtualInventory(
 
 	object Serializer : KSerializer<VirtualInventory> {
 		fun writeToByteArray(value: VirtualInventory): ByteArray {
-			val list = NbtList()
+			val list = ListTag()
 			val ops = getOps()
 			value.stacks.forEach {
-				if (it.isEmpty) list.add(NbtCompound())
+				if (it.isEmpty) list.add(CompoundTag())
 				else list.add(ErrorUtil.catch("Could not serialize item") {
 					ItemStack.CODEC.encode(
 						it,
 						ops,
-						NbtCompound()
+						CompoundTag()
 					).orThrow
 				}
-					.or { NbtCompound() })
+					.or { CompoundTag() })
 			}
 			val baos = ByteArrayOutputStream()
-			NbtIo.writeCompressed(NbtCompound().also { it.put(INVENTORY, list) }, baos)
+			NbtIo.writeCompressed(CompoundTag().also { it.put(INVENTORY, list) }, baos)
 			return baos.toByteArray()
 		}
 
@@ -68,11 +68,11 @@ data class VirtualInventory(
 
 		override fun deserialize(decoder: Decoder): VirtualInventory {
 			val s = decoder.decodeString()
-			val n = NbtIo.readCompressed(ByteArrayInputStream(Base64Util.decodeBytes(s)), NbtSizeTracker.of(100_000_000))
+			val n = NbtIo.readCompressed(ByteArrayInputStream(Base64Util.decodeBytes(s)), NbtAccounter.create(100_000_000))
 			val items = n.getList(INVENTORY).getOrNull()
 			val ops = getOps()
 			return VirtualInventory(items?.map {
-				it as NbtCompound
+				it as CompoundTag
 				if (it.isEmpty) ItemStack.EMPTY
 				else ErrorUtil.catch("Could not deserialize item") {
 					ItemStack.CODEC.parse(ops, it).orThrow

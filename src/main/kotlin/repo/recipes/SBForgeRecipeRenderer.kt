@@ -7,10 +7,10 @@ import me.shedaniel.math.Rectangle
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.block.Blocks
-import net.minecraft.item.ItemStack
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.item.ItemStack
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.repo.SBItemStack
 import moe.nea.firmament.util.tr
@@ -23,16 +23,16 @@ object SBForgeRecipeRenderer : GenericRecipeRenderer<NEUForgeRecipe> {
 		mainItem: SBItemStack?,
 	) {
 		val arrow = layouter.createArrow(bounds.minX + 90, bounds.minY + 54 - 18 / 2)
-		val tooltip = Text.empty()
-			.append(Text.stringifiedTranslatable(
+		val tooltip = Component.empty()
+			.append(Component.translatableEscape(
 				"firmament.recipe.forge.time",
 				recipe.duration.seconds,
 			))
 
 		if (recipe.extraText != null && recipe.extraText!!.isNotBlank()) {
 			tooltip
-				.append(Text.of("\n"))
-				.append(Text.of(recipe.extraText))
+				.append(Component.nullToEmpty("\n"))
+				.append(Component.nullToEmpty(recipe.extraText))
 		}
 
 		layouter.createTooltip(arrow, tooltip)
@@ -75,8 +75,8 @@ object SBForgeRecipeRenderer : GenericRecipeRenderer<NEUForgeRecipe> {
 	}
 
 	override val icon: ItemStack = ItemStack(Blocks.ANVIL)
-	override val title: Text = tr("firmament.category.forge", "Forge Recipes")
-	override val identifier: Identifier = Firmament.identifier("forge_recipe")
+	override val title: Component = tr("firmament.category.forge", "Forge Recipes")
+	override val identifier: ResourceLocation = Firmament.identifier("forge_recipe")
 
 	override fun findAllRecipes(neuRepository: NEURepository): Iterable<NEUForgeRecipe> {
 		// TODO: theres gotta be an index for these tbh.

@@ -1,8 +1,8 @@
 package moe.nea.firmament.events
 
-import net.minecraft.item.ItemStack
-import net.minecraft.screen.slot.Slot
-import net.minecraft.screen.slot.SlotActionType
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.inventory.Slot
+import net.minecraft.world.inventory.ClickType
 import moe.nea.firmament.util.CommonSoundEffects
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.grey
@@ -11,14 +11,14 @@ import moe.nea.firmament.util.red
 import moe.nea.firmament.util.tr
 
 data class IsSlotProtectedEvent(
-	val slot: Slot?,
-	val actionType: SlotActionType,
-	var isProtected: Boolean,
-	val itemStackOverride: ItemStack?,
-	val origin: MoveOrigin,
-	var silent: Boolean = false,
+    val slot: Slot?,
+    val actionType: ClickType,
+    var isProtected: Boolean,
+    val itemStackOverride: ItemStack?,
+    val origin: MoveOrigin,
+    var silent: Boolean = false,
 ) : FirmamentEvent() {
-	val itemStack get() = itemStackOverride ?: slot!!.stack
+	val itemStack get() = itemStackOverride ?: slot!!.item
 
 	fun protect() {
 		isProtected = true
@@ -43,15 +43,15 @@ data class IsSlotProtectedEvent(
 		@JvmStatic
 		@JvmOverloads
 		fun shouldBlockInteraction(
-			slot: Slot?, action: SlotActionType,
-			origin: MoveOrigin,
-			itemStackOverride: ItemStack? = null,
+            slot: Slot?, action: ClickType,
+            origin: MoveOrigin,
+            itemStackOverride: ItemStack? = null,
 		): Boolean {
 			if (slot == null && itemStackOverride == null) return false
 			val event = IsSlotProtectedEvent(slot, action, false, itemStackOverride, origin)
 			publish(event)
 			if (event.isProtected && !event.silent) {
-				MC.sendChat(tr("firmament.protectitem", "Firmament protected your item: ${event.itemStack.name}.\n")
+				MC.sendChat(tr("firmament.protectitem", "Firmament protected your item: ${event.itemStack.hoverName}.\n")
 					            .red()
 					            .append(tr("firmament.protectitem.hoverhint", "Hover for more info.").grey())
 					            .hover(tr("firmament.protectitem.hint",

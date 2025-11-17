@@ -12,7 +12,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.DeserializationStrategy
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.client.MinecraftClient
+import net.minecraft.client.Minecraft
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.util.net.HttpUtil
 
@@ -46,10 +46,10 @@ object UrsaManager {
 			val request = HttpUtil.request(url)
 			if (token == null) {
 				withContext(Dispatchers.IO) {
-					val mc = MinecraftClient.getInstance()
+					val mc = Minecraft.getInstance()
 					val serverId = UUID.randomUUID().toString()
-					mc.apiServices.sessionService.joinServer(mc.session.uuidOrNull, mc.session.accessToken, serverId)
-					request.header("x-ursa-username", mc.session.username)
+					mc.services().sessionService.joinServer(mc.user.profileId, mc.user.accessToken, serverId)
+					request.header("x-ursa-username", mc.user.name)
 					request.header("x-ursa-serverid", serverId)
 				}
 			} else {

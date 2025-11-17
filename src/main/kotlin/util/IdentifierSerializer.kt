@@ -8,18 +8,18 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import net.minecraft.util.Identifier
+import net.minecraft.resources.ResourceLocation
 
-object IdentifierSerializer : KSerializer<Identifier> {
+object IdentifierSerializer : KSerializer<ResourceLocation> {
     val delegateSerializer = String.serializer()
     override val descriptor: SerialDescriptor
         get() = PrimitiveSerialDescriptor("Identifier", PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): Identifier {
-        return Identifier.of(decoder.decodeSerializableValue(delegateSerializer))
+    override fun deserialize(decoder: Decoder): ResourceLocation {
+        return ResourceLocation.parse(decoder.decodeSerializableValue(delegateSerializer))
     }
 
-    override fun serialize(encoder: Encoder, value: Identifier) {
+    override fun serialize(encoder: Encoder, value: ResourceLocation) {
         encoder.encodeSerializableValue(delegateSerializer, value.toString())
     }
 }

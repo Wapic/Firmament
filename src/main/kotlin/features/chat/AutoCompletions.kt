@@ -9,7 +9,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
 import kotlin.concurrent.thread
 import net.minecraft.SharedConstants
-import net.minecraft.command.TranslatableBuiltInExceptions
+import net.minecraft.commands.BrigadierExceptions
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.get
 import moe.nea.firmament.commands.suggestsList

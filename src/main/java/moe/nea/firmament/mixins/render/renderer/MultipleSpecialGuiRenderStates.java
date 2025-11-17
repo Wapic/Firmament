@@ -9,10 +9,10 @@ import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import moe.nea.firmament.util.render.MultiSpecialGuiRenderState;
 import moe.nea.firmament.util.render.MultiSpecialGuiRenderer;
 import net.minecraft.client.gui.render.GuiRenderer;
-import net.minecraft.client.gui.render.SpecialGuiElementRenderer;
+import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
 import net.minecraft.client.gui.render.state.GuiRenderState;
-import net.minecraft.client.gui.render.state.special.SpecialGuiElementRenderState;
-import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.gui.render.state.pip.PictureInPictureRenderState;
+import net.minecraft.client.renderer.MultiBufferSource;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,30 +31,30 @@ import java.util.Map;
 public class MultipleSpecialGuiRenderStates {
 	@Shadow
 	@Final
-	private VertexConsumerProvider.Immediate vertexConsumers;
+	private MultiBufferSource.BufferSource bufferSource;
 	@Shadow
 	@Final
-	GuiRenderState state;
+	GuiRenderState renderState;
 	@Unique
 	Map<MultiSpecialGuiRenderState, MultiSpecialGuiRenderer<?>> multiRenderers = new HashMap<>();
 
-	@Inject(method = "prepareSpecialElement", at = @At("HEAD"), cancellable = true)
-	private <T extends SpecialGuiElementRenderState> void onPrepareElement(T elementState, int windowScaleFactor, CallbackInfo ci) {
+	@Inject(method = "preparePictureInPictureState", at = @At("HEAD"), cancellable = true)
+	private <T extends PictureInPictureRenderState> void onPrepareElement(T elementState, int windowScaleFactor, CallbackInfo ci) {
 		if (elementState instanceof MultiSpecialGuiRenderState multiState) {
 			@SuppressWarnings({"resource", "unchecked"})
-			var renderer = (SpecialGuiElementRenderer<T>) multiRenderers
-				.computeIfAbsent(multiState, elementState$ -> elementState$.createRenderer(this.vertexConsumers));
-			renderer.render(elementState, state, windowScaleFactor);
+			var renderer = (PictureInPictureRenderer<T>) multiRenderers
+				.computeIfAbsent(multiState, elementState$ -> elementState$.createRenderer(this.bufferSource));
+			renderer.prepare(elementState, renderState, windowScaleFactor);
 			ci.cancel();
 		}
 	}
 
 	@Inject(method = "close", at = @At("TAIL"))
 	private void onClose(CallbackInfo ci) {
-		multiRenderers.values().forEach(SpecialGuiElementRenderer::close);
+		multiRenderers.values().forEach(PictureInPictureRenderer::close);
 	}
 
-	@Inject(method = "render(Lcom/mojang/blaze3d/buffers/GpuBufferSlice;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/render/GuiRenderer;clearOversizedItems()V"))
+	@Inject(method = "render(Lcom/mojang/blaze3d/buffers/GpuBufferSlice;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/render/GuiRenderer;clearUnusedOversizedItemRenderers()V"))
 	private void onAfterRender(GpuBufferSlice fogBuffer, CallbackInfo ci) {
 		multiRenderers.values().removeIf(it -> {
 			if (it.consumeRender()) {

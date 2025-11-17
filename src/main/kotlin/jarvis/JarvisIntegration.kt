@@ -6,8 +6,8 @@ import moe.nea.jarvis.api.Jarvis
 import moe.nea.jarvis.api.JarvisConfigOption
 import moe.nea.jarvis.api.JarvisHud
 import moe.nea.jarvis.api.JarvisPlugin
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.text.Text
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.gui.config.HudMeta
 import moe.nea.firmament.gui.config.HudMetaHandler
@@ -44,11 +44,11 @@ class JarvisIntegration : JarvisPlugin {
         return configs.flatMap { config ->
             config.sortedOptions.map {
                 object : JarvisConfigOption {
-                    override fun title(): Text {
+                    override fun title(): Component {
                         return it.labelText
                     }
 
-                    override fun description(): List<Text> {
+                    override fun description(): List<Component> {
                         return emptyList()
                     }
 

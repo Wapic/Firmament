@@ -2,10 +2,10 @@ package moe.nea.firmament.features.diana
 
 import me.shedaniel.math.Color
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.particle.ParticleTypes
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.MathHelper
-import net.minecraft.util.math.Position
+import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.core.BlockPos
+import net.minecraft.util.Mth
+import net.minecraft.core.Position
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ParticleSpawnEvent
 import moe.nea.firmament.events.ProcessChatEvent
@@ -63,7 +63,7 @@ object NearbyBurrowsSolver {
 	fun onParticles(event: ParticleSpawnEvent) {
 		if (!DianaWaypoints.TConfig.nearbyWaypoints) return
 
-		val position: BlockPos = event.position.toBlockPos().down()
+		val position: BlockPos = event.position.toBlockPos().below()
 
 		if (wasRecentlyDug(position)) return
 
@@ -135,5 +135,5 @@ object NearbyBurrowsSolver {
 }
 
 fun Position.toBlockPos(): BlockPos {
-	return BlockPos(MathHelper.floor(x), MathHelper.floor(y), MathHelper.floor(z))
+	return BlockPos(Mth.floor(x()), Mth.floor(y()), Mth.floor(z()))
 }

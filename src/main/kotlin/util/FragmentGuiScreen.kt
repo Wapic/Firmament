@@ -6,23 +6,23 @@ import io.github.notenoughupdates.moulconfig.gui.GuiContext
 import me.shedaniel.math.Dimension
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
-import net.minecraft.client.gui.Click
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.input.CharInput
-import net.minecraft.client.input.KeyInput
-import net.minecraft.text.Text
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.input.CharacterEvent
+import net.minecraft.client.input.KeyEvent
+import net.minecraft.network.chat.Component
 
 abstract class FragmentGuiScreen(
     val dismissOnOutOfBounds: Boolean = true
-) : Screen(Text.literal("")) {
+) : Screen(Component.literal("")) {
     var popup: MoulConfigFragment? = null
 
     fun createPopup(context: GuiContext, position: Point) {
         popup = MoulConfigFragment(context, position) { popup = null }
     }
 
-	fun renderPopup(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
+	fun renderPopup(context: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
 		popup?.render(context, mouseX, mouseY, delta)
 	}
 
@@ -32,13 +32,13 @@ abstract class FragmentGuiScreen(
         return true
     }
 
-	override fun keyPressed(input: KeyInput): Boolean {
+	override fun keyPressed(input: KeyEvent): Boolean {
         return ifPopup {
             it.keyPressed(input)
         }
     }
 
-	override fun keyReleased(input: KeyInput): Boolean {
+	override fun keyReleased(input: KeyEvent): Boolean {
         return ifPopup {
             it.keyReleased(input)
         }
@@ -48,19 +48,19 @@ abstract class FragmentGuiScreen(
         ifPopup { it.mouseMoved(mouseX, mouseY) }
     }
 
-	override fun mouseReleased(click: Click): Boolean {
+	override fun mouseReleased(click: MouseButtonEvent): Boolean {
         return ifPopup {
             it.mouseReleased(click)
         }
     }
 
-	override fun mouseDragged(click: Click, offsetX: Double, offsetY: Double): Boolean {
+	override fun mouseDragged(click: MouseButtonEvent, offsetX: Double, offsetY: Double): Boolean {
         return ifPopup {
             it.mouseDragged(click, offsetX, offsetY)
         }
     }
 
-	override fun mouseClicked(click: Click, doubled: Boolean): Boolean {
+	override fun mouseClicked(click: MouseButtonEvent, doubled: Boolean): Boolean {
         return ifPopup {
             if (!Rectangle(
                     it.position,
@@ -75,7 +75,7 @@ abstract class FragmentGuiScreen(
         }|| super.mouseClicked(click, doubled)
     }
 
-	override fun charTyped(input: CharInput): Boolean {
+	override fun charTyped(input: CharacterEvent): Boolean {
         return ifPopup { it.charTyped(input) }
     }
 

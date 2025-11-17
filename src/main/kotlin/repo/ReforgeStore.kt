@@ -9,8 +9,8 @@ import io.github.moulberry.repo.NEURepositoryException
 import io.github.moulberry.repo.data.NEURecipe
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
-import net.minecraft.item.Item
-import net.minecraft.registry.RegistryKey
+import net.minecraft.world.item.Item
+import net.minecraft.resources.ResourceKey
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.util.ReforgeId
 import moe.nea.firmament.util.SkyblockId
@@ -23,7 +23,7 @@ object ReforgeStore : ExtraRecipeProvider, IReloadable {
 	}
 
 	var byType: Map<ItemType, List<Reforge>> = mapOf()
-	var byVanilla: Map<RegistryKey<Item>, List<Reforge>> = mapOf()
+	var byVanilla: Map<ResourceKey<Item>, List<Reforge>> = mapOf()
 	var byInternalName: Map<SkyblockId, List<Reforge>> = mapOf()
 	var modifierLut = mapOf<ReforgeId, Reforge>()
 	var byReforgeStone = mapOf<SkyblockId, Reforge>()
@@ -52,7 +52,7 @@ object ReforgeStore : ExtraRecipeProvider, IReloadable {
 		byReforgeStone = allReforges.filter { it.reforgeStone != null }
 			.associateBy { it.reforgeStone!! }
 		val byType = mutableMapOf<ItemType, MutableList<Reforge>>()
-		val byVanilla = mutableMapOf<RegistryKey<Item>, MutableList<Reforge>>()
+		val byVanilla = mutableMapOf<ResourceKey<Item>, MutableList<Reforge>>()
 		val byInternalName = mutableMapOf<SkyblockId, MutableList<Reforge>>()
 		this.byType = byType
 		this.byVanilla = byVanilla

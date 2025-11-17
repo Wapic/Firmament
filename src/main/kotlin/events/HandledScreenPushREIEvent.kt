@@ -3,10 +3,10 @@
 package moe.nea.firmament.events
 
 import me.shedaniel.math.Rectangle
-import net.minecraft.client.gui.screen.ingame.HandledScreen
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 
 data class HandledScreenPushREIEvent(
-    val screen: HandledScreen<*>,
+    val screen: AbstractContainerScreen<*>,
     val rectangles: MutableList<Rectangle> = mutableListOf()
 ) : FirmamentEvent() {
 

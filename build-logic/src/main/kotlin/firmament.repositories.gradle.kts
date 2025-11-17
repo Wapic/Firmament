@@ -42,5 +42,8 @@ repositories {
 	maven("https://maven.isxander.dev/releases") {
 		name = "Xander Maven"
 	}
+	maven("https://maven.parchmentmc.org") {
+		name = "ParchmentMC"
+	}
 	mavenLocal()
 }

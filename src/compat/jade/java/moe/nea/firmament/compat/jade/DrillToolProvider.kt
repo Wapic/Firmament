@@ -12,8 +12,8 @@ import snownee.jade.api.ui.JadeUI
 import snownee.jade.gui.JadeLinearLayout
 import snownee.jade.impl.ui.ItemStackElement
 import snownee.jade.impl.ui.TextElementImpl
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
 import moe.nea.firmament.repo.RepoManager
@@ -63,10 +63,10 @@ class DrillToolProvider : IBlockComponentProvider {
 			.alignSelfCenter()
 	}
 
-	private val CHECK: Text = Text.literal("✔")
-	private val X: Text = Text.literal("✕")
+	private val CHECK: Component = Component.literal("✔")
+	private val X: Component = Component.literal("✕")
 
-	override fun getUid(): Identifier {
+	override fun getUid(): ResourceLocation {
 		return Firmament.identifier("toolprovider")
 	}
 }

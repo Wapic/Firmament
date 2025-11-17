@@ -3,15 +3,15 @@ package moe.nea.firmament.features.mining
 import me.shedaniel.math.Rectangle
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.block.Blocks
-import net.minecraft.client.gui.Click
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.screen.ingame.HandledScreen
-import net.minecraft.entity.player.PlayerInventory
-import net.minecraft.item.Items
-import net.minecraft.screen.GenericContainerScreenHandler
-import net.minecraft.screen.slot.Slot
-import net.minecraft.text.Text
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.item.Items
+import net.minecraft.world.inventory.ChestMenu
+import net.minecraft.world.inventory.Slot
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.thenExecute
@@ -51,8 +51,8 @@ object HotmPresets {
 	fun onScreenOpen(event: ScreenChangeEvent) {
 		val title = event.new?.title?.unformattedString
 		if (title != hotmInventoryName) return
-		val screen = event.new as? HandledScreen<*> ?: return
-		val oldHandler = (event.old as? HandledScreen<*>)?.customGui
+		val screen = event.new as? AbstractContainerScreen<*> ?: return
+		val oldHandler = (event.old as? AbstractContainerScreen<*>)?.customGui
 		if (oldHandler is HotmScrollPrompt) {
 			event.new.customGui = oldHandler
 			oldHandler.setNewScreen(screen)
@@ -63,32 +63,32 @@ object HotmPresets {
 		screen.customGui = HotmScrollPrompt(screen)
 	}
 
-	class HotmScrollPrompt(var screen: HandledScreen<*>) : CustomGui() {
+	class HotmScrollPrompt(var screen: AbstractContainerScreen<*>) : CustomGui() {
 		var bounds = Rectangle(
 			0, 0, 0, 0
 		)
 
-		fun setNewScreen(screen: HandledScreen<*>) {
+		fun setNewScreen(screen: AbstractContainerScreen<*>) {
 			this.screen = screen
 			onInit()
 			hasScrolled = false
 		}
 
-		override fun render(drawContext: DrawContext, delta: Float, mouseX: Int, mouseY: Int) {
+		override fun render(drawContext: GuiGraphics, delta: Float, mouseX: Int, mouseY: Int) {
 			drawContext.drawGuiTexture(
 				CommonTextures.genericWidget(),
 				bounds.x, bounds.y,
 				bounds.width,
 				bounds.height,
 			)
-			drawContext.drawCenteredTextWithShadow(
+			drawContext.drawCenteredString(
 				MC.font,
 				if (hasAll) {
-					Text.translatable("firmament.hotmpreset.copied")
+					Component.translatable("firmament.hotmpreset.copied")
 				} else if (!hasScrolled) {
-					Text.translatable("firmament.hotmpreset.scrollprompt")
+					Component.translatable("firmament.hotmpreset.scrollprompt")
 				} else {
-					Text.translatable("firmament.hotmpreset.scrolled")
+					Component.translatable("firmament.hotmpreset.scrolled")
 				},
 				bounds.centerX,
 				bounds.centerY - 5,
@@ -100,11 +100,11 @@ object HotmPresets {
 		var hasScrolled = false
 		var hasAll = false
 
-		override fun mouseClick(click: Click, doubled: Boolean): Boolean {
+		override fun mouseClick(click: MouseButtonEvent, doubled: Boolean): Boolean {
 			if (!hasScrolled) {
-				val slot = screen.screenHandler.getSlot(8)
-				println("Clicking ${slot.stack}")
-				slot.clickRightMouseButton(screen.screenHandler)
+				val slot = screen.menu.getSlot(8)
+				println("Clicking ${slot.item}")
+				slot.clickRightMouseButton(screen.menu)
 			}
 			hasScrolled = true
 			return super.mouseClick(click, doubled)
@@ -140,10 +140,10 @@ object HotmPresets {
 		val allRows = (1..10).toSet()
 
 		fun onNewItems(event: ChestInventoryUpdateEvent) {
-			val handler = screen.screenHandler as? GenericContainerScreenHandler ?: return
+			val handler = screen.menu as? ChestMenu ?: return
 			for (it in handler.slots) {
-				if (it.inventory is PlayerInventory) continue
-				val stack = it.stack
+				if (it.container is Inventory) continue
+				val stack = it.item
 				val name = stack.displayNameAccordingToNbt.unformattedString
 				tierRegex.useMatch(name) {
 					coveredRows.add(group("tier").toInt())
@@ -169,7 +169,7 @@ object HotmPresets {
 
 	@Subscribe
 	fun onSlotUpdates(event: ChestInventoryUpdateEvent) {
-		val customGui = (event.inventory as? HandledScreen<*>)?.customGui
+		val customGui = (event.inventory as? AbstractContainerScreen<*>)?.customGui
 		if (customGui is HotmScrollPrompt) {
 			customGui.onNewItems(event)
 		}
@@ -185,7 +185,7 @@ object HotmPresets {
 	@Subscribe
 	fun onSlotRender(event: SlotRenderEvents.Before) {
 		if (hotmInventoryName == MC.screenName
-			&& event.slot.stack.displayNameAccordingToNbt.unformattedString in highlightedPerks
+			&& event.slot.item.displayNameAccordingToNbt.unformattedString in highlightedPerks
 		) {
 			event.highlight((Firmament.identifier("hotm_perk_preset")))
 		}
@@ -197,7 +197,7 @@ object HotmPresets {
 			thenExecute {
 				hotmCommandSent = TimeMark.now()
 				MC.sendCommand("hotm")
-				source.sendFeedback(Text.translatable("firmament.hotmpreset.openinghotm"))
+				source.sendFeedback(Component.translatable("firmament.hotmpreset.openinghotm"))
 			}
 		}
 		event.subcommand("importhotm") {
@@ -205,10 +205,10 @@ object HotmPresets {
 				val template =
 					TemplateUtil.maybeDecodeTemplate<HotmPreset>(SHARE_PREFIX, ClipboardUtils.getTextContents())
 				if (template == null) {
-					source.sendFeedback(Text.translatable("firmament.hotmpreset.failedimport"))
+					source.sendFeedback(Component.translatable("firmament.hotmpreset.failedimport"))
 				} else {
 					highlightedPerks = template.perks.mapTo(mutableSetOf()) { it.perkName }
-					source.sendFeedback(Text.translatable("firmament.hotmpreset.okayimport"))
+					source.sendFeedback(Component.translatable("firmament.hotmpreset.okayimport"))
 					MC.sendCommand("hotm")
 				}
 			}

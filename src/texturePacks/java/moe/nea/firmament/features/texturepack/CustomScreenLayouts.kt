@@ -3,23 +3,23 @@ package moe.nea.firmament.features.texturepack
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import net.minecraft.client.font.TextRenderer
-import net.minecraft.client.gl.RenderPipelines
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.gui.screen.ingame.AbstractSignEditScreen
-import net.minecraft.client.gui.screen.ingame.HandledScreen
-import net.minecraft.client.gui.screen.ingame.HangingSignEditScreen
-import net.minecraft.client.gui.screen.ingame.SignEditScreen
-import net.minecraft.client.render.RenderLayer
-import net.minecraft.registry.Registries
-import net.minecraft.resource.ResourceManager
-import net.minecraft.resource.SinglePreparationResourceReloader
-import net.minecraft.screen.ScreenHandler
-import net.minecraft.screen.slot.Slot
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
-import net.minecraft.util.profiler.Profiler
+import net.minecraft.client.gui.Font
+import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.gui.screens.inventory.AbstractSignEditScreen
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.client.gui.screens.inventory.HangingSignEditScreen
+import net.minecraft.client.gui.screens.inventory.SignEditScreen
+import net.minecraft.client.renderer.RenderType
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.server.packs.resources.ResourceManager
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener
+import net.minecraft.world.inventory.AbstractContainerMenu
+import net.minecraft.world.inventory.Slot
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.profiling.ProfilerFiller
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.FinalizeResourceManagerEvent
@@ -32,7 +32,7 @@ import moe.nea.firmament.mixins.accessor.AccessorScreenHandler
 import moe.nea.firmament.util.ErrorUtil.intoCatch
 import moe.nea.firmament.util.IdentifierSerializer
 
-object CustomScreenLayouts : SinglePreparationResourceReloader<List<CustomScreenLayouts.CustomScreenLayout>>() {
+object CustomScreenLayouts : SimplePreparableReloadListener<List<CustomScreenLayouts.CustomScreenLayout>>() {
 
 	@Serializable
 	data class CustomScreenLayout(
@@ -61,19 +61,19 @@ object CustomScreenLayouts : SinglePreparationResourceReloader<List<CustomScreen
 
 	@Serializable
 	data class Preds(
-		val label: StringMatcher,
-		@Serializable(with = IdentifierSerializer::class)
-		val screenType: Identifier? = null,
+        val label: StringMatcher,
+        @Serializable(with = IdentifierSerializer::class)
+		val screenType: ResourceLocation? = null,
 	) {
 		fun matches(screen: Screen): Boolean {
 			// TODO: does this deserve the restriction to handled screen
 			val type = when (screen) {
-				is HandledScreen<*> -> (screen.screenHandler as AccessorScreenHandler).type_firmament?.let {
-					Registries.SCREEN_HANDLER.getId(it)
+				is AbstractContainerScreen<*> -> (screen.menu as AccessorScreenHandler).type_firmament?.let {
+					BuiltInRegistries.MENU.getKey(it)
 				}
 
-				is HangingSignEditScreen -> Identifier.of("firmskyblock", "hanging_sign")
-				is SignEditScreen -> Identifier.of("firmskyblock", "sign")
+				is HangingSignEditScreen -> ResourceLocation.fromNamespaceAndPath("firmskyblock", "hanging_sign")
+				is SignEditScreen -> ResourceLocation.fromNamespaceAndPath("firmskyblock", "sign")
 				else -> null
 			}
 			val typeMatches = screenType == null || type == screenType;
@@ -83,16 +83,16 @@ object CustomScreenLayouts : SinglePreparationResourceReloader<List<CustomScreen
 
 	@Serializable
 	data class BackgroundReplacer(
-		@Serializable(with = IdentifierSerializer::class)
-		val texture: Identifier,
+        @Serializable(with = IdentifierSerializer::class)
+		val texture: ResourceLocation,
 		// TODO: allow selectively still rendering some components (recipe button, trade backgrounds, furnace flame progress, arrows)
-		val x: Int,
-		val y: Int,
-		val width: Int,
-		val height: Int,
+        val x: Int,
+        val y: Int,
+        val width: Int,
+        val height: Int,
 	) {
-		fun renderDirect(context: DrawContext) {
-			context.drawTexture(
+		fun renderDirect(context: GuiGraphics) {
+			context.blit(
 				RenderPipelines.GUI_TEXTURED,
 				this.texture,
 				this.x, this.y,
@@ -101,7 +101,7 @@ object CustomScreenLayouts : SinglePreparationResourceReloader<List<CustomScreen
 			)
 		}
 
-		fun renderGeneric(context: DrawContext, screen: HandledScreen<*>) {
+		fun renderGeneric(context: GuiGraphics, screen: AbstractContainerScreen<*>) {
 			screen as AccessorHandledScreen
 			val originalX: Int = (screen.width - screen.backgroundWidth_Firmament) / 2
 			val originalY: Int = (screen.height - screen.backgroundHeight_Firmament) / 2
@@ -109,7 +109,7 @@ object CustomScreenLayouts : SinglePreparationResourceReloader<List<CustomScreen
 			val modifiedY = originalY + this.y
 			val textureWidth = this.width
 			val textureHeight = this.height
-			context.drawTexture(
+			context.blit(
 				RenderPipelines.GUI_TEXTURED,
 				this.texture,
 				modifiedX,
@@ -160,9 +160,9 @@ object CustomScreenLayouts : SinglePreparationResourceReloader<List<CustomScreen
 		val replace: String? = null
 	) {
 		@Transient
-		val replacedText: Text? = replace?.let(Text::literal)
+		val replacedText: Component? = replace?.let(Component::literal)
 
-		fun replaceText(text: Text): Text {
+		fun replaceText(text: Component): Component {
 			if (replacedText != null) return replacedText
 			return text
 		}
@@ -171,19 +171,19 @@ object CustomScreenLayouts : SinglePreparationResourceReloader<List<CustomScreen
 			return this.y ?: y
 		}
 
-		fun replaceX(font: TextRenderer, text: Text, x: Int): Int {
+		fun replaceX(font: Font, text: Component, x: Int): Int {
 			val baseX = this.x ?: x
 			return baseX + when (this.align) {
 				LEFT -> 0
-				CENTER -> -font.getWidth(text) / 2
-				RIGHT -> -font.getWidth(text)
+				CENTER -> -font.width(text) / 2
+				RIGHT -> -font.width(text)
 			}
 		}
 
 		/**
 		 * Not technically part of the package, but it does allow for us to later on seamlessly integrate a color option into this class as well
 		 */
-		fun replaceColor(text: Text, color: Int): Int {
+		fun replaceColor(text: Component, color: Int): Int {
 			return CustomTextColors.mapTextColor(text, color)
 		}
 	}
@@ -191,18 +191,18 @@ object CustomScreenLayouts : SinglePreparationResourceReloader<List<CustomScreen
 
 	@Subscribe
 	fun onStart(event: FinalizeResourceManagerEvent) {
-		event.resourceManager.registerReloader(CustomScreenLayouts)
+		event.resourceManager.registerReloadListener(CustomScreenLayouts)
 	}
 
 	override fun prepare(
-		manager: ResourceManager,
-		profiler: Profiler
+        manager: ResourceManager,
+        profiler: ProfilerFiller
 	): List<CustomScreenLayout> {
-		val allScreenLayouts = manager.findResources(
+		val allScreenLayouts = manager.listResources(
 			"overrides/screen_layout",
 			{ it.path.endsWith(".json") && it.namespace == "firmskyblock" })
 		val allParsedLayouts = allScreenLayouts.mapNotNull { (path, stream) ->
-			Firmament.tryDecodeJsonFromStream<CustomScreenLayout>(stream.inputStream)
+			Firmament.tryDecodeJsonFromStream<CustomScreenLayout>(stream.open())
 				.intoCatch("Could not read custom screen layout from $path").orNull()
 		}
 		return allParsedLayouts
@@ -211,9 +211,9 @@ object CustomScreenLayouts : SinglePreparationResourceReloader<List<CustomScreen
 	var customScreenLayouts = listOf<CustomScreenLayout>()
 
 	override fun apply(
-		prepared: List<CustomScreenLayout>,
-		manager: ResourceManager?,
-		profiler: Profiler?
+        prepared: List<CustomScreenLayout>,
+        manager: ResourceManager?,
+        profiler: ProfilerFiller?
 	) {
 		this.customScreenLayouts = prepared
 	}
@@ -245,8 +245,8 @@ object CustomScreenLayouts : SinglePreparationResourceReloader<List<CustomScreen
 			customScreenLayouts.find { it.predicates.matches(screen) }
 		}
 
-		val screen = event.new as? HandledScreen<*> ?: return
-		val handler = screen.screenHandler
+		val screen = event.new as? AbstractContainerScreen<*> ?: return
+		val handler = screen.menu
 		activeScreenOverride?.let { override ->
 			override.slots.forEach { slotReplacer ->
 				slotReplacer.move(handler.slots)

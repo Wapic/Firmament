@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.test.testutil.ItemResources
 import moe.nea.firmament.util.skyblock.AbilityUtils
 import moe.nea.firmament.util.unformattedString
@@ -12,7 +12,7 @@ import moe.nea.firmament.util.unformattedString
 class AbilityUtilsTest {
 
 	fun List<AbilityUtils.ItemAbility>.stripDescriptions() = map {
-		it.copy(descriptionLines = it.descriptionLines.map { Text.literal(it.unformattedString) })
+		it.copy(descriptionLines = it.descriptionLines.map { Component.literal(it.unformattedString) })
 	}
 
 	@Test
@@ -28,7 +28,7 @@ class AbilityUtilsTest {
 						"Throw your pickaxe to create an",
 						"explosion mining all ores in a 3 block",
 						"radius."
-					).map(Text::literal),
+					).map(Component::literal),
 					48.seconds
 				)
 			),
@@ -48,7 +48,7 @@ class AbilityUtilsTest {
 					listOf(
 						"Grants +200% ⸕ Mining Speed for",
 						"10s."
-					).map(Text::literal),
+					).map(Component::literal),
 					2.minutes
 				)
 			),
@@ -65,7 +65,7 @@ class AbilityUtilsTest {
 					listOf(
 						"Teleport 12 blocks ahead of you and",
 						"gain +50 ✦ Speed for 3 seconds."
-					).map(Text::literal),
+					).map(Component::literal),
 					null
 				),
 				AbilityUtils.ItemAbility(
@@ -77,7 +77,7 @@ class AbilityUtilsTest {
 						"Teleport to your targeted block up",
 						"to 61 blocks away.",
 						"Soulflow Cost: 1"
-					).map(Text::literal),
+					).map(Component::literal),
 					null
 				)
 			),

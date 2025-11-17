@@ -23,10 +23,10 @@ import me.shedaniel.math.Color
 import org.w3c.dom.Element
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.util.InputUtil
-import net.minecraft.text.Text
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.screens.Screen
+import com.mojang.blaze3d.platform.InputConstants
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.gui.BarComponent
 import moe.nea.firmament.gui.FirmButtonComponent
 import moe.nea.firmament.gui.FirmHoverComponent
@@ -227,10 +227,10 @@ object MoulConfigUtils {
 	}
 
 	fun wrapScreen(guiContext: GuiContext, parent: Screen?, onClose: () -> Unit = {}): Screen {
-		return object : MoulConfigScreenComponent(Text.empty(), guiContext, null) {
-			override fun close() {
+		return object : MoulConfigScreenComponent(Component.empty(), guiContext, null) {
+			override fun onClose() {
 				if (guiContext.onBeforeClose() == CloseEventListener.CloseAction.NO_OBJECTIONS_TO_CLOSE) {
-					client!!.setScreen(parent)
+					minecraft!!.setScreen(parent)
 					onClose()
 				}
 			}
@@ -270,7 +270,7 @@ object MoulConfigUtils {
 			return true
 		if (component.context.getFocusedElement() != null) {
 			if (keyboardEvent is KeyboardEvent.KeyPressed
-				&& keyboardEvent.pressed && keyboardEvent.keycode == InputUtil.GLFW_KEY_ESCAPE
+				&& keyboardEvent.pressed && keyboardEvent.keycode == InputConstants.KEY_ESCAPE
 			) {
 				component.context.setFocusedElement(null)
 			}
@@ -292,7 +292,7 @@ object MoulConfigUtils {
 		return component.mouseEvent(mouseEvent, immContext.translated(x, y, w, h))
 	}
 
-	fun createInPlaceFullContext(drawContext: DrawContext?, mouseX: Int, mouseY: Int): GuiImmediateContext {
+	fun createInPlaceFullContext(drawContext: GuiGraphics?, mouseX: Int, mouseY: Int): GuiImmediateContext {
 		ErrorUtil.softCheck(
 			"created moulconfig context with pre-existing translations.",
 			drawContext?.isUntranslatedGuiDrawContext() != false
@@ -310,7 +310,7 @@ object MoulConfigUtils {
 		return immContext
 	}
 
-	fun DrawContext.drawMCComponentInPlace(
+	fun GuiGraphics.drawMCComponentInPlace(
 		component: GuiComponent,
 		x: Int,
 		y: Int,
@@ -320,10 +320,10 @@ object MoulConfigUtils {
 		mouseY: Int
 	) {
 		val immContext = createInPlaceFullContext(this, mouseX, mouseY)
-		matrices.pushMatrix()
-		matrices.translate(x.toFloat(), y.toFloat())
+		pose().pushMatrix()
+		pose().translate(x.toFloat(), y.toFloat())
 		component.render(immContext.translated(x, y, w, h))
-		matrices.popMatrix()
+		pose().popMatrix()
 	}
 
 

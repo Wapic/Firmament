@@ -9,11 +9,11 @@ import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.serialization.JsonOps
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtElement
-import net.minecraft.nbt.NbtList
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.Tag
+import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.NbtOps
-import net.minecraft.nbt.NbtString
+import net.minecraft.nbt.StringTag
 import moe.nea.firmament.util.Base64Util
 
 class NbtPrism(val path: List<String>) {
@@ -42,9 +42,9 @@ class NbtPrism(val path: List<String>) {
 		return "Prism($path)"
 	}
 
-	fun access(root: NbtElement): Collection<NbtElement> {
+	fun access(root: Tag): Collection<Tag> {
 		var rootSet = mutableListOf(root)
-		var switch = mutableListOf<NbtElement>()
+		var switch = mutableListOf<Tag>()
 		for (pathSegment in path) {
 			if (pathSegment == ".") continue
 			if (pathSegment != "*" && pathSegment.startsWith("*")) {
@@ -57,21 +57,21 @@ class NbtPrism(val path: List<String>) {
 				} else if (pathSegment == "*base64") {
 					for (element in rootSet) {
 						val string = element.asString().getOrNull() ?: continue
-						switch.add(NbtString.of(Base64Util.decodeString(string)))
+						switch.add(StringTag.valueOf(Base64Util.decodeString(string)))
 					}
 				}
 			}
 			for (element in rootSet) {
-				if (element is NbtList) {
+				if (element is ListTag) {
 					if (pathSegment == "*")
 						switch.addAll(element)
 					val index = pathSegment.toIntOrNull() ?: continue
 					if (index !in element.indices) continue
 					switch.add(element[index])
 				}
-				if (element is NbtCompound) {
+				if (element is CompoundTag) {
 					if (pathSegment == "*")
-						element.keys.mapTo(switch) { element.get(it)!! }
+						element.keySet().mapTo(switch) { element.get(it)!! }
 					switch.add(element.get(pathSegment) ?: continue)
 				}
 			}

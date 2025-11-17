@@ -1,13 +1,13 @@
 
 package moe.nea.firmament.events
 
-import net.minecraft.entity.Entity
-import net.minecraft.util.Hand
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.InteractionHand
 
 data class EntityInteractionEvent(
     val kind: InteractionKind,
     val entity: Entity,
-    val hand: Hand,
+    val hand: InteractionHand,
 ) : FirmamentEvent() {
     companion object : FirmamentEventBus<EntityInteractionEvent>()
     enum class InteractionKind {

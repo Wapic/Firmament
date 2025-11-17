@@ -1,16 +1,16 @@
 package moe.nea.firmament.events
 
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.RenderTickCounter
-import net.minecraft.world.GameMode
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.DeltaTracker
+import net.minecraft.world.level.GameType
 import moe.nea.firmament.util.MC
 
 /**
  * Called when hud elements should be rendered, before the screen, but after the world.
  */
-data class HudRenderEvent(val context: DrawContext, val tickDelta: RenderTickCounter) : FirmamentEvent.Cancellable() {
-	val isRenderingHud = !MC.options.hudHidden
-	val isRenderingCursor = MC.interactionManager?.currentGameMode != GameMode.SPECTATOR && isRenderingHud
+data class HudRenderEvent(val context: GuiGraphics, val tickDelta: DeltaTracker) : FirmamentEvent.Cancellable() {
+	val isRenderingHud = !MC.options.hideGui
+	val isRenderingCursor = MC.interactionManager?.playerMode != GameType.SPECTATOR && isRenderingHud
 
 	init {
 		if (!isRenderingHud)

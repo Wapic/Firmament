@@ -6,18 +6,18 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlin.concurrent.thread
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.nbt.NbtByte
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.nbt.NbtElement
-import net.minecraft.nbt.NbtInt
-import net.minecraft.nbt.NbtList
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import net.minecraft.nbt.ByteTag
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.Tag
+import net.minecraft.nbt.IntTag
+import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.NbtOps
-import net.minecraft.nbt.NbtString
-import net.minecraft.registry.tag.ItemTags
-import net.minecraft.text.Text
+import net.minecraft.nbt.StringTag
+import net.minecraft.tags.ItemTags
+import net.minecraft.network.chat.Component
 import net.minecraft.util.Unit
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
@@ -51,7 +51,7 @@ class LegacyItemExporter private constructor(var itemStack: ItemStack) {
 	val originalId = itemStack.extraAttributes.getString("id")
 	var name = itemStack.displayNameAccordingToNbt
 	val extraAttribs = itemStack.extraAttributes.copy()
-	val legacyNbt = NbtCompound()
+	val legacyNbt = CompoundTag()
 	val warnings = mutableListOf<String>()
 
 	// TODO: check if lore contains non 1.8.9 able hex codes and emit lore in overlay files if so
@@ -70,8 +70,8 @@ class LegacyItemExporter private constructor(var itemStack: ItemStack) {
 			extraAttribs.putString("id", it.neuItem)
 		}
 		trimLore()
-		itemStack.loreAccordingToNbt = itemStack.item.defaultStack.loreAccordingToNbt
-		itemStack.remove(DataComponentTypes.CUSTOM_NAME)
+		itemStack.loreAccordingToNbt = itemStack.item.defaultInstance.loreAccordingToNbt
+		itemStack.remove(DataComponents.CUSTOM_NAME)
 	}
 
 	fun trimLore() {
@@ -94,11 +94,11 @@ class LegacyItemExporter private constructor(var itemStack: ItemStack) {
 		name = name.transformEachRecursively {
 			var string = it.directLiteralStringContent ?: return@transformEachRecursively it
 			string = string.replace("Lvl \\d+".toRegex(), "Lvl {LVL}")
-			Text.literal(string).setStyle(it.style)
+			Component.literal(string).setStyle(it.style)
 		}
 
 		if (lore.isEmpty())
-			lore = listOf(Text.empty())
+			lore = listOf(Component.empty())
 	}
 
 	private fun trimStats() {
@@ -112,7 +112,7 @@ class LegacyItemExporter private constructor(var itemStack: ItemStack) {
 			v.siblings.removeIf { it.directLiteralStringContent!!.contains("(") }
 			val last = v.siblings.last()
 			v.siblings[v.siblings.lastIndex] =
-				Text.literal(last.directLiteralStringContent!!.trimEnd())
+				Component.literal(last.directLiteralStringContent!!.trimEnd())
 					.setStyle(last.style)
 			lore[index] = v
 		}
@@ -120,7 +120,7 @@ class LegacyItemExporter private constructor(var itemStack: ItemStack) {
 	}
 
 	fun collapseWhitespaces() {
-		lore = (listOf(null as Text?) + lore).zipWithNext()
+		lore = (listOf(null as Component?) + lore).zipWithNext()
 			.filter { !it.first?.unformattedString.isNullOrBlank() || !it.second?.unformattedString.isNullOrBlank() }
 			.map { it.second!! }
 	}
@@ -140,7 +140,7 @@ class LegacyItemExporter private constructor(var itemStack: ItemStack) {
 
 	fun processNbt() {
 		// TODO: calculate hideflags
-		legacyNbt.put("HideFlags", NbtInt.of(254))
+		legacyNbt.put("HideFlags", IntTag.valueOf(254))
 		copyUnbreakable()
 		copyItemModel()
 		copyPotion()
@@ -154,51 +154,51 @@ class LegacyItemExporter private constructor(var itemStack: ItemStack) {
 	}
 
 	private fun copyPotion() {
-		val effects = itemStack.get(DataComponentTypes.POTION_CONTENTS) ?: return
-		legacyNbt.put("CustomPotionEffects", NbtList().also {
-			effects.effects.forEach { effect ->
-				val effectId = effect.effectType.key.get().value.path
+		val effects = itemStack.get(DataComponents.POTION_CONTENTS) ?: return
+		legacyNbt.put("CustomPotionEffects", ListTag().also {
+			effects.allEffects.forEach { effect ->
+				val effectId = effect.effect.unwrapKey().get().location().path
 				val duration = effect.duration
 				val legacyId = LegacyItemData.effectList[effectId]!!
 
-				it.add(NbtCompound().apply {
-					put("Ambient", NbtByte.of(false))
-					put("Duration", NbtInt.of(duration))
-					put("Id", NbtByte.of(legacyId.id.toByte()))
-					put("Amplifier", NbtByte.of(effect.amplifier.toByte()))
+				it.add(CompoundTag().apply {
+					put("Ambient", ByteTag.valueOf(false))
+					put("Duration", IntTag.valueOf(duration))
+					put("Id", ByteTag.valueOf(legacyId.id.toByte()))
+					put("Amplifier", ByteTag.valueOf(effect.amplifier.toByte()))
 				})
 			}
 		})
 	}
 
-	fun NbtCompound.getOrPutCompound(name: String): NbtCompound {
+	fun CompoundTag.getOrPutCompound(name: String): CompoundTag {
 		val compound = getCompoundOrEmpty(name)
 		put(name, compound)
 		return compound
 	}
 
 	private fun copyColour() {
-		if (!itemStack.isIn(ItemTags.DYEABLE)) {
-			itemStack.remove(DataComponentTypes.DYED_COLOR)
+		if (!itemStack.`is`(ItemTags.DYEABLE)) {
+			itemStack.remove(DataComponents.DYED_COLOR)
 			return
 		}
-		val leatherTint = itemStack.componentChanges.get(DataComponentTypes.DYED_COLOR)?.getOrNull() ?: return
-		legacyNbt.getOrPutCompound("display").put("color", NbtInt.of(leatherTint.rgb))
+		val leatherTint = itemStack.componentsPatch.get(DataComponents.DYED_COLOR)?.getOrNull() ?: return
+		legacyNbt.getOrPutCompound("display").put("color", IntTag.valueOf(leatherTint.rgb))
 	}
 
 	private fun copyItemModel() {
-		val itemModel = itemStack.get(DataComponentTypes.ITEM_MODEL) ?: return
-		legacyNbt.put("ItemModel", NbtString.of(itemModel.toString()))
+		val itemModel = itemStack.get(DataComponents.ITEM_MODEL) ?: return
+		legacyNbt.put("ItemModel", StringTag.valueOf(itemModel.toString()))
 	}
 
 	private fun copyDisplay() {
 		legacyNbt.getOrPutCompound("display").apply {
-			put("Lore", lore.map { NbtString.of(it.getLegacyFormatString(trimmed = true)) }.toNbtList())
+			put("Lore", lore.map { StringTag.valueOf(it.getLegacyFormatString(trimmed = true)) }.toNbtList())
 			putString("Name", name.getLegacyFormatString(trimmed = true))
 		}
 	}
 
-	fun exportModernSnbt(): NbtElement {
+	fun exportModernSnbt(): Tag {
 		val overlay = ItemStack.CODEC.encodeStart(MC.currentOrDefaultRegistryNbtOps, itemStack.copy().also {
 			it.modifyExtraAttributes { attribs ->
 				originalId.ifPresent { attribs.putString("id", it) }
@@ -251,30 +251,30 @@ class LegacyItemExporter private constructor(var itemStack: ItemStack) {
 	}
 
 	fun copyEnchantGlint() {
-		if (itemStack.get(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE) == true) {
+		if (itemStack.get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE) == true) {
 			val ench = legacyNbt.getListOrEmpty("ench")
 			legacyNbt.put("ench", ench)
 		}
 	}
 
 	private fun copyUnbreakable() {
-		if (itemStack.get(DataComponentTypes.UNBREAKABLE) == Unit.INSTANCE) {
+		if (itemStack.get(DataComponents.UNBREAKABLE) == Unit.INSTANCE) {
 			legacyNbt.putBoolean("Unbreakable", true)
 		}
 	}
 
 	fun copyEnchantments() {
-		val enchantments = itemStack.get(DataComponentTypes.ENCHANTMENTS)?.takeIf { !it.isEmpty } ?: return
+		val enchantments = itemStack.get(DataComponents.ENCHANTMENTS)?.takeIf { !it.isEmpty } ?: return
 		val enchTag = legacyNbt.getListOrEmpty("ench")
 		legacyNbt.put("ench", enchTag)
-		enchantments.enchantmentEntries.forEach { entry ->
-			val id = entry.key.key.get().value
+		enchantments.entrySet().forEach { entry ->
+			val id = entry.key.unwrapKey().get().location()
 			val legacyId = LegacyItemData.enchantmentLut[id]
 			if (legacyId == null) {
 				warnings.add("Could not find legacy enchantment id for ${id}")
 				return@forEach
 			}
-			enchTag.add(NbtCompound().apply {
+			enchTag.add(CompoundTag().apply {
 				putShort("lvl", entry.intValue.toShort())
 				putShort(
 					"id",
@@ -289,15 +289,15 @@ class LegacyItemExporter private constructor(var itemStack: ItemStack) {
 	}
 
 	fun copyLegacySkullNbt() {
-		val profile = itemStack.get(DataComponentTypes.PROFILE) ?: return
-		legacyNbt.put("SkullOwner", NbtCompound().apply {
-			putString("Id", profile.gameProfile.id.toString())
+		val profile = itemStack.get(DataComponents.PROFILE) ?: return
+		legacyNbt.put("SkullOwner", CompoundTag().apply {
+			putString("Id", profile.partialProfile().id.toString())
 			putBoolean("hypixelPopulated", true)
-			put("Properties", NbtCompound().apply {
-				profile.gameProfile.properties().forEach { prop, value ->
+			put("Properties", CompoundTag().apply {
+				profile.partialProfile().properties().forEach { prop, value ->
 					val list = getListOrEmpty(prop)
 					put(prop, list)
-					list.add(NbtCompound().apply {
+					list.add(CompoundTag().apply {
 						value.signature?.let {
 							putString("Signature", it)
 						}

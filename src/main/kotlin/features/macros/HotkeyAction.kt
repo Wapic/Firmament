@@ -2,21 +2,21 @@ package moe.nea.firmament.features.macros
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.util.MC
 
 @Serializable
 sealed interface HotkeyAction {
 	// TODO: execute
-	val label: Text
+	val label: Component
 	fun execute()
 }
 
 @Serializable
 @SerialName("command")
 data class CommandAction(val command: String) : HotkeyAction {
-	override val label: Text
-		get() = Text.literal("/$command")
+	override val label: Component
+		get() = Component.literal("/$command")
 
 	override fun execute() {
 		MC.sendCommand(command)

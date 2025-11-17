@@ -23,10 +23,10 @@ import java.awt.Color
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
-import net.minecraft.client.gui.Element
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.gui.widget.ContainerWidget
-import net.minecraft.text.Text
+import net.minecraft.client.gui.components.events.GuiEventListener
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.gui.components.AbstractContainerWidget
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.gui.config.BooleanHandler
 import moe.nea.firmament.gui.config.ChoiceHandler
 import moe.nea.firmament.gui.config.ClickHandler
@@ -158,7 +158,7 @@ class YaclIntegration : FirmamentConfigScreenProvider {
 				.binding((binding as Binding<Duration>).xmap({ it.toDouble(DurationUnit.SECONDS) }, { it.seconds }))
 				.controller {
 					DoubleSliderControllerBuilder.create(it)
-						.formatValue { Text.literal(FirmFormatters.formatTimespan(it.seconds)) }
+						.formatValue { Component.literal(FirmFormatters.formatTimespan(it.seconds)) }
 						.step(0.1)
 						.range(handler.min.toDouble(DurationUnit.SECONDS), handler.max.toDouble(DurationUnit.SECONDS))
 				}
@@ -168,7 +168,7 @@ class YaclIntegration : FirmamentConfigScreenProvider {
 				KeybindingBuilder(it, managedOption as ManagedOption<SavedKeyBinding>)
 			}.single()
 
-			else -> return listOf(LabelOption.create(Text.literal("This option is currently unhandled for this config menu. Please report this as a bug.")))
+			else -> return listOf(LabelOption.create(Component.literal("This option is currently unhandled for this config menu. Please report this as a bug.")))
 		}
 	}
 
@@ -196,7 +196,7 @@ class YaclIntegration : FirmamentConfigScreenProvider {
 
 	fun buildConfig(): YetAnotherConfigLib {
 		return YetAnotherConfigLib.createBuilder()
-			.title(Text.literal("Firmament"))
+			.title(Component.literal("Firmament"))
 			.categories(buildCategories())
 			.build()
 	}
@@ -206,9 +206,9 @@ class YaclIntegration : FirmamentConfigScreenProvider {
 
 	override fun open(search: String?, parent: Screen?): Screen {
 		return object : YACLScreen(buildConfig(), parent) {
-			override fun setFocused(focused: Element?) {
+			override fun setFocused(focused: GuiEventListener?) {
 				if (this.focused is KeybindingWidget &&
-					focused is ContainerWidget
+					focused is AbstractContainerWidget
 				) {
 					return
 				}

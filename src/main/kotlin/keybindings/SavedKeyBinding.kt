@@ -1,7 +1,7 @@
 package moe.nea.firmament.keybindings
 
 import kotlinx.serialization.Serializable
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 
 @Serializable
 data class SavedKeyBinding(
@@ -30,8 +30,8 @@ data class SavedKeyBinding(
 		return format().string
 	}
 
-	fun format(): Text {
-		val stroke = Text.empty()
+	fun format(): Component {
+		val stroke = Component.empty()
 		if (!modifiers.isEmpty()) {
 			stroke.append(modifiers.format())
 			stroke.append(" + ")

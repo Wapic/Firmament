@@ -4,11 +4,11 @@ import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
 import com.mojang.serialization.Lifecycle
 import com.mojang.util.UndashedUuid
-import net.minecraft.util.Uuids
+import net.minecraft.core.UUIDUtil
 
 object FirmCodecs {
 	@JvmField
-	val UUID_LENIENT_PREFER_INT_STREAM = Codec.withAlternative(Uuids.INT_STREAM_CODEC, Codec.STRING.comapFlatMap(
+	val UUID_LENIENT_PREFER_INT_STREAM = Codec.withAlternative(UUIDUtil.CODEC, Codec.STRING.comapFlatMap(
 		{
 			try {
 				DataResult.success(UndashedUuid.fromStringLenient(it), Lifecycle.stable())

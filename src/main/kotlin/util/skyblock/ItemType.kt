@@ -1,6 +1,6 @@
 package moe.nea.firmament.util.skyblock
 
-import net.minecraft.item.ItemStack
+import net.minecraft.world.item.ItemStack
 import moe.nea.firmament.util.directLiteralStringContent
 import moe.nea.firmament.util.mc.loreAccordingToNbt
 import moe.nea.firmament.util.petData

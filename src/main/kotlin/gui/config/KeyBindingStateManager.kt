@@ -8,8 +8,8 @@ import io.github.notenoughupdates.moulconfig.gui.KeyboardEvent
 import io.github.notenoughupdates.moulconfig.gui.component.TextComponent
 import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform
 import org.lwjgl.glfw.GLFW
-import net.minecraft.text.Text
-import net.minecraft.util.Formatting
+import net.minecraft.network.chat.Component
+import net.minecraft.ChatFormatting
 import moe.nea.firmament.gui.FirmButtonComponent
 import moe.nea.firmament.keybindings.GenericInputButton
 import moe.nea.firmament.keybindings.InputModifiers
@@ -23,7 +23,7 @@ class KeyBindingStateManager(
 ) {
 	var editing = false
 	var lastPressed: GenericInputButton? = null
-	var label: Text = Text.literal("")
+	var label: Component = Component.literal("")
 
 	fun onClick(mouseButton: Int) {
 		if (editing) {
@@ -89,14 +89,14 @@ class KeyBindingStateManager(
 	fun updateLabel() {
 		var stroke = value().format()
 		if (editing) {
-			stroke = Text.empty()
+			stroke = Component.empty()
 			val modifiers = InputModifiers.current()
 			if (!modifiers.isEmpty()) {
 				stroke.append(modifiers.format())
 				stroke.append(" + ")
 			}
 			stroke.append("???")
-			stroke.styled { it.withColor(Formatting.YELLOW) }
+			stroke.withStyle { it.withColor(ChatFormatting.YELLOW) }
 		}
 		label = stroke
 	}

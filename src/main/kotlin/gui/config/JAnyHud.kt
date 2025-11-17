@@ -5,8 +5,8 @@ import org.joml.Matrix3x2f
 import org.joml.Vector2i
 import org.joml.Vector2ic
 import kotlinx.serialization.Serializable
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.jarvis.JarvisIntegration
 
 @Serializable
@@ -18,13 +18,13 @@ data class HudPosition(
 
 
 data class HudMeta(
-	val position: HudPosition,
-	private val id: Identifier,
-	private val label: Text,
-	private val width: Int,
-	private val height: Int,
+    val position: HudPosition,
+    private val id: ResourceLocation,
+    private val label: Component,
+    private val width: Int,
+    private val height: Int,
 ) : JarvisHud, JarvisHud.Scalable {
-	override fun getLabel(): Text = label
+	override fun getLabel(): Component = label
 	override fun getUnscaledWidth(): Int {
 		return width
 	}
@@ -33,7 +33,7 @@ data class HudMeta(
 		return height
 	}
 
-	override fun getHudId(): Identifier {
+	override fun getHudId(): ResourceLocation {
 		return id
 	}
 

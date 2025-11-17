@@ -17,15 +17,15 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.Json
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.NbtComponent
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.nbt.NbtCompound
-import net.minecraft.network.RegistryByteBuf
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.codec.PacketCodecs
-import net.minecraft.util.Identifier
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.CustomData
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.codec.ByteBufCodecs
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.repo.ExpLadders
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
 import moe.nea.firmament.repo.ItemCache.asItemStack
@@ -50,7 +50,7 @@ import moe.nea.firmament.util.skyblock.ScreenType
 @Serializable
 value class SkyblockId(val neuItem: String) : Comparable<SkyblockId> {
 	val identifier
-		get() = Identifier.of(
+		get() = ResourceLocation.fromNamespaceAndPath(
 			"skyblockitem",
 			neuItem.lowercase().replace(";", "__")
 				.replace(":", "___")
@@ -91,8 +91,8 @@ value class SkyblockId(val neuItem: String) : Comparable<SkyblockId> {
 		val PET_NULL: SkyblockId = SkyblockId("null_pet")
 		private val illlegalPathRegex = "[^a-z0-9_.-/]".toRegex()
 		val CODEC = Codec.STRING.xmap({ SkyblockId(it) }, { it.neuItem })
-		val PACKET_CODEC: PacketCodec<in RegistryByteBuf, SkyblockId> =
-			PacketCodecs.STRING.xmap({ SkyblockId(it) }, { it.neuItem })
+		val PACKET_CODEC: StreamCodec<in RegistryFriendlyByteBuf, SkyblockId> =
+			ByteBufCodecs.STRING_UTF8.map({ SkyblockId(it) }, { it.neuItem })
 	}
 }
 
@@ -128,23 +128,23 @@ data class HypixelPetInfo(
 
 private val jsonparser = Json { ignoreUnknownKeys = true }
 
-var ItemStack.extraAttributes: NbtCompound
+var ItemStack.extraAttributes: CompoundTag
 	set(value) {
-		set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(value))
+		set(DataComponents.CUSTOM_DATA, CustomData.of(value))
 	}
 	get() {
-		val customData = get(DataComponentTypes.CUSTOM_DATA) ?: run {
-			val component = NbtComponent.of(NbtCompound())
-			set(DataComponentTypes.CUSTOM_DATA, component)
+		val customData = get(DataComponents.CUSTOM_DATA) ?: run {
+			val component = CustomData.of(CompoundTag())
+			set(DataComponents.CUSTOM_DATA, component)
 			component
 		}
 		return customData.unsafeNbt
 	}
 
-fun ItemStack.modifyExtraAttributes(block: (NbtCompound) -> Unit) {
-	val baseNbt = get(DataComponentTypes.CUSTOM_DATA)?.copyNbt() ?: NbtCompound()
+fun ItemStack.modifyExtraAttributes(block: (CompoundTag) -> Unit) {
+	val baseNbt = get(DataComponents.CUSTOM_DATA)?.copyTag() ?: CompoundTag()
 	block(baseNbt)
-	set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(baseNbt))
+	set(DataComponents.CUSTOM_DATA, CustomData.of(baseNbt))
 }
 
 val ItemStack.skyBlockUUIDString: String?
@@ -266,7 +266,7 @@ val ItemStack.skyBlockId: SkyblockId?
 			"RUNE", "UNIQUE_RUNE" -> {
 				val runeData = extraAttributes.getCompound("runes")
 					.getOrNull()
-				val runeKind = runeData?.keys?.singleOrNull()
+				val runeKind = runeData?.keySet()?.singleOrNull()
 				if (runeKind == null) SkyblockId("RUNE")
 				else SkyblockId("${runeKind.uppercase()}_RUNE;${runeData.getInt(runeKind).getOrNull()}")
 			}
@@ -278,14 +278,14 @@ val ItemStack.skyBlockId: SkyblockId?
 			"ENCHANTED_BOOK" -> {
 				val enchantmentData = extraAttributes.getCompound("enchantments")
 					.getOrNull()
-				val enchantName = enchantmentData?.keys?.singleOrNull()
+				val enchantName = enchantmentData?.keySet()?.singleOrNull()
 				if (enchantName == null) SkyblockId("ENCHANTED_BOOK")
 				else SkyblockId("${enchantName.uppercase()};${enchantmentData.getInt(enchantName).getOrNull()}")
 			}
 
 			"ATTRIBUTE_SHARD" -> {
 				val attributeData = extraAttributes.getCompound("attributes").getOrNull()
-				val attributeName = attributeData?.keys?.singleOrNull()
+				val attributeName = attributeData?.keySet()?.singleOrNull()
 				if (attributeName == null) SkyblockId("ATTRIBUTE_SHARD")
 				else SkyblockId(
 					"ATTRIBUTE_SHARD_${attributeName.uppercase()};${

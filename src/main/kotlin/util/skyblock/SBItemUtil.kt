@@ -1,12 +1,12 @@
 package moe.nea.firmament.util.skyblock
 
-import net.minecraft.item.ItemStack
+import net.minecraft.world.item.ItemStack
 import moe.nea.firmament.util.mc.loreAccordingToNbt
 import moe.nea.firmament.util.unformattedString
 
 object SBItemUtil {
 	fun ItemStack.getSearchName(): String {
-		val name = this.name.unformattedString
+		val name = this.hoverName.unformattedString
 		if (name.contains("Enchanted Book")) {
 			val enchant = loreAccordingToNbt.firstOrNull()?.unformattedString
 			if (enchant != null) return enchant

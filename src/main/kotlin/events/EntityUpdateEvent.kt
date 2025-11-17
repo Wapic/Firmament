@@ -1,12 +1,12 @@
 package moe.nea.firmament.events
 
 import com.mojang.datafixers.util.Pair
-import net.minecraft.entity.Entity
-import net.minecraft.entity.EquipmentSlot
-import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.data.DataTracker
-import net.minecraft.item.ItemStack
-import net.minecraft.network.packet.s2c.play.EntityAttributesS2CPacket
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.network.syncher.SynchedEntityData
+import net.minecraft.world.item.ItemStack
+import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.util.MC
 
@@ -29,7 +29,7 @@ sealed class EntityUpdateEvent : FirmamentEvent() {
 				EquipmentSlot.OFFHAND to 40,
 				EquipmentSlot.MAINHAND to p.inventory.selectedSlot, // TODO: also equipment update when you swap your selected slot perhaps
 			).mapNotNull { (slot, stackIndex) ->
-				val slotIndex = p.playerScreenHandler.getSlotIndex(p.inventory, stackIndex).asInt
+				val slotIndex = p.inventoryMenu.findSlot(p.inventory, stackIndex).asInt
 				event.getOrNull(slotIndex)?.let {
 					Pair.of(slot, it)
 				}
@@ -42,18 +42,18 @@ sealed class EntityUpdateEvent : FirmamentEvent() {
 	abstract val entity: Entity
 
 	data class AttributeUpdate(
-		override val entity: LivingEntity,
-		val attributes: List<EntityAttributesS2CPacket.Entry>,
+        override val entity: LivingEntity,
+        val attributes: List<ClientboundUpdateAttributesPacket.AttributeSnapshot>,
 	) : EntityUpdateEvent()
 
 	data class TrackedDataUpdate(
-		override val entity: Entity,
-		val trackedValues: List<DataTracker.SerializedEntry<*>>,
+        override val entity: Entity,
+        val trackedValues: List<SynchedEntityData.DataValue<*>>,
 	) : EntityUpdateEvent()
 
 	data class EquipmentUpdate(
-		override val entity: Entity,
-		val newEquipment: List<Pair<EquipmentSlot, ItemStack>>,
+        override val entity: Entity,
+        val newEquipment: List<Pair<EquipmentSlot, ItemStack>>,
 	) : EntityUpdateEvent()
 
 // TODO: onEntityPassengersSet, onEntityAttach?, onEntityStatusEffect

@@ -2,7 +2,7 @@
 package moe.nea.firmament.gui.entity
 
 import com.google.gson.JsonObject
-import net.minecraft.entity.LivingEntity
+import net.minecraft.world.entity.LivingEntity
 
 object ModifyRiding : EntityModifier {
     override fun apply(entity: LivingEntity, info: JsonObject): LivingEntity {

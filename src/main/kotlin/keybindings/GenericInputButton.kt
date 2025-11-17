@@ -13,14 +13,14 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.put
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.Click
-import net.minecraft.client.input.AbstractInput
-import net.minecraft.client.input.KeyInput
-import net.minecraft.client.input.MouseInput
-import net.minecraft.client.util.InputUtil
-import net.minecraft.client.util.MacWindowUtil
-import net.minecraft.text.Text
+import net.minecraft.client.Minecraft
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.input.InputWithModifiers
+import net.minecraft.client.input.KeyEvent
+import net.minecraft.client.input.MouseButtonInfo
+import com.mojang.blaze3d.platform.InputConstants
+import com.mojang.blaze3d.platform.MacosUtil
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.mc.InitLevel
 
@@ -65,7 +65,7 @@ sealed interface GenericInputButton {
 
 	companion object {
 
-		fun of(event: KeyInput) = ofKeyAndScan(event.keycode, event.scancode)
+		fun of(event: KeyEvent) = ofKeyAndScan(event.input(), event.scancode)
 		fun escape() = ofKeyCode(GLFW.GLFW_KEY_ESCAPE)
 		fun ofKeyCode(keyCode: Int): GenericInputButton = KeyCodeButton(keyCode)
 		fun ofScanCode(scanCode: Int): GenericInputButton = ScanCodeButton(scanCode)
@@ -80,8 +80,8 @@ sealed interface GenericInputButton {
 	}
 
 	data object Unbound : GenericInputButton {
-		override fun toInputKey(): InputUtil.Key {
-			return InputUtil.UNKNOWN_KEY
+		override fun toInputKey(): InputConstants.Key {
+			return InputConstants.UNKNOWN
 		}
 
 		override fun isBound(): Boolean {
@@ -96,24 +96,24 @@ sealed interface GenericInputButton {
 	data class MouseButton(
 		val mouseButton: Int
 	) : GenericInputButton {
-		override fun toInputKey(): InputUtil.Key {
-			return InputUtil.Type.MOUSE.createFromCode(mouseButton)
+		override fun toInputKey(): InputConstants.Key {
+			return InputConstants.Type.MOUSE.getOrCreate(mouseButton)
 		}
 
 		override fun isPressed(): Boolean {
-			return GLFW.glfwGetMouseButton(MC.window.handle, mouseButton) == GLFW.GLFW_PRESS
+			return GLFW.glfwGetMouseButton(MC.window.handle(), mouseButton) == GLFW.GLFW_PRESS
 		}
 	}
 
 	data class KeyCodeButton(
 		val keyCode: Int
 	) : GenericInputButton {
-		override fun toInputKey(): InputUtil.Key {
-			return InputUtil.Type.KEYSYM.createFromCode(keyCode)
+		override fun toInputKey(): InputConstants.Key {
+			return InputConstants.Type.KEYSYM.getOrCreate(keyCode)
 		}
 
 		override fun isPressed(): Boolean {
-			return InputUtil.isKeyPressed(MC.window, keyCode)
+			return InputConstants.isKeyDown(MC.window, keyCode)
 		}
 
 		override fun isCtrl(): Boolean {
@@ -136,8 +136,8 @@ sealed interface GenericInputButton {
 	data class ScanCodeButton(
 		val scanCode: Int
 	) : GenericInputButton {
-		override fun toInputKey(): InputUtil.Key {
-			return InputUtil.Type.SCANCODE.createFromCode(scanCode)
+		override fun toInputKey(): InputConstants.Key {
+			return InputConstants.Type.SCANCODE.getOrCreate(scanCode)
 		}
 
 		override fun isPressed(): Boolean {
@@ -153,12 +153,12 @@ sealed interface GenericInputButton {
 	fun isSuper() = false
 	fun isShift() = false
 
-	fun toInputKey(): InputUtil.Key
-	fun format(): Text =
+	fun toInputKey(): InputConstants.Key
+	fun format(): Component =
 		if (InitLevel.isAtLeast(InitLevel.RENDER_INIT)) {
-			toInputKey().localizedText
+			toInputKey().displayName
 		} else {
-			Text.of(toString())
+			Component.nullToEmpty(toString())
 		}
 
 	fun matches(inputAction: GenericInputAction) = inputAction.matches(this)
@@ -194,12 +194,12 @@ sealed interface GenericInputAction {
 		fun mouse(mouseButton: Int): GenericInputAction = MouseInput(mouseButton)
 
 		@JvmStatic
-		fun mouse(click: Click): GenericInputAction = mouse(click.button())
+		fun mouse(click: MouseButtonEvent): GenericInputAction = mouse(click.button())
 
 		@JvmStatic
-		fun of(input: net.minecraft.client.input.MouseInput): GenericInputAction = mouse(input.button)
+		fun of(input: net.minecraft.client.input.MouseButtonInfo): GenericInputAction = mouse(input.button)
 		@JvmStatic
-		fun of(input: KeyInput): GenericInputAction = key(input.keycode, input.scancode)
+		fun of(input: KeyEvent): GenericInputAction = key(input.input(), input.scancode)
 
 		@JvmStatic
 		fun key(keyCode: Int, scanCode: Int): GenericInputAction = KeyboardInput(keyCode, scanCode)
@@ -214,19 +214,19 @@ data class InputModifiers(
 		@JvmStatic
 		fun current(): InputModifiers {
 			val h = MC.window
-			val ctrl = if (MacWindowUtil.IS_MAC) {
-				InputUtil.isKeyPressed(h, GLFW.GLFW_KEY_LEFT_SUPER)
-					|| InputUtil.isKeyPressed(h, GLFW.GLFW_KEY_RIGHT_SUPER)
-			} else InputUtil.isKeyPressed(h, GLFW.GLFW_KEY_LEFT_CONTROL)
-				|| InputUtil.isKeyPressed(h, GLFW.GLFW_KEY_RIGHT_CONTROL)
-			val shift = InputUtil.isKeyPressed(h, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(
+			val ctrl = if (MacosUtil.IS_MACOS) {
+				InputConstants.isKeyDown(h, GLFW.GLFW_KEY_LEFT_SUPER)
+					|| InputConstants.isKeyDown(h, GLFW.GLFW_KEY_RIGHT_SUPER)
+			} else InputConstants.isKeyDown(h, GLFW.GLFW_KEY_LEFT_CONTROL)
+				|| InputConstants.isKeyDown(h, GLFW.GLFW_KEY_RIGHT_CONTROL)
+			val shift = InputConstants.isKeyDown(h, GLFW.GLFW_KEY_LEFT_SHIFT) || InputConstants.isKeyDown(
 				h,
 				GLFW.GLFW_KEY_RIGHT_SHIFT
 			)
-			val alt = InputUtil.isKeyPressed(h, GLFW.GLFW_KEY_LEFT_ALT)
-				|| InputUtil.isKeyPressed(h, GLFW.GLFW_KEY_RIGHT_ALT)
-			val `super` = InputUtil.isKeyPressed(h, GLFW.GLFW_KEY_LEFT_SUPER)
-				|| InputUtil.isKeyPressed(h, GLFW.GLFW_KEY_RIGHT_SUPER)
+			val alt = InputConstants.isKeyDown(h, GLFW.GLFW_KEY_LEFT_ALT)
+				|| InputConstants.isKeyDown(h, GLFW.GLFW_KEY_RIGHT_ALT)
+			val `super` = InputConstants.isKeyDown(h, GLFW.GLFW_KEY_LEFT_SUPER)
+				|| InputConstants.isKeyDown(h, GLFW.GLFW_KEY_RIGHT_SUPER)
 			return of(
 				ctrl = ctrl,
 				shift = shift,
@@ -237,7 +237,7 @@ data class InputModifiers(
 
 
 		val superKeys = listOf(GLFW.GLFW_KEY_LEFT_SUPER, GLFW.GLFW_KEY_RIGHT_SUPER)
-		val controlKeys = if (MacWindowUtil.IS_MAC) {
+		val controlKeys = if (MacosUtil.IS_MACOS) {
 			listOf(GLFW.GLFW_KEY_LEFT_SUPER, GLFW.GLFW_KEY_RIGHT_SUPER)
 		} else {
 			listOf(GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_RIGHT_CONTROL)
@@ -280,7 +280,7 @@ data class InputModifiers(
 		fun of(modifiers: Int) = InputModifiers(modifiers)
 
 		@JvmStatic
-		fun of(input: AbstractInput) = InputModifiers(input.modifiers())
+		fun of(input: InputWithModifiers) = InputModifiers(input.modifiers())
 
 		fun none(): InputModifiers {
 			return InputModifiers(0)
@@ -325,8 +325,8 @@ data class InputModifiers(
 		return this == other
 	}
 
-	fun format(): Text { // TODO: translation for mods
-		return Text.of(toString())
+	fun format(): Component { // TODO: translation for mods
+		return Component.nullToEmpty(toString())
 	}
 
 }

@@ -1,9 +1,9 @@
 package moe.nea.firmament.features.diana
 
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.particle.ParticleTypes
-import net.minecraft.sound.SoundEvents
-import net.minecraft.util.math.Vec3d
+import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.phys.Vec3
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ParticleSpawnEvent
 import moe.nea.firmament.events.SoundReceiveEvent
@@ -23,8 +23,8 @@ object AncestralSpadeSolver {
 	var lastDing = TimeMark.farPast()
 		private set
 	private val pitches = mutableListOf<Float>()
-	val particlePositions = mutableListOf<Vec3d>()
-	var nextGuess: Vec3d? = null
+	val particlePositions = mutableListOf<Vec3>()
+	var nextGuess: Vec3? = null
 		private set
 
 	private var lastTeleportAttempt = TimeMark.farPast()
@@ -32,7 +32,7 @@ object AncestralSpadeSolver {
 	fun isEnabled() =
 		DianaWaypoints.TConfig.ancestralSpadeSolver
 			&& SBData.skyblockLocation == SkyBlockIsland.HUB
-			&& MC.player?.inventory?.containsAny { it.skyBlockId == SkyBlockItems.ANCESTRAL_SPADE } == true // TODO: add a reactive property here
+			&& MC.player?.inventory?.hasAnyMatching { it.skyBlockId == SkyBlockItems.ANCESTRAL_SPADE } == true // TODO: add a reactive property here
 
 	@Subscribe
 	fun onKeyBind(event: WorldKeyboardEvent) {
@@ -59,7 +59,7 @@ object AncestralSpadeSolver {
 	@Subscribe
 	fun onPlaySound(event: SoundReceiveEvent) {
 		if (!isEnabled()) return
-		if (!SoundEvents.BLOCK_NOTE_BLOCK_HARP.matchesId(event.sound.value().id)) return
+		if (!SoundEvents.NOTE_BLOCK_HARP.`is`(event.sound.value().location)) return
 
 		if (lastDing.passedTime() > 1.seconds) {
 			particlePositions.clear()
@@ -93,7 +93,7 @@ object AncestralSpadeSolver {
 			.let { (a, _, b) -> b.subtract(a) }
 			.normalize()
 
-		nextGuess = event.position.add(lastParticleDirection.multiply(soundDistanceEstimate))
+		nextGuess = event.position.add(lastParticleDirection.scale(soundDistanceEstimate))
 	}
 
 	@Subscribe

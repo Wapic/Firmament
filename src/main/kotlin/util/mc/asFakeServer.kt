@@ -1,27 +1,27 @@
 package moe.nea.firmament.util.mc
 
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
-import net.minecraft.server.command.CommandOutput
-import net.minecraft.server.command.ServerCommandSource
-import net.minecraft.text.Text
+import net.minecraft.commands.CommandSource
+import net.minecraft.commands.CommandSourceStack
+import net.minecraft.network.chat.Component
 
-fun FabricClientCommandSource.asFakeServer(): ServerCommandSource {
+fun FabricClientCommandSource.asFakeServer(): CommandSourceStack {
 	val source = this
-	return ServerCommandSource(
-		object : CommandOutput {
-			override fun sendMessage(message: Text?) {
-				source.player.sendMessage(message, false)
+	return CommandSourceStack(
+		object : CommandSource {
+			override fun sendSystemMessage(message: Component?) {
+				source.player.displayClientMessage(message, false)
 			}
 
-			override fun shouldReceiveFeedback(): Boolean {
+			override fun acceptsSuccess(): Boolean {
 				return true
 			}
 
-			override fun shouldTrackOutput(): Boolean {
+			override fun acceptsFailure(): Boolean {
 				return true
 			}
 
-			override fun shouldBroadcastConsoleToOps(): Boolean {
+			override fun shouldInformAdmins(): Boolean {
 				return true
 			}
 		},
@@ -30,7 +30,7 @@ fun FabricClientCommandSource.asFakeServer(): ServerCommandSource {
 		null,
 		0,
 		"FakeServerCommandSource",
-		Text.literal("FakeServerCommandSource"),
+		Component.literal("FakeServerCommandSource"),
 		null,
 		source.player
 	)

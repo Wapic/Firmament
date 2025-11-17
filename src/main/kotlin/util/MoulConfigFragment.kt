@@ -4,19 +4,19 @@ import io.github.notenoughupdates.moulconfig.gui.GuiContext
 import io.github.notenoughupdates.moulconfig.gui.GuiImmediateContext
 import io.github.notenoughupdates.moulconfig.platform.MoulConfigScreenComponent
 import me.shedaniel.math.Point
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.text.Text
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.network.chat.Component
 
 class MoulConfigFragment(
 	context: GuiContext,
 	val position: Point,
 	val dismiss: () -> Unit
-) : MoulConfigScreenComponent(Text.empty(), context, null) {
+) : MoulConfigScreenComponent(Component.empty(), context, null) {
 	init {
 		this.init(MC.instance, MC.screen!!.width, MC.screen!!.height)
 	}
 
-	override fun createContext(drawContext: DrawContext?): GuiImmediateContext {
+	override fun createContext(drawContext: GuiGraphics?): GuiImmediateContext {
 		val oldContext = super.createContext(drawContext)
 		return oldContext.translated(
 			position.x,
@@ -27,9 +27,9 @@ class MoulConfigFragment(
 	}
 
 
-	override fun render(drawContext: DrawContext, i: Int, j: Int, f: Float) {
+	override fun render(drawContext: GuiGraphics, i: Int, j: Int, f: Float) {
 		val ctx = createContext(drawContext)
-		val m = drawContext.matrices
+		val m = drawContext.pose()
 		m.pushMatrix()
 		m.translate(position.x.toFloat(), position.y.toFloat())
 		guiContext.root.render(ctx)
@@ -37,7 +37,7 @@ class MoulConfigFragment(
 		ctx.renderContext.renderExtraLayers()
 	}
 
-	override fun close() {
+	override fun onClose() {
 		dismiss()
 	}
 }

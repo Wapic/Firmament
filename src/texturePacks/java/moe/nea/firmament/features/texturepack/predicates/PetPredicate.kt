@@ -7,7 +7,7 @@ import moe.nea.firmament.features.texturepack.FirmamentModelPredicate
 import moe.nea.firmament.features.texturepack.FirmamentModelPredicateParser
 import moe.nea.firmament.features.texturepack.RarityMatcher
 import moe.nea.firmament.features.texturepack.StringMatcher
-import net.minecraft.item.ItemStack
+import net.minecraft.world.item.ItemStack
 import moe.nea.firmament.repo.ExpLadders
 import moe.nea.firmament.util.petData
 

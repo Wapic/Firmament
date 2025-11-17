@@ -7,8 +7,8 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.format.FormatStyle
 import java.time.format.TextStyle
 import java.time.temporal.ChronoField
-import net.minecraft.text.Text
-import net.minecraft.util.StringIdentifiable
+import net.minecraft.network.chat.Component
+import net.minecraft.util.StringRepresentable
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ItemTooltipEvent
 import moe.nea.firmament.util.SBData
@@ -29,7 +29,7 @@ object TimerInLore {
 		val timerFormat by choice("format") { TimerFormat.SOCIALIST }
 	}
 
-	enum class TimerFormat(val formatter: DateTimeFormatter) : StringIdentifiable {
+	enum class TimerFormat(val formatter: DateTimeFormatter) : StringRepresentable {
 		RFC(DateTimeFormatter.RFC_1123_DATE_TIME),
 		LOCAL(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)),
 		SOCIALIST(
@@ -57,7 +57,7 @@ object TimerInLore {
 
 		constructor(format: String) : this(DateTimeFormatter.ofPattern(format))
 
-		override fun asString(): String {
+		override fun getSerializedName(): String {
 			return name
 		}
 	}
@@ -142,9 +142,9 @@ object TimerInLore {
 			// TODO: install approximate time stabilization algorithm
 			event.lines.add(
 				i + 1,
-				Text.literal("${countdownType.label}: ")
+				Component.literal("${countdownType.label}: ")
 					.grey()
-					.append(Text.literal(TConfig.timerFormat.formatter.format(localTimer)).aqua())
+					.append(Component.literal(TConfig.timerFormat.formatter.format(localTimer)).aqua())
 			)
 		}
 	}

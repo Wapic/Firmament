@@ -13,10 +13,10 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.serializer
-import net.minecraft.item.Item
-import net.minecraft.registry.RegistryKey
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.util.Identifier
+import net.minecraft.world.item.Item
+import net.minecraft.resources.ResourceKey
+import net.minecraft.core.registries.Registries
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.util.ReforgeId
 import moe.nea.firmament.util.SkyblockId
 import moe.nea.firmament.util.skyblock.ItemType
@@ -64,9 +64,9 @@ data class Reforge(
 				}
 				jsonElement["itemId"]?.let {
 					decoder.json.decodeFromJsonElement(serializer<List<String>>(), it).forEach {
-						val ident = Identifier.tryParse(it)
+						val ident = ResourceLocation.tryParse(it)
 						if (ident != null)
-							filters.add(AllowsVanillaItemType(RegistryKey.of(RegistryKeys.ITEM, ident)))
+							filters.add(AllowsVanillaItemType(ResourceKey.create(Registries.ITEM, ident)))
 					}
 				}
 				return filters
@@ -90,8 +90,8 @@ data class Reforge(
 					return AllowsItemType(ItemType.ofName((it as JsonPrimitive).content))
 				}
 				jsonObject["minecraftId"]?.let {
-					return AllowsVanillaItemType(RegistryKey.of(RegistryKeys.ITEM,
-					                                            Identifier.of((it as JsonPrimitive).content)))
+					return AllowsVanillaItemType(ResourceKey.create(Registries.ITEM,
+					                                            ResourceLocation.parse((it as JsonPrimitive).content)))
 				}
 				error("Unknown item type")
 			}
@@ -104,7 +104,7 @@ data class Reforge(
 
 		data class AllowsItemType(val itemType: ItemType) : ReforgeEligibilityFilter
 		data class AllowsInternalName(val internalName: SkyblockId) : ReforgeEligibilityFilter
-		data class AllowsVanillaItemType(val minecraftId: RegistryKey<Item>) : ReforgeEligibilityFilter
+		data class AllowsVanillaItemType(val minecraftId: ResourceKey<Item>) : ReforgeEligibilityFilter
 	}
 
 

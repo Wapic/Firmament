@@ -1,9 +1,9 @@
 package moe.nea.firmament.features.inventory
 
 import io.github.moulberry.repo.data.NEUCraftingRecipe
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
-import net.minecraft.item.ItemStack
-import net.minecraft.util.Formatting
+import net.minecraft.client.gui.screens.inventory.ContainerScreen
+import net.minecraft.world.item.ItemStack
+import net.minecraft.ChatFormatting
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ScreenChangeEvent
 import moe.nea.firmament.events.SlotRenderEvents
@@ -14,7 +14,7 @@ import moe.nea.firmament.util.skyblockId
 
 object CraftingOverlay {
 
-	private var screen: GenericContainerScreen? = null
+	private var screen: ContainerScreen? = null
 	private var recipe: NEUCraftingRecipe? = null
 	private var useNextScreen = false
 	private val craftingOverlayIndices = listOf(
@@ -24,7 +24,7 @@ object CraftingOverlay {
 	)
 	val CRAFTING_SCREEN_NAME = "Craft Item"
 
-	fun setOverlay(screen: GenericContainerScreen?, recipe: NEUCraftingRecipe) {
+	fun setOverlay(screen: ContainerScreen?, recipe: NEUCraftingRecipe) {
 		this.screen = screen
 		if (screen == null) {
 			useNextScreen = true
@@ -34,7 +34,7 @@ object CraftingOverlay {
 
 	@Subscribe
 	fun onScreenChange(event: ScreenChangeEvent) {
-		if (useNextScreen && event.new is GenericContainerScreen
+		if (useNextScreen && event.new is ContainerScreen
 			&& event.new.title?.string == "Craft Item"
 		) {
 			useNextScreen = false
@@ -50,11 +50,11 @@ object CraftingOverlay {
 	fun onSlotRender(event: SlotRenderEvents.After) {
 		val slot = event.slot
 		val recipe = this.recipe ?: return
-		if (slot.inventory != screen?.screenHandler?.inventory) return
-		val recipeIndex = craftingOverlayIndices.indexOf(slot.index)
+		if (slot.container != screen?.menu?.container) return
+		val recipeIndex = craftingOverlayIndices.indexOf(slot.containerSlot)
 		if (recipeIndex < 0) return
 		val expectedItem = recipe.inputs[recipeIndex]
-		val actualStack = slot.stack ?: ItemStack.EMPTY!!
+		val actualStack = slot.item ?: ItemStack.EMPTY!!
 		val actualEntry = SBItemStack(actualStack)
 		if ((actualEntry.skyblockId != expectedItem.skyblockId || actualEntry.getStackSize() < expectedItem.amount)
 			&& expectedItem.amount.toInt() != 0
@@ -67,15 +67,15 @@ object CraftingOverlay {
 				0x80FF0000.toInt()
 			)
 		}
-		if (!slot.hasStack()) {
+		if (!slot.hasItem()) {
 			val itemStack = SBItemStack(expectedItem)?.asImmutableItemStack() ?: return
-			event.context.drawItem(itemStack, event.slot.x, event.slot.y)
-			event.context.drawStackOverlay(
+			event.context.renderItem(itemStack, event.slot.x, event.slot.y)
+			event.context.renderItemDecorations(
 				MC.font,
 				itemStack,
 				event.slot.x,
 				event.slot.y,
-				"${Formatting.RED}${expectedItem.amount.toInt()}"
+				"${ChatFormatting.RED}${expectedItem.amount.toInt()}"
 			)
 		}
 	}

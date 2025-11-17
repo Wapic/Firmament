@@ -1,10 +1,10 @@
 package moe.nea.firmament.features.world
 
 import io.github.moulberry.repo.constants.Islands
-import net.minecraft.text.Text
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Position
-import net.minecraft.util.math.Vec3i
+import net.minecraft.network.chat.Component
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Position
+import net.minecraft.core.Vec3i
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.SkyblockServerUpdateEvent
 import moe.nea.firmament.events.TickEvent
@@ -72,7 +72,7 @@ object NavigationHelper {
     fun onMovement(event: TickEvent) { // TODO: add a movement tick event maybe?
         val tp = targetWaypoint ?: return
         val p = MC.player ?: return
-        if (p.squaredDistanceTo(tp.position.toCenterPos()) < 5 * 5) {
+        if (p.distanceToSqr(tp.position.center) < 5 * 5) {
             targetWaypoint = null
         }
     }
@@ -84,11 +84,11 @@ object NavigationHelper {
         RenderInWorldContext.renderInWorld(event) {
             if (nt != null) {
                 waypoint(nt.blockPos,
-                         Text.literal("Teleporter to " + nt.toIsland.userFriendlyName),
-                         Text.literal("(towards " + tp.name + "§f)"))
+                         Component.literal("Teleporter to " + nt.toIsland.userFriendlyName),
+                         Component.literal("(towards " + tp.name + "§f)"))
             } else if (tp.island == SBData.skyblockLocation) {
                 waypoint(tp.position,
-                         Text.literal(tp.name))
+                         Component.literal(tp.name))
             }
         }
     }
@@ -96,7 +96,7 @@ object NavigationHelper {
     fun tryWarpNear() {
         val tp = targetWaypoint
         if (tp == null) {
-            MC.sendChat(Text.literal("Could not find a waypoint to warp you to. Select one first."))
+            MC.sendChat(Component.literal("Could not find a waypoint to warp you to. Select one first."))
             return
         }
         WarpUtil.teleportToNearestWarp(tp.island, tp.position.asPositionView())
@@ -106,15 +106,15 @@ object NavigationHelper {
 
 fun Vec3i.asPositionView(): Position {
     return object : Position {
-        override fun getX(): Double {
+        override fun x(): Double {
             return this@asPositionView.x.toDouble()
         }
 
-        override fun getY(): Double {
+        override fun y(): Double {
             return this@asPositionView.y.toDouble()
         }
 
-        override fun getZ(): Double {
+        override fun z(): Double {
             return this@asPositionView.z.toDouble()
         }
     }

@@ -4,11 +4,11 @@ import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import java.util.Optional
 import org.jetbrains.annotations.TestOnly
-import net.minecraft.client.gui.hud.PlayerListHud
+import net.minecraft.client.gui.components.PlayerTabOverlay
 import net.minecraft.nbt.NbtOps
-import net.minecraft.scoreboard.Team
-import net.minecraft.text.Text
-import net.minecraft.text.TextCodecs
+import net.minecraft.world.scores.PlayerTeam
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.ComponentSerialization
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.thenExecute
 import moe.nea.firmament.commands.thenLiteral
@@ -24,7 +24,7 @@ import moe.nea.firmament.util.mc.SNbtFormatter.Companion.toPrettyString
 
 object MCTabListAPI {
 
-	fun PlayerListHud.cast() = this as AccessorPlayerListHud
+	fun PlayerTabOverlay.cast() = this as AccessorPlayerListHud
 
 	@Subscribe
 	fun onTick(event: TickEvent) {
@@ -37,7 +37,7 @@ object MCTabListAPI {
 			thenLiteral("copytablist") {
 				thenExecute {
 					currentTabList.body.forEach {
-						MC.sendChat(Text.literal(TextCodecs.CODEC.encodeStart(NbtOps.INSTANCE, it).orThrow.toString()))
+						MC.sendChat(Component.literal(ComponentSerialization.CODEC.encodeStart(NbtOps.INSTANCE, it).orThrow.toString()))
 					}
 					var compound = CurrentTabList.CODEC.encodeStart(NbtOps.INSTANCE, currentTabList).orThrow
 					compound = ExportedTestConstantMeta.SOURCE_CODEC.encode(
@@ -60,16 +60,16 @@ object MCTabListAPI {
 	val currentTabList get() = _currentTabList ?: getTabListNow().also { _currentTabList = it }
 
 	data class CurrentTabList(
-		val header: Optional<Text>,
-		val footer: Optional<Text>,
-		val body: List<Text>,
+		val header: Optional<Component>,
+		val footer: Optional<Component>,
+		val body: List<Component>,
 	) {
 		companion object {
 			val CODEC: Codec<CurrentTabList> = RecordCodecBuilder.create {
 				it.group(
-					TextCodecs.CODEC.optionalFieldOf("header").forGetter(CurrentTabList::header),
-					TextCodecs.CODEC.optionalFieldOf("footer").forGetter(CurrentTabList::footer),
-					TextCodecs.CODEC.listOf().fieldOf("body").forGetter(CurrentTabList::body),
+					ComponentSerialization.CODEC.optionalFieldOf("header").forGetter(CurrentTabList::header),
+					ComponentSerialization.CODEC.optionalFieldOf("footer").forGetter(CurrentTabList::footer),
+					ComponentSerialization.CODEC.listOf().fieldOf("body").forGetter(CurrentTabList::body),
 				).apply(it, ::CurrentTabList)
 			}
 		}
@@ -78,13 +78,13 @@ object MCTabListAPI {
 	private fun getTabListNow(): CurrentTabList {
 		// This is a precondition for PlayerListHud.collectEntries to be valid
 		MC.networkHandler ?: return CurrentTabList(Optional.empty(), Optional.empty(), emptyList())
-		val hud = MC.inGameHud.playerListHud.cast()
+		val hud = MC.inGameHud.tabList.cast()
 		val entries = hud.collectPlayerEntries_firmament()
 			.map {
-				it.displayName ?: run {
-					val team = it.scoreboardTeam
+				it.tabListDisplayName ?: run {
+					val team = it.team
 					val name = it.profile.name
-					Team.decorateName(team, Text.literal(name))
+					PlayerTeam.formatNameForTeam(team, Component.literal(name))
 				}
 			}
 		return CurrentTabList(

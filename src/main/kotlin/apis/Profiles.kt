@@ -12,8 +12,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import kotlin.reflect.KProperty1
-import net.minecraft.util.DyeColor
-import net.minecraft.util.Formatting
+import net.minecraft.world.item.DyeColor
+import net.minecraft.ChatFormatting
 import moe.nea.firmament.repo.RepoManager
 import moe.nea.firmament.util.LegacyFormattingCode
 import moe.nea.firmament.util.SkyblockId
@@ -182,7 +182,7 @@ data class PlayerData(
     fun getDisplayName(name: String = playerName) = rankData?.let {
         ("§${it.color}[${it.tag}${rankPlusDyeColor.modern}" +
                 "${it.plus ?: ""}§${it.color}] $name")
-    } ?: "${Formatting.GRAY}$name"
+    } ?: "${ChatFormatting.GRAY}$name"
 
 
 }

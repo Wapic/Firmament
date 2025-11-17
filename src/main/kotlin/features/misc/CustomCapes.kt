@@ -3,15 +3,15 @@ package moe.nea.firmament.features.misc
 import util.render.CustomRenderPipelines
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.client.network.AbstractClientPlayerEntity
-import net.minecraft.client.render.RenderLayer
-import net.minecraft.client.render.VertexConsumer
-import net.minecraft.client.render.VertexConsumerProvider
-import net.minecraft.client.render.entity.state.PlayerEntityRenderState
-import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.entity.player.SkinTextures
-import net.minecraft.util.AssetInfo
-import net.minecraft.util.Identifier
+import net.minecraft.client.player.AbstractClientPlayer
+import net.minecraft.client.renderer.RenderType
+import com.mojang.blaze3d.vertex.VertexConsumer
+import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.entity.state.AvatarRenderState
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.world.entity.player.PlayerSkin
+import net.minecraft.core.ClientAsset
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.TimeMark
@@ -30,44 +30,44 @@ object CustomCapes {
 
 	interface CustomCapeRenderer {
 		fun replaceRender(
-			renderLayer: RenderLayer,
-			vertexConsumerProvider: VertexConsumerProvider,
-			matrixStack: MatrixStack,
-			model: (VertexConsumer) -> Unit
+            renderLayer: RenderType,
+            vertexConsumerProvider: MultiBufferSource,
+            matrixStack: PoseStack,
+            model: (VertexConsumer) -> Unit
 		)
 	}
 
 	data class TexturedCapeRenderer(
-		val location: Identifier
+		val location: ResourceLocation
 	) : CustomCapeRenderer {
 		override fun replaceRender(
-			renderLayer: RenderLayer,
-			vertexConsumerProvider: VertexConsumerProvider,
-			matrixStack: MatrixStack,
-			model: (VertexConsumer) -> Unit
+            renderLayer: RenderType,
+            vertexConsumerProvider: MultiBufferSource,
+            matrixStack: PoseStack,
+            model: (VertexConsumer) -> Unit
 		) {
-			model(vertexConsumerProvider.getBuffer(RenderLayer.getEntitySolid(location)))
+			model(vertexConsumerProvider.getBuffer(RenderType.entitySolid(location)))
 		}
 	}
 
 	data class ParallaxedHighlightCapeRenderer(
-		val template: Identifier,
-		val background: Identifier,
-		val overlay: Identifier,
-		val animationSpeed: Duration,
+        val template: ResourceLocation,
+        val background: ResourceLocation,
+        val overlay: ResourceLocation,
+        val animationSpeed: Duration,
 	) : CustomCapeRenderer {
 		override fun replaceRender(
-			renderLayer: RenderLayer,
-			vertexConsumerProvider: VertexConsumerProvider,
-			matrixStack: MatrixStack,
-			model: (VertexConsumer) -> Unit
+            renderLayer: RenderType,
+            vertexConsumerProvider: MultiBufferSource,
+            matrixStack: PoseStack,
+            model: (VertexConsumer) -> Unit
 		) {
 			val animationValue = (startTime.passedTime() / animationSpeed).mod(1F)
 			CustomRenderPassHelper(
 				{ "Firmament Cape Renderer" },
-				renderLayer.drawMode,
-				renderLayer.vertexFormat,
-				MC.instance.framebuffer,
+				renderLayer.mode(),
+				renderLayer.format(),
+				MC.instance.mainRenderTarget,
 				true,
 			).use { renderPass ->
 				renderPass.setPipeline(CustomRenderPipelines.PARALLAX_CAPE_SHADER)
@@ -87,7 +87,7 @@ object CustomCapes {
 	interface CapeStorage {
 		companion object {
 			@JvmStatic
-			fun cast(playerEntityRenderState: PlayerEntityRenderState) =
+			fun cast(playerEntityRenderState: AvatarRenderState) =
 				playerEntityRenderState as CapeStorage
 
 		}
@@ -146,8 +146,8 @@ object CustomCapes {
 
 	@JvmStatic
 	fun addCapeData(
-		player: AbstractClientPlayerEntity,
-		playerEntityRenderState: PlayerEntityRenderState
+        player: AbstractClientPlayer,
+        playerEntityRenderState: AvatarRenderState
 	) {
 		if (true) return // TODO: see capefeaturerenderer mixin
 		val cape = if (TConfig.showCapes) byUuid[player.uuid] else null
@@ -156,14 +156,14 @@ object CustomCapes {
 			capeStorage.cape_firmament = null
 		} else {
 			capeStorage.cape_firmament = cape
-			playerEntityRenderState.skinTextures = SkinTextures(
-				playerEntityRenderState.skinTextures.body,
-				AssetInfo.TextureAssetInfo(Firmament.identifier("placeholder/fake_cape"), Firmament.identifier("placeholder/fake_cape")),
-				playerEntityRenderState.skinTextures.elytra,
-				playerEntityRenderState.skinTextures.model,
-				playerEntityRenderState.skinTextures.secure,
+			playerEntityRenderState.skin = PlayerSkin(
+				playerEntityRenderState.skin.body,
+				ClientAsset.ResourceTexture(Firmament.identifier("placeholder/fake_cape"), Firmament.identifier("placeholder/fake_cape")),
+				playerEntityRenderState.skin.elytra,
+				playerEntityRenderState.skin.model,
+				playerEntityRenderState.skin.secure,
 			)
-			playerEntityRenderState.capeVisible = true
+			playerEntityRenderState.showCape = true
 		}
 	}
 

@@ -2,25 +2,25 @@ package moe.nea.firmament.mixins.render.entitytints;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import moe.nea.firmament.events.EntityRenderTintEvent;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.entity.feature.HeadFeatureRenderer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
- * Patch to make {@link HeadFeatureRenderer} use a {@link RenderLayer} that allows uses Minecraft's overlay texture, if a {@link EntityRenderTintEvent#overlayOverride} is specified.
+ * Patch to make {@link CustomHeadLayer} use a {@link RenderType} that allows uses Minecraft's overlay texture, if a {@link EntityRenderTintEvent#overlayOverride} is specified.
  * @see UseOverlayableItemRenderer
  */
-@Mixin(HeadFeatureRenderer.class)
+@Mixin(CustomHeadLayer.class)
 public class UseOverlayableHeadFeatureRenderer {
 
-	@ModifyExpressionValue(method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/client/render/entity/state/LivingEntityRenderState;FF)V",
-		at = @At(value = "FIELD", target = "Lnet/minecraft/client/render/OverlayTexture;DEFAULT_UV:I", opcode = Opcodes.GETSTATIC))
+	@ModifyExpressionValue(method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",
+		at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/texture/OverlayTexture;NO_OVERLAY:I", opcode = Opcodes.GETSTATIC))
 	private int replaceUvIndex(int original) {
 		if (EntityRenderTintEvent.overlayOverride != null)
-			return OverlayTexture.packUv(15, 10); // TODO: store this info in a global alongside overlayOverride
+			return OverlayTexture.pack(15, 10); // TODO: store this info in a global alongside overlayOverride
 		return original;
 	}
 }

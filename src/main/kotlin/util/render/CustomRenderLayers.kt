@@ -3,38 +3,38 @@ package util.render
 import com.mojang.blaze3d.pipeline.BlendFunction
 import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.platform.DepthTestFunction
-import com.mojang.blaze3d.vertex.VertexFormat.DrawMode
+import com.mojang.blaze3d.vertex.VertexFormat.Mode
 import java.util.function.Function
-import net.minecraft.client.gl.RenderPipelines
-import net.minecraft.client.gl.UniformType
-import net.minecraft.client.render.RenderLayer
-import net.minecraft.client.render.RenderPhase
-import net.minecraft.client.render.VertexFormats
-import net.minecraft.util.Identifier
-import net.minecraft.util.Util
+import net.minecraft.client.renderer.RenderPipelines
+import com.mojang.blaze3d.shaders.UniformType
+import net.minecraft.client.renderer.RenderType
+import net.minecraft.client.renderer.RenderStateShard
+import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.Util
 import moe.nea.firmament.Firmament
 
 object CustomRenderPipelines {
 	val GUI_TEXTURED_NO_DEPTH_TRIS =
-		RenderPipeline.builder(RenderPipelines.POSITION_TEX_COLOR_SNIPPET)
-			.withVertexFormat(VertexFormats.POSITION_TEXTURE_COLOR, DrawMode.TRIANGLES)
+		RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
+			.withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, Mode.TRIANGLES)
 			.withLocation(Firmament.identifier("gui_textured_overlay_tris"))
 			.withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
 			.withCull(false)
 			.withDepthWrite(false)
 			.build()
 	val OMNIPRESENT_LINES = RenderPipeline
-		.builder(RenderPipelines.RENDERTYPE_LINES_SNIPPET)
+		.builder(RenderPipelines.LINES_SNIPPET)
 		.withLocation(Firmament.identifier("lines"))
 		.withDepthWrite(false)
 		.withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
 		.build()
 	val COLORED_OMNIPRESENT_QUADS =
-		RenderPipeline.builder(RenderPipelines.TRANSFORMS_AND_PROJECTION_SNIPPET)// TODO: split this up to support better transparent ordering.
+		RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)// TODO: split this up to support better transparent ordering.
 			.withLocation(Firmament.identifier("colored_omnipresent_quads"))
 			.withVertexShader("core/position_color")
 			.withFragmentShader("core/position_color")
-			.withVertexFormat(VertexFormats.POSITION_COLOR, DrawMode.QUADS)
+			.withVertexFormat(DefaultVertexFormat.POSITION_COLOR, Mode.QUADS)
 			.withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
 			.withCull(false)
 			.withDepthWrite(false)
@@ -42,8 +42,8 @@ object CustomRenderPipelines {
 			.build()
 
 	val CIRCLE_FILTER_TRANSLUCENT_GUI_TRIS =
-		RenderPipeline.builder(RenderPipelines.POSITION_TEX_COLOR_SNIPPET)
-			.withVertexFormat(VertexFormats.POSITION_TEXTURE_COLOR, DrawMode.TRIANGLES)
+		RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
+			.withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, Mode.TRIANGLES)
 			.withLocation(Firmament.identifier("gui_textured_overlay_tris_circle"))
 			.withUniform("CutoutRadius", UniformType.UNIFORM_BUFFER)
 			.withFragmentShader(Firmament.identifier("circle_discard_color"))
@@ -61,45 +61,45 @@ object CustomRenderPipelines {
 }
 
 object CustomRenderLayers {
-	inline fun memoizeTextured(crossinline func: (Identifier) -> RenderLayer.MultiPhase) = memoize(func)
+	inline fun memoizeTextured(crossinline func: (ResourceLocation) -> RenderType.CompositeRenderType) = memoize(func)
 	inline fun <T, R> memoize(crossinline func: (T) -> R): Function<T, R> {
 		return Util.memoize { it: T -> func(it) }
 	}
 
 	val GUI_TEXTURED_NO_DEPTH_TRIS = memoizeTextured { texture ->
-		RenderLayer.of(
+		RenderType.create(
 			"firmament_gui_textured_overlay_tris",
-			RenderLayer.DEFAULT_BUFFER_SIZE,
+			RenderType.TRANSIENT_BUFFER_SIZE,
 			CustomRenderPipelines.GUI_TEXTURED_NO_DEPTH_TRIS,
-			RenderLayer.MultiPhaseParameters.builder().texture(
-				RenderPhase.Texture(texture, false)
+			RenderType.CompositeState.builder().setTextureState(
+				RenderStateShard.TextureStateShard(texture, false)
 			)
-				.build(false)
+				.createCompositeState(false)
 		)
 	}
-	val LINES = RenderLayer.of(
+	val LINES = RenderType.create(
 		"firmament_lines",
-		RenderLayer.DEFAULT_BUFFER_SIZE,
+		RenderType.TRANSIENT_BUFFER_SIZE,
 		CustomRenderPipelines.OMNIPRESENT_LINES,
-		RenderLayer.MultiPhaseParameters.builder() // TODO: accept linewidth here
-			.build(false)
+		RenderType.CompositeState.builder() // TODO: accept linewidth here
+			.createCompositeState(false)
 	)
-	val COLORED_QUADS = RenderLayer.of(
+	val COLORED_QUADS = RenderType.create(
 		"firmament_quads",
-		RenderLayer.DEFAULT_BUFFER_SIZE,
+		RenderType.TRANSIENT_BUFFER_SIZE,
 		false, true,
 		CustomRenderPipelines.COLORED_OMNIPRESENT_QUADS,
-		RenderLayer.MultiPhaseParameters.builder()
-			.lightmap(RenderPhase.DISABLE_LIGHTMAP)
-			.build(false)
+		RenderType.CompositeState.builder()
+			.setLightmapState(RenderStateShard.NO_LIGHTMAP)
+			.createCompositeState(false)
 	)
 
 	val TRANSLUCENT_CIRCLE_GUI =
-		RenderLayer.of(
+		RenderType.create(
 			"firmament_circle_gui",
-			RenderLayer.DEFAULT_BUFFER_SIZE,
+			RenderType.TRANSIENT_BUFFER_SIZE,
 			CustomRenderPipelines.CIRCLE_FILTER_TRANSLUCENT_GUI_TRIS,
-			RenderLayer.MultiPhaseParameters.builder()
-				.build(false)
+			RenderType.CompositeState.builder()
+				.createCompositeState(false)
 		)
 }

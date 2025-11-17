@@ -12,8 +12,8 @@ import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.text.Text
-import net.minecraft.util.math.BlockPos
+import net.minecraft.network.chat.Component
+import net.minecraft.core.BlockPos
 
 object FirmFormatters {
 
@@ -103,7 +103,7 @@ object FirmFormatters {
 		return sb.toString()
 	}
 
-	fun debugPath(path: Path): Text {
+	fun debugPath(path: Path): Component {
 		if (!path.exists()) {
 			return tr("firmament.path.missing", "$path (missing)").red()
 		}
@@ -127,13 +127,13 @@ object FirmFormatters {
 	fun formatBool(
 		boolean: Boolean,
 		trueIsGood: Boolean = true,
-	): Text {
-		val text = Text.literal(boolean.toString())
+	): Component {
+		val text = Component.literal(boolean.toString())
 		return if (boolean == trueIsGood) text.lime() else text.red()
 	}
 
-	fun formatPosition(position: BlockPos): Text {
-		return Text.literal("x: ${position.x}, y: ${position.y}, z: ${position.z}")
+	fun formatPosition(position: BlockPos): Component {
+		return Component.literal("x: ${position.x}, y: ${position.y}, z: ${position.z}")
 	}
 
 	fun formatPercent(value: Double, decimals: Int = 1): String {

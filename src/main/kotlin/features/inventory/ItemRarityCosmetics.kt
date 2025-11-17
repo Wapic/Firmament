@@ -1,10 +1,10 @@
 package moe.nea.firmament.features.inventory
 
 import java.awt.Color
-import net.minecraft.client.gl.RenderPipelines
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.item.ItemStack
-import net.minecraft.util.Identifier
+import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.world.item.ItemStack
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HotbarItemRenderEvent
 import moe.nea.firmament.events.SlotRenderEvents
@@ -23,16 +23,16 @@ object ItemRarityCosmetics {
 	}
 
 	private val rarityToColor = Rarity.colourMap.mapValues {
-		val c = Color(it.value.colorValue!!)
+		val c = Color(it.value.color!!)
 		c.rgb
 	}
 
-	fun drawItemStackRarity(drawContext: DrawContext, x: Int, y: Int, item: ItemStack) {
+	fun drawItemStackRarity(drawContext: GuiGraphics, x: Int, y: Int, item: ItemStack) {
 		val rarity = Rarity.fromItem(item) ?: return
 		val rgb = rarityToColor[rarity] ?: 0xFF00FF80.toInt()
-		drawContext.drawGuiTexture(
+		drawContext.blitSprite(
 			RenderPipelines.GUI_TEXTURED,
-			Identifier.of("firmament:item_rarity_background"),
+			ResourceLocation.parse("firmament:item_rarity_background"),
 			x, y,
 			16, 16,
 			rgb
@@ -43,7 +43,7 @@ object ItemRarityCosmetics {
 	@Subscribe
 	fun onRenderSlot(it: SlotRenderEvents.Before) {
 		if (!TConfig.showItemRarityBackground) return
-		val stack = it.slot.stack ?: return
+		val stack = it.slot.item ?: return
 		drawItemStackRarity(it.context, it.slot.x, it.slot.y, stack)
 	}
 

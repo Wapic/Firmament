@@ -32,9 +32,9 @@ import moe.nea.firmament.gui.config.StringHandler
 import moe.nea.firmament.keybindings.SavedKeyBinding
 import moe.nea.firmament.util.ScreenUtil
 import moe.nea.firmament.util.collections.InstanceList
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.text.Text
-import net.minecraft.util.StringIdentifiable
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.network.chat.Component
+import net.minecraft.util.StringRepresentable
 import org.joml.Vector2i
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
@@ -63,8 +63,8 @@ abstract class ManagedConfig(
 		DEV,
 		;
 
-		val labelText: Text = Text.translatable("firmament.config.category.${name.lowercase()}")
-		val description: Text = Text.translatable("firmament.config.category.${name.lowercase()}.description")
+		val labelText: Component = Component.translatable("firmament.config.category.${name.lowercase()}")
+		val description: Component = Component.translatable("firmament.config.category.${name.lowercase()}.description")
 		val configs: MutableList<ManagedConfig> = mutableListOf()
 	}
 
@@ -152,19 +152,19 @@ abstract class ManagedConfig(
 		propertyName: String,
 		enumClass: Class<E>,
 		default: () -> E
-	): ManagedOption<E> where E : Enum<E>, E : StringIdentifiable {
+	): ManagedOption<E> where E : Enum<E>, E : StringRepresentable {
 		return option(propertyName, default, ChoiceHandler(enumClass, enumClass.enumConstants.toList()))
 	}
 
 	protected inline fun <reified E> choice(
 		propertyName: String,
 		noinline default: () -> E
-	): ManagedOption<E> where E : Enum<E>, E : StringIdentifiable {
+	): ManagedOption<E> where E : Enum<E>, E : StringRepresentable {
 		return choice(propertyName, E::class.java, default)
 	}
 
-	private fun <E> createStringIdentifiable(x: () -> Array<out E>): Codec<E> where E : Enum<E>, E : StringIdentifiable {
-		return StringIdentifiable.createCodec { x() }
+	private fun <E> createStringIdentifiable(x: () -> Array<out E>): Codec<E> where E : Enum<E>, E : StringRepresentable {
+		return StringRepresentable.fromEnum { x() }
 	}
 
 	// TODO: wait on https://youtrack.jetbrains.com/issue/KT-73434
@@ -199,7 +199,7 @@ abstract class ManagedConfig(
 		height: Int,
 		default: () -> Vector2i,
 	): ManagedOption<HudMeta> {
-		val label = Text.translatable("firmament.config.${name}.${propertyName}")
+		val label = Component.translatable("firmament.config.${name}.${propertyName}")
 		return option(propertyName, {
 			val p = default()
 			HudMeta(HudPosition(p.x(), p.y(), 1F), Firmament.identifier(propertyName), label, width, height)
@@ -249,7 +249,7 @@ abstract class ManagedConfig(
 	}
 
 	val translationKey get() = "firmament.config.${name}"
-	val labelText: Text = Text.translatable(translationKey)
+	val labelText: Component = Component.translatable(translationKey)
 
 	fun getConfigEditor(parent: Screen? = null): Screen {
 		var screen: Screen? = null
@@ -275,10 +275,10 @@ abstract class ManagedConfig(
 				PanelComponent.DefaultBackgroundRenderer.VANILLA
 			)
 		)
-		screen = object : MoulConfigScreenComponent(Text.empty(), GuiContext(component), parent) {
-			override fun close() {
+		screen = object : MoulConfigScreenComponent(Component.empty(), GuiContext(component), parent) {
+			override fun onClose() {
 				if (guiContext.onBeforeClose() == CloseEventListener.CloseAction.NO_OBJECTIONS_TO_CLOSE) {
-					client!!.setScreen(parent)
+					minecraft!!.setScreen(parent)
 				}
 			}
 		}

@@ -4,18 +4,18 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import moe.nea.firmament.features.texturepack.CustomBlockTextures;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.block.BlockRenderManager;
-import net.minecraft.client.render.chunk.SectionBuilder;
-import net.minecraft.client.render.model.BlockStateModel;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.chunk.SectionCompiler;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.core.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-@Mixin(SectionBuilder.class)
+@Mixin(SectionCompiler.class)
 public class ReplaceBlockRenderManagerBlockModel {
-	@WrapOperation(method = "build", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/block/BlockRenderManager;getModel(Lnet/minecraft/block/BlockState;)Lnet/minecraft/client/render/model/BlockStateModel;"))
-	private BlockStateModel replaceModelInRenderBlock(BlockRenderManager instance, BlockState state, Operation<BlockStateModel> original, @Local(ordinal = 2) BlockPos pos) {
+	@WrapOperation(method = "compile", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/BlockRenderDispatcher;getBlockModel(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/client/renderer/block/model/BlockStateModel;"))
+	private BlockStateModel replaceModelInRenderBlock(BlockRenderDispatcher instance, BlockState state, Operation<BlockStateModel> original, @Local(ordinal = 2) BlockPos pos) {
 		var replacement = CustomBlockTextures.getReplacementModel(state, pos);
 		if (replacement != null) return replacement;
 		CustomBlockTextures.enterFallbackCall();

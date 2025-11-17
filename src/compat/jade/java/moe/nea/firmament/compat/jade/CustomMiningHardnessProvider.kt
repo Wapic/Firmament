@@ -5,9 +5,9 @@ import snownee.jade.api.IBlockComponentProvider
 import snownee.jade.api.ITooltip
 import snownee.jade.api.config.IPluginConfig
 import kotlin.time.DurationUnit
-import net.minecraft.block.BlockState
-import net.minecraft.util.Identifier
-import net.minecraft.util.math.BlockPos
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.core.BlockPos
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.TickEvent
@@ -27,7 +27,7 @@ object CustomMiningHardnessProvider : IBlockComponentProvider {
 			tooltip.add(tr("firmament.jade.breaking_power", "Required Breaking Power: ${customBlock.breakingPower}"))
 	}
 
-	override fun getUid(): Identifier =
+	override fun getUid(): ResourceLocation =
 		Firmament.identifier("custom_mining_hardness")
 
 	data class BreakingInfo(
@@ -41,7 +41,7 @@ object CustomMiningHardnessProvider : IBlockComponentProvider {
 
 	@Subscribe
 	fun clearInfoOnStopBreaking(event: TickEvent) {
-		val isBreakingBlock = MC.interactionManager?.isBreakingBlock ?: false
+		val isBreakingBlock = MC.interactionManager?.isDestroying ?: false
 		if (!isBreakingBlock) {
 			previousBreakingInfo = null
 			currentBreakingInfo = null
@@ -54,7 +54,7 @@ object CustomMiningHardnessProvider : IBlockComponentProvider {
 		val state = MC.world?.getBlockState(blockPos)
 		if (previousBreakingInfo?.let { it.state != state || it.blockPos != blockPos } ?: false)
 			previousBreakingInfo == null
-		currentBreakingInfo = BreakingInfo(blockPos.toImmutable(), stage, state)
+		currentBreakingInfo = BreakingInfo(blockPos.immutable(), stage, state)
 		// For some reason hypixel initially sends a stage 10 packet, and then fixes it up with a stage 0 packet.
 		// Ignore the stage 10 packet if we dont have any previous packets for this block.
 		// This could in theory still have issues if someone perfectly stops breaking a block the tick it finishes and then does not break another block until it respawns, but i deem that to be too much of an edge case.
@@ -68,7 +68,7 @@ object CustomMiningHardnessProvider : IBlockComponentProvider {
 	fun replaceBreakProgress(original: Float): Float {
 		if (!JadeIntegration.TConfig.miningProgress) return original
 		if (!isOnMiningIsland()) return original
-		val pos = MC.interactionManager?.currentBreakingPos ?: return original
+		val pos = MC.interactionManager?.destroyBlockPos ?: return original
 		val info = currentBreakingInfo
 		if (info?.blockPos != pos || info.state != MC.world?.getBlockState(pos)) {
 			currentBreakingInfo = null

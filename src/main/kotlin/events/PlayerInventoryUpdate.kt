@@ -1,6 +1,6 @@
 package moe.nea.firmament.events
 
-import net.minecraft.item.ItemStack
+import net.minecraft.world.item.ItemStack
 
 sealed class PlayerInventoryUpdate : FirmamentEvent() {
 	companion object : FirmamentEventBus<PlayerInventoryUpdate>()

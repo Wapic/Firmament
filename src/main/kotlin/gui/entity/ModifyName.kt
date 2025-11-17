@@ -2,12 +2,12 @@
 package moe.nea.firmament.gui.entity
 
 import com.google.gson.JsonObject
-import net.minecraft.entity.LivingEntity
-import net.minecraft.text.Text
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.network.chat.Component
 
 object ModifyName : EntityModifier {
     override fun apply(entity: LivingEntity, info: JsonObject): LivingEntity {
-        entity.customName = Text.literal(info.get("name").asString)
+        entity.customName = Component.literal(info.get("name").asString)
         return entity
     }
 

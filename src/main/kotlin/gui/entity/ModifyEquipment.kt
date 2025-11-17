@@ -1,13 +1,13 @@
 package moe.nea.firmament.gui.entity
 
 import com.google.gson.JsonObject
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.DyedColorComponent
-import net.minecraft.entity.EquipmentSlot
-import net.minecraft.entity.LivingEntity
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.DyedItemColor
+import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
 import moe.nea.firmament.repo.SBItemStack
 import moe.nea.firmament.util.SkyblockId
@@ -26,7 +26,7 @@ object ModifyEquipment : EntityModifier {
 	override fun apply(entity: LivingEntity, info: JsonObject): LivingEntity {
 		names.forEach { (key, slot) ->
 			info[key]?.let {
-				entity.equipStack(slot, createItem(it.asString))
+				entity.setItemSlot(slot, createItem(it.asString))
 			}
 		}
 		return entity
@@ -49,7 +49,7 @@ object ModifyEquipment : EntityModifier {
 
 	private fun coloredLeatherArmor(leatherArmor: Item, data: String): ItemStack {
 		val stack = ItemStack(leatherArmor)
-		stack.set(DataComponentTypes.DYED_COLOR, DyedColorComponent(data.toInt(16)))
+		stack.set(DataComponents.DYED_COLOR, DyedItemColor(data.toInt(16)))
 		return stack
 	}
 }

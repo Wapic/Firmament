@@ -1,15 +1,15 @@
 package moe.nea.firmament.util.mc
 
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NbtCompound
+import net.minecraft.world.item.ItemStack
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtOps
-import net.minecraft.registry.RegistryOps
-import net.minecraft.registry.RegistryWrapper
-import net.minecraft.text.Text
+import net.minecraft.resources.RegistryOps
+import net.minecraft.core.HolderLookup
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.util.MC
 
-fun ItemStack.appendLore(args: List<Text>) {
+fun ItemStack.appendLore(args: List<Component>) {
 	if (args.isEmpty()) return
 	modifyLore {
 		val loreList = loreAccordingToNbt.toMutableList()
@@ -20,11 +20,11 @@ fun ItemStack.appendLore(args: List<Text>) {
 	}
 }
 
-fun ItemStack.modifyLore(update: (List<Text>) -> List<Text>) {
+fun ItemStack.modifyLore(update: (List<Component>) -> List<Component>) {
 	val loreList = loreAccordingToNbt
 	loreAccordingToNbt = update(loreList)
 }
 
-fun loadItemFromNbt(nbt: NbtCompound, registries: RegistryWrapper.WrapperLookup = MC.defaultRegistries): ItemStack? {
-	return ItemStack.CODEC.decode(RegistryOps.of(NbtOps.INSTANCE, registries), nbt).result().getOrNull()?.first
+fun loadItemFromNbt(nbt: CompoundTag, registries: HolderLookup.Provider = MC.defaultRegistries): ItemStack? {
+	return ItemStack.CODEC.decode(RegistryOps.create(NbtOps.INSTANCE, registries), nbt).result().getOrNull()?.first
 }

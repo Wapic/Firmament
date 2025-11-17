@@ -5,7 +5,7 @@ import moe.nea.firmament.events.SkyblockServerUpdateEvent
 import moe.nea.firmament.repo.MiningRepoData
 import moe.nea.firmament.repo.RepoManager
 import moe.nea.firmament.util.ErrorUtil
-import net.minecraft.block.Block
+import net.minecraft.world.level.block.Block
 import moe.nea.firmament.events.ReloadRegistrationEvent
 import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.data.ManagedConfig

@@ -1,17 +1,17 @@
 package moe.nea.firmament.mixins.accessor;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.entity.player.BlockBreakingInfo;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.server.level.BlockDestructionProgress;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 import java.util.SortedSet;
 
-@Mixin(WorldRenderer.class)
+@Mixin(LevelRenderer.class)
 public interface AccessorWorldRenderer {
-	@Accessor("blockBreakingProgressions")
+	@Accessor("destructionProgress")
 	@NotNull
-	Long2ObjectMap<SortedSet<BlockBreakingInfo>> getBlockBreakingProgressions_firmament();
+	Long2ObjectMap<SortedSet<BlockDestructionProgress>> getBlockBreakingProgressions_firmament();
 }

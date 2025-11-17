@@ -1,22 +1,22 @@
 package moe.nea.firmament.util.mc
 
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.LoreComponent
-import net.minecraft.item.ItemStack
-import net.minecraft.text.Text
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.ItemLore
+import net.minecraft.world.item.ItemStack
+import net.minecraft.network.chat.Component
 
-var ItemStack.loreAccordingToNbt: List<Text>
-	get() = get(DataComponentTypes.LORE)?.lines ?: listOf()
+var ItemStack.loreAccordingToNbt: List<Component>
+	get() = get(DataComponents.LORE)?.lines ?: listOf()
     set(value) {
-        set(DataComponentTypes.LORE, LoreComponent(value))
+        set(DataComponents.LORE, ItemLore(value))
     }
 
-var ItemStack.displayNameAccordingToNbt: Text
-    get() = get(DataComponentTypes.CUSTOM_NAME) ?: get(DataComponentTypes.ITEM_NAME) ?: item.name
+var ItemStack.displayNameAccordingToNbt: Component
+    get() = get(DataComponents.CUSTOM_NAME) ?: get(DataComponents.ITEM_NAME) ?: item.name
     set(value) {
-        set(DataComponentTypes.CUSTOM_NAME, value)
+        set(DataComponents.CUSTOM_NAME, value)
     }
 
-fun ItemStack.setCustomName(text: Text) {
-    set(DataComponentTypes.CUSTOM_NAME, text)
+fun ItemStack.setCustomName(text: Component) {
+    set(DataComponents.CUSTOM_NAME, text)
 }

@@ -3,7 +3,7 @@ package moe.nea.firmament.repo.recipes
 import io.github.notenoughupdates.moulconfig.gui.GuiComponent
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.repo.SBItemStack
 
 interface RecipeLayouter {
@@ -23,11 +23,11 @@ interface RecipeLayouter {
 		slotKind: SlotKind,
 	)
 
-	fun createTooltip(rectangle: Rectangle, label: Text)
+	fun createTooltip(rectangle: Rectangle, label: Component)
 
 	fun createLabel(
 		x: Int, y: Int,
-		text: Text
+		text: Component
 	)
 
 	fun createArrow(x: Int, y: Int): Rectangle

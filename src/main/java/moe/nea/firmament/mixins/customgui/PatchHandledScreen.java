@@ -10,15 +10,15 @@ import moe.nea.firmament.keybindings.InputModifiers;
 import moe.nea.firmament.util.customgui.CoordRememberingSlot;
 import moe.nea.firmament.util.customgui.CustomGui;
 import moe.nea.firmament.util.customgui.HasCustomGui;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.input.CharInput;
-import net.minecraft.client.input.KeyInput;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.Text;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -29,19 +29,19 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(HandledScreen.class)
-public class PatchHandledScreen<T extends ScreenHandler> extends Screen implements HasCustomGui {
+@Mixin(AbstractContainerScreen.class)
+public class PatchHandledScreen<T extends AbstractContainerMenu> extends Screen implements HasCustomGui {
 	@Shadow
 	@Final
-	protected T handler;
+	protected T menu;
 	@Shadow
-	protected int x;
+	protected int leftPos;
 	@Shadow
-	protected int y;
+	protected int topPos;
 	@Shadow
-	protected int backgroundHeight;
+	protected int imageHeight;
 	@Shadow
-	protected int backgroundWidth;
+	protected int imageWidth;
 	@Unique
 	public CustomGui override;
 	@Unique
@@ -51,7 +51,7 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 	@Unique
 	private int originalBackgroundHeight;
 
-	protected PatchHandledScreen(Text title) {
+	protected PatchHandledScreen(Component title) {
 		super(title);
 	}
 
@@ -64,12 +64,12 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 	@Override
 	public void setCustomGui_Firmament(@Nullable CustomGui gui) {
 		if (this.override != null) {
-			backgroundHeight = originalBackgroundHeight;
-			backgroundWidth = originalBackgroundWidth;
+			imageHeight = originalBackgroundHeight;
+			imageWidth = originalBackgroundWidth;
 		}
 		if (gui != null) {
-			originalBackgroundHeight = backgroundHeight;
-			originalBackgroundWidth = backgroundWidth;
+			originalBackgroundHeight = imageHeight;
+			originalBackgroundWidth = imageWidth;
 		}
 		this.override = gui;
 	}
@@ -78,16 +78,16 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 		return override != null && override.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
 	}
 
-	public boolean keyReleased_firmament(KeyInput input) {
+	public boolean keyReleased_firmament(KeyEvent input) {
 		if (HandledScreenKeyReleasedEvent.Companion.publish(new HandledScreenKeyReleasedEvent(
-			(HandledScreen<?>) (Object) this,
+			(AbstractContainerScreen<?>) (Object) this,
 			GenericInputAction.of(input),
 			InputModifiers.of(input))).getCancelled())
 			return true;
 		return override != null && override.keyReleased(input);
 	}
 
-	public boolean charTyped_firmament(CharInput input) {
+	public boolean charTyped_firmament(CharacterEvent input) {
 		return override != null && override.charTyped(input);
 	}
 
@@ -98,19 +98,19 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 		}
 	}
 
-	@Inject(method = "drawForeground", at = @At("HEAD"), cancellable = true)
-	private void onDrawForeground(DrawContext context, int mouseX, int mouseY, CallbackInfo ci) {
+	@Inject(method = "renderLabels", at = @At("HEAD"), cancellable = true)
+	private void onDrawForeground(GuiGraphics context, int mouseX, int mouseY, CallbackInfo ci) {
 		if (override != null && !override.shouldDrawForeground())
 			ci.cancel();
 	}
 
 
 	@WrapOperation(
-		method = "drawSlots",
+		method = "renderSlots",
 		at = @At(
 			value = "INVOKE",
-			target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawSlot(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/screen/slot/Slot;)V"))
-	private void beforeSlotRender(HandledScreen instance, DrawContext context, Slot slot, Operation<Void> original) {
+			target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderSlot(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/world/inventory/Slot;)V"))
+	private void beforeSlotRender(AbstractContainerScreen instance, GuiGraphics context, Slot slot, Operation<Void> original) {
 		if (override != null) {
 			override.beforeSlotRender(context, slot);
 		}
@@ -120,7 +120,7 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 		}
 	}
 
-	@Inject(method = "isClickOutsideBounds", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "hasClickedOutside", at = @At("HEAD"), cancellable = true)
 	public void onIsClickOutsideBounds(
 		double mouseX, double mouseY, int left, int top,
 		CallbackInfoReturnable<Boolean> cir) {
@@ -129,24 +129,24 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 		}
 	}
 
-	@Inject(method = "isPointWithinBounds", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "isHovering", at = @At("HEAD"), cancellable = true)
 	public void onIsPointWithinBounds(int x, int y, int width, int height, double pointX, double pointY, CallbackInfoReturnable<Boolean> cir) {
 		if (override != null) {
-			cir.setReturnValue(override.isPointWithinBounds(x + this.x, y + this.y, width, height, pointX, pointY));
+			cir.setReturnValue(override.isPointWithinBounds(x + this.leftPos, y + this.topPos, width, height, pointX, pointY));
 		}
 	}
 
-	@Inject(method = "isPointOverSlot", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "isHovering", at = @At("HEAD"), cancellable = true)
 	public void onIsPointOverSlot(Slot slot, double pointX, double pointY, CallbackInfoReturnable<Boolean> cir) {
 		if (override != null) {
-			cir.setReturnValue(override.isPointOverSlot(slot, this.x, this.y, pointX, pointY));
+			cir.setReturnValue(override.isPointOverSlot(slot, this.leftPos, this.topPos, pointX, pointY));
 		}
 	}
 
 	@Inject(method = "renderBackground", at = @At("HEAD"))
-	public void moveSlots(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+	public void moveSlots(GuiGraphics context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
 		if (override != null) {
-			for (Slot slot : handler.slots) {
+			for (Slot slot : menu.slots) {
 				if (!hasRememberedSlots) {
 					((CoordRememberingSlot) slot).rememberCoords_firmament();
 				}
@@ -155,7 +155,7 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 			hasRememberedSlots = true;
 		} else {
 			if (hasRememberedSlots) {
-				for (Slot slot : handler.slots) {
+				for (Slot slot : menu.slots) {
 					((CoordRememberingSlot) slot).restoreCoords_firmament();
 				}
 				hasRememberedSlots = false;
@@ -163,7 +163,7 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 		}
 	}
 
-	@Inject(at = @At("HEAD"), method = "close", cancellable = true)
+	@Inject(at = @At("HEAD"), method = "onClose", cancellable = true)
 	private void onVoluntaryExit(CallbackInfo ci) {
 		if (override != null) {
 			if (!override.onVoluntaryExit())
@@ -171,8 +171,8 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 		}
 	}
 
-	@WrapWithCondition(method = "renderBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/ingame/HandledScreen;drawBackground(Lnet/minecraft/client/gui/DrawContext;FII)V"))
-	public boolean preventDrawingBackground(HandledScreen instance, DrawContext drawContext, float delta, int mouseX, int mouseY) {
+	@WrapWithCondition(method = "renderBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderBg(Lnet/minecraft/client/gui/GuiGraphics;FII)V"))
+	public boolean preventDrawingBackground(AbstractContainerScreen instance, GuiGraphics drawContext, float delta, int mouseX, int mouseY) {
 		if (override != null) {
 			override.render(drawContext, delta, mouseX, mouseY);
 		}
@@ -181,8 +181,8 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 
 	@WrapOperation(
 		method = "mouseClicked",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/Screen;mouseClicked(Lnet/minecraft/client/gui/Click;Z)Z"))
-	public boolean overrideMouseClicks(HandledScreen instance, Click click, boolean doubled, Operation<Boolean> original) {
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;mouseClicked(Lnet/minecraft/client/input/MouseButtonEvent;Z)Z"))
+	public boolean overrideMouseClicks(AbstractContainerScreen instance, MouseButtonEvent click, boolean doubled, Operation<Boolean> original) {
 		if (override != null) {
 			if (override.mouseClick(click, doubled))
 				return true;
@@ -191,7 +191,7 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 	}
 
 	@Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
-	public void overrideMouseDrags(Click click, double offsetX, double offsetY, CallbackInfoReturnable<Boolean> cir) {
+	public void overrideMouseDrags(MouseButtonEvent click, double offsetX, double offsetY, CallbackInfoReturnable<Boolean> cir) {
 		if (override != null) {
 			if (override.mouseDragged(click, offsetX, offsetY))
 				cir.setReturnValue(true);
@@ -199,7 +199,7 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 	}
 
 	@Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-	private void overrideKeyPressed(KeyInput input, CallbackInfoReturnable<Boolean> cir) {
+	private void overrideKeyPressed(KeyEvent input, CallbackInfoReturnable<Boolean> cir) {
 		if (override != null) {
 			if (override.keyPressed(input)) {
 				cir.setReturnValue(true);
@@ -211,7 +211,7 @@ public class PatchHandledScreen<T extends ScreenHandler> extends Screen implemen
 	@Inject(
 		method = "mouseReleased",
 		at = @At("HEAD"), cancellable = true)
-	public void overrideMouseReleases(Click click, CallbackInfoReturnable<Boolean> cir) {
+	public void overrideMouseReleases(MouseButtonEvent click, CallbackInfoReturnable<Boolean> cir) {
 		if (override != null) {
 			if (override.mouseReleased(click))
 				cir.setReturnValue(true);

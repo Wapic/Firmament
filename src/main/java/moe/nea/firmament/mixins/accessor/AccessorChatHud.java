@@ -1,24 +1,24 @@
 package moe.nea.firmament.mixins.accessor;
 
-import net.minecraft.client.gui.hud.ChatHud;
-import net.minecraft.client.gui.hud.ChatHudLine;
+import net.minecraft.client.gui.components.ChatComponent;
+import net.minecraft.client.GuiMessage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 import java.util.List;
 
-@Mixin(ChatHud.class)
+@Mixin(ChatComponent.class)
 public interface AccessorChatHud {
-	@Accessor("messages")
-	List<ChatHudLine> getMessages_firmament();
+	@Accessor("allMessages")
+	List<GuiMessage> getMessages_firmament();
 
-	@Accessor("visibleMessages")
-	List<ChatHudLine.Visible> getVisibleMessages_firmament();
+	@Accessor("trimmedMessages")
+	List<GuiMessage.Line> getVisibleMessages_firmament();
 
-	@Accessor("scrolledLines")
+	@Accessor("chatScrollbarPos")
 	int getScrolledLines_firmament();
 
-	@Invoker("toChatLineY")
+	@Invoker("screenToChatY")
 	double toChatLineY_firmament(double y);
 }

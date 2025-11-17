@@ -23,7 +23,7 @@ object JunkHighlighter {
 		if (!TConfig.highlightBind.isPressed() || TConfig.junkRegex.isEmpty()) return
 		val junkRegex = TConfig.junkRegex.toPattern()
 		val slot = event.slot
-		junkRegex.useMatch(slot.stack.getSearchName()) {
+		junkRegex.useMatch(slot.item.getSearchName()) {
 			event.context.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, 0xffff0000.toInt())
 		}
 	}

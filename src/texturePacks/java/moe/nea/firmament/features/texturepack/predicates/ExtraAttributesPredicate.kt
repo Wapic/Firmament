@@ -9,19 +9,19 @@ import kotlin.jvm.optionals.getOrNull
 import moe.nea.firmament.features.texturepack.FirmamentModelPredicate
 import moe.nea.firmament.features.texturepack.FirmamentModelPredicateParser
 import moe.nea.firmament.features.texturepack.StringMatcher
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.NbtByte
-import net.minecraft.nbt.NbtDouble
-import net.minecraft.nbt.NbtElement
-import net.minecraft.nbt.NbtFloat
-import net.minecraft.nbt.NbtInt
-import net.minecraft.nbt.NbtLong
-import net.minecraft.nbt.NbtShort
+import net.minecraft.world.item.ItemStack
+import net.minecraft.nbt.ByteTag
+import net.minecraft.nbt.DoubleTag
+import net.minecraft.nbt.Tag
+import net.minecraft.nbt.FloatTag
+import net.minecraft.nbt.IntTag
+import net.minecraft.nbt.LongTag
+import net.minecraft.nbt.ShortTag
 import moe.nea.firmament.util.extraAttributes
 import moe.nea.firmament.util.mc.NbtPrism
 
 fun interface NbtMatcher {
-	fun matches(nbt: NbtElement): Boolean
+	fun matches(nbt: Tag): Boolean
 
 	object Parser {
 		fun parse(jsonElement: JsonElement): NbtMatcher? {
@@ -60,7 +60,7 @@ fun interface NbtMatcher {
 					return parseGenericNumber(
 						element,
 						{ it.asInt },
-						{ (it as? NbtInt)?.intValue() },
+						{ (it as? IntTag)?.intValue() },
 						{ a, b ->
 							if (a == b) Comparison.EQUAL
 							else if (a < b) Comparison.LESS_THAN
@@ -73,7 +73,7 @@ fun interface NbtMatcher {
 					return parseGenericNumber(
 						element,
 						{ it.asFloat },
-						{ (it as? NbtFloat)?.floatValue() },
+						{ (it as? FloatTag)?.floatValue() },
 						{ a, b ->
 							if (a == b) Comparison.EQUAL
 							else if (a < b) Comparison.LESS_THAN
@@ -86,7 +86,7 @@ fun interface NbtMatcher {
 					return parseGenericNumber(
 						element,
 						{ it.asDouble },
-						{ (it as? NbtDouble)?.doubleValue() },
+						{ (it as? DoubleTag)?.doubleValue() },
 						{ a, b ->
 							if (a == b) Comparison.EQUAL
 							else if (a < b) Comparison.LESS_THAN
@@ -99,7 +99,7 @@ fun interface NbtMatcher {
 					return parseGenericNumber(
 						element,
 						{ it.asLong },
-						{ (it as? NbtLong)?.longValue() },
+						{ (it as? LongTag)?.longValue() },
 						{ a, b ->
 							if (a == b) Comparison.EQUAL
 							else if (a < b) Comparison.LESS_THAN
@@ -112,7 +112,7 @@ fun interface NbtMatcher {
 					return parseGenericNumber(
 						element,
 						{ it.asShort },
-						{ (it as? NbtShort)?.shortValue() },
+						{ (it as? ShortTag)?.shortValue() },
 						{ a, b ->
 							if (a == b) Comparison.EQUAL
 							else if (a < b) Comparison.LESS_THAN
@@ -125,7 +125,7 @@ fun interface NbtMatcher {
 					return parseGenericNumber(
 						element,
 						{ it.asByte },
-						{ (it as? NbtByte)?.byteValue() },
+						{ (it as? ByteTag)?.byteValue() },
 						{ a, b ->
 							if (a == b) Comparison.EQUAL
 							else if (a < b) Comparison.LESS_THAN
@@ -143,10 +143,10 @@ fun interface NbtMatcher {
 		}
 
 		inline fun <T : Any> parseGenericNumber(
-			jsonElement: JsonElement,
-			primitiveExtractor: (JsonPrimitive) -> T?,
-			crossinline nbtExtractor: (NbtElement) -> T?,
-			crossinline compare: (T, T) -> Comparison
+            jsonElement: JsonElement,
+            primitiveExtractor: (JsonPrimitive) -> T?,
+            crossinline nbtExtractor: (Tag) -> T?,
+            crossinline compare: (T, T) -> Comparison
 		): NbtMatcher? {
 			if (jsonElement is JsonPrimitive) {
 				val expected = primitiveExtractor(jsonElement) ?: return null
@@ -184,12 +184,12 @@ fun interface NbtMatcher {
 	}
 
 	class MatchNumberExact(val number: Long) : NbtMatcher {
-		override fun matches(nbt: NbtElement): Boolean {
+		override fun matches(nbt: Tag): Boolean {
 			return when (nbt) {
-				is NbtByte -> nbt.byteValue().toLong() == number
-				is NbtInt -> nbt.intValue().toLong() == number
-				is NbtShort -> nbt.shortValue().toLong() == number
-				is NbtLong -> nbt.longValue().toLong() == number
+				is ByteTag -> nbt.byteValue().toLong() == number
+				is IntTag -> nbt.intValue().toLong() == number
+				is ShortTag -> nbt.shortValue().toLong() == number
+				is LongTag -> nbt.longValue().toLong() == number
 				else -> false
 			}
 		}
@@ -197,7 +197,7 @@ fun interface NbtMatcher {
 	}
 
 	class MatchStringExact(val string: String) : NbtMatcher {
-		override fun matches(nbt: NbtElement): Boolean {
+		override fun matches(nbt: Tag): Boolean {
 			return nbt.asString().getOrNull() == string
 		}
 
@@ -207,7 +207,7 @@ fun interface NbtMatcher {
 	}
 
 	class MatchString(val string: StringMatcher) : NbtMatcher {
-		override fun matches(nbt: NbtElement): Boolean {
+		override fun matches(nbt: Tag): Boolean {
 			return nbt.asString().map(string::matches).getOrDefault(false)
 		}
 

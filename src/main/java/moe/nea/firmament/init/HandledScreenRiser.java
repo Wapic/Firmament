@@ -2,11 +2,11 @@
 package moe.nea.firmament.init;
 
 import me.shedaniel.mm.api.ClassTinkerers;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.input.CharInput;
-import net.minecraft.client.input.KeyInput;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
@@ -24,11 +24,11 @@ import java.util.function.Consumer;
 
 public class HandledScreenRiser extends RiserUtils {
 	Intermediary.InterClass Screen = Intermediary.<Screen>intermediaryClass();
-	Intermediary.InterClass KeyInput = Intermediary.<KeyInput>intermediaryClass();
-	Intermediary.InterClass CharInput = Intermediary.<CharInput>intermediaryClass();
-	Intermediary.InterClass HandledScreen = Intermediary.<HandledScreen>intermediaryClass();
+	Intermediary.InterClass KeyInput = Intermediary.<KeyEvent>intermediaryClass();
+	Intermediary.InterClass CharInput = Intermediary.<CharacterEvent>intermediaryClass();
+	Intermediary.InterClass HandledScreen = Intermediary.<AbstractContainerScreen>intermediaryClass();
 	Intermediary.InterMethod mouseScrolled = Intermediary.intermediaryMethod(
-		Element::mouseScrolled,
+		GuiEventListener::mouseScrolled,
 		Intermediary.ofClass(boolean.class),
 		Intermediary.ofClass(double.class),
 		Intermediary.ofClass(double.class),
@@ -36,12 +36,12 @@ public class HandledScreenRiser extends RiserUtils {
 		Intermediary.ofClass(double.class)
 	);
 	Intermediary.InterMethod keyReleased = Intermediary.intermediaryMethod(
-		Element::keyReleased,
+		GuiEventListener::keyReleased,
 		Intermediary.ofClass(boolean.class),
 		KeyInput
 	);
 	Intermediary.InterMethod charTyped = Intermediary.intermediaryMethod(
-		Element::charTyped,
+		GuiEventListener::charTyped,
 		Intermediary.ofClass(boolean.class),
 		CharInput
 	);

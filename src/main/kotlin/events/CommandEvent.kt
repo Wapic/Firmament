@@ -4,7 +4,7 @@ package moe.nea.firmament.events
 
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.tree.LiteralCommandNode
-import net.minecraft.command.CommandRegistryAccess
+import net.minecraft.commands.CommandBuildContext
 import moe.nea.firmament.commands.CaseInsensitiveLiteralCommandNode
 import moe.nea.firmament.commands.DefaultSource
 import moe.nea.firmament.commands.literal
@@ -12,7 +12,7 @@ import moe.nea.firmament.commands.thenLiteral
 
 data class CommandEvent(
     val dispatcher: CommandDispatcher<DefaultSource>,
-    val ctx: CommandRegistryAccess,
+    val ctx: CommandBuildContext,
     val serverCommands: CommandDispatcher<*>?,
 ) : FirmamentEvent() {
     companion object : FirmamentEventBus<CommandEvent>()
@@ -23,7 +23,7 @@ data class CommandEvent(
      */
     data class SubCommand(
         val builder: CaseInsensitiveLiteralCommandNode.Builder<DefaultSource>,
-		val commandRegistryAccess: CommandRegistryAccess,
+        val commandRegistryAccess: CommandBuildContext,
     ) : FirmamentEvent() {
         companion object : FirmamentEventBus<SubCommand>()
 

@@ -4,9 +4,9 @@ package moe.nea.firmament.features.inventory.storageoverlay
 
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
-import net.minecraft.screen.GenericContainerScreenHandler
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.gui.screens.inventory.ContainerScreen
+import net.minecraft.world.inventory.ChestMenu
 import moe.nea.firmament.util.ifMatches
 import moe.nea.firmament.util.unformattedString
 
@@ -16,19 +16,19 @@ import moe.nea.firmament.util.unformattedString
 sealed interface StorageBackingHandle {
 
     sealed interface HasBackingScreen {
-        val handler: GenericContainerScreenHandler
+        val handler: ChestMenu
     }
 
     /**
      * The main storage overview is open. Clicking on a slot will open that page. This page is accessible via `/storage`
      */
-    data class Overview(override val handler: GenericContainerScreenHandler) : StorageBackingHandle, HasBackingScreen
+    data class Overview(override val handler: ChestMenu) : StorageBackingHandle, HasBackingScreen
 
     /**
      * An individual storage page is open. This may be a backpack or an enderchest page. This page is accessible via
      * the [Overview] or via `/ec <index + 1>` for enderchest pages.
      */
-    data class Page(override val handler: GenericContainerScreenHandler, val storagePageSlot: StoragePageSlot) :
+    data class Page(override val handler: ChestMenu, val storagePageSlot: StoragePageSlot) :
         StorageBackingHandle, HasBackingScreen
 
     companion object {
@@ -46,13 +46,13 @@ sealed interface StorageBackingHandle {
 		        returnsNotNull() implies (screen != null)
 	        }
             if (screen == null) return null
-            if (screen !is GenericContainerScreen) return null
+            if (screen !is ContainerScreen) return null
             val title = screen.title.unformattedString
-            if (title == "Storage") return Overview(screen.screenHandler)
+            if (title == "Storage") return Overview(screen.menu)
             return title.ifMatches(enderChestName) {
-                Page(screen.screenHandler, StoragePageSlot.ofEnderChestPage(it.groupValues[1].toInt()))
+                Page(screen.menu, StoragePageSlot.ofEnderChestPage(it.groupValues[1].toInt()))
             } ?: title.ifMatches(backPackName) {
-                Page(screen.screenHandler, StoragePageSlot.ofBackPackPage(it.groupValues[1].toInt()))
+                Page(screen.menu, StoragePageSlot.ofBackPackPage(it.groupValues[1].toInt()))
             }
         }
     }

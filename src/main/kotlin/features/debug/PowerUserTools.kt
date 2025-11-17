@@ -2,24 +2,24 @@ package moe.nea.firmament.features.debug
 
 import com.mojang.serialization.JsonOps
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.block.SkullBlock
-import net.minecraft.block.entity.SkullBlockEntity
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.component.type.ProfileComponent
-import net.minecraft.entity.Entity
-import net.minecraft.entity.LivingEntity
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.nbt.NbtList
+import net.minecraft.world.level.block.SkullBlock
+import net.minecraft.world.level.block.entity.SkullBlockEntity
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.ResolvableProfile
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.NbtOps
-import net.minecraft.predicate.NbtPredicate
-import net.minecraft.text.Text
-import net.minecraft.text.TextCodecs
-import net.minecraft.util.Identifier
-import net.minecraft.util.Nameable
-import net.minecraft.util.hit.BlockHitResult
-import net.minecraft.util.hit.EntityHitResult
-import net.minecraft.util.hit.HitResult
+import net.minecraft.advancements.critereon.NbtPredicate
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.ComponentSerialization
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.Nameable
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.EntityHitResult
+import net.minecraft.world.phys.HitResult
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.CustomItemModelEvent
 import moe.nea.firmament.events.HandledScreenKeyPressedEvent
@@ -69,7 +69,7 @@ object PowerUserTools {
 		val autoCopyAnimatedSkins by toggle("copy-animated-skins") { false }
 	}
 
-	var lastCopiedStack: Pair<ItemStack, Text>? = null
+	var lastCopiedStack: Pair<ItemStack, Component>? = null
 		set(value) {
 			field = value
 			if (value != null) lastCopiedStackViewTime = 2
@@ -86,20 +86,20 @@ object PowerUserTools {
 		lastCopiedStack = null
 	}
 
-	fun debugFormat(itemStack: ItemStack): Text {
-		return Text.literal(itemStack.skyBlockId?.toString() ?: itemStack.toString())
+	fun debugFormat(itemStack: ItemStack): Component {
+		return Component.literal(itemStack.skyBlockId?.toString() ?: itemStack.toString())
 	}
 
 	@Subscribe
 	fun onRender(event: SlotRenderEvents.After) {
 		if (TConfig.showSlotNumbers.isPressed()) {
-			event.context.drawText(
+			event.context.drawString(
 				MC.font,
-				event.slot.id.toString(), event.slot.x, event.slot.y, 0xFF00FF00.toInt(), true
+				event.slot.index.toString(), event.slot.x, event.slot.y, 0xFF00FF00.toInt(), true
 			)
-			event.context.drawText(
+			event.context.drawString(
 				MC.font,
-				event.slot.index.toString(), event.slot.x, event.slot.y + MC.font.fontHeight, 0xFFFF0000.toInt(), true
+				event.slot.containerSlot.toString(), event.slot.x, event.slot.y + MC.font.lineHeight, 0xFFFF0000.toInt(), true
 			)
 		}
 	}
@@ -107,37 +107,37 @@ object PowerUserTools {
 	@Subscribe
 	fun onEntityInfo(event: WorldKeyboardEvent) {
 		if (!event.matches(TConfig.copyEntityData)) return
-		val target = (MC.instance.crosshairTarget as? EntityHitResult)?.entity
+		val target = (MC.instance.hitResult as? EntityHitResult)?.entity
 		if (target == null) {
-			MC.sendChat(Text.translatable("firmament.poweruser.entity.fail"))
+			MC.sendChat(Component.translatable("firmament.poweruser.entity.fail"))
 			return
 		}
 		showEntity(target)
 	}
 
 	fun showEntity(target: Entity) {
-		val nbt = NbtPredicate.entityToNbt(target)
+		val nbt = NbtPredicate.getEntityTagToCompare(target)
 		nbt.remove("Inventory")
-		nbt.put("StyledName", TextCodecs.CODEC.encodeStart(NbtOps.INSTANCE, target.styledDisplayName).orThrow)
+		nbt.put("StyledName", ComponentSerialization.CODEC.encodeStart(NbtOps.INSTANCE, target.feedbackDisplayName).orThrow)
 		println(SNbtFormatter.prettify(nbt))
 		ClipboardUtils.setTextContent(SNbtFormatter.prettify(nbt))
-		MC.sendChat(Text.translatable("firmament.poweruser.entity.type", target.type))
-		MC.sendChat(Text.translatable("firmament.poweruser.entity.name", target.name))
-		MC.sendChat(Text.stringifiedTranslatable("firmament.poweruser.entity.position", target.pos))
+		MC.sendChat(Component.translatable("firmament.poweruser.entity.type", target.type))
+		MC.sendChat(Component.translatable("firmament.poweruser.entity.name", target.name))
+		MC.sendChat(Component.translatableEscape("firmament.poweruser.entity.position", target.position))
 		if (target is LivingEntity) {
-			MC.sendChat(Text.translatable("firmament.poweruser.entity.armor"))
+			MC.sendChat(Component.translatable("firmament.poweruser.entity.armor"))
 			for ((slot, armorItem) in target.iterableArmorItems) {
-				MC.sendChat(Text.translatable("firmament.poweruser.entity.armor.item", debugFormat(armorItem)))
+				MC.sendChat(Component.translatable("firmament.poweruser.entity.armor.item", debugFormat(armorItem)))
 			}
 		}
-		MC.sendChat(Text.stringifiedTranslatable("firmament.poweruser.entity.passengers", target.passengerList.size))
-		target.passengerList.forEach {
+		MC.sendChat(Component.translatableEscape("firmament.poweruser.entity.passengers", target.passengers.size))
+		target.passengers.forEach {
 			showEntity(it)
 		}
 	}
 
 	// TODO: leak this through some other way, maybe.
-	lateinit var getSkullId: (profile: ProfileComponent) -> Identifier?
+	lateinit var getSkullId: (profile: ResolvableProfile) -> ResourceLocation?
 
 	@Subscribe
 	fun copyInventoryInfo(it: HandledScreenKeyPressedEvent) {
@@ -146,71 +146,71 @@ object PowerUserTools {
 		if (it.matches(TConfig.copyItemId)) {
 			val sbId = item.skyBlockId
 			if (sbId == null) {
-				lastCopiedStack = Pair(item, Text.translatable("firmament.tooltip.copied.skyblockid.fail"))
+				lastCopiedStack = Pair(item, Component.translatable("firmament.tooltip.copied.skyblockid.fail"))
 				return
 			}
 			ClipboardUtils.setTextContent(sbId.neuItem)
 			lastCopiedStack =
-				Pair(item, Text.stringifiedTranslatable("firmament.tooltip.copied.skyblockid", sbId.neuItem))
+				Pair(item, Component.translatableEscape("firmament.tooltip.copied.skyblockid", sbId.neuItem))
 		} else if (it.matches(TConfig.copyTexturePackId)) {
 			val model = CustomItemModelEvent.getModelIdentifier0(item, object : IntrospectableItemModelManager {
-				override fun hasModel_firmament(identifier: Identifier): Boolean {
+				override fun hasModel_firmament(identifier: ResourceLocation): Boolean {
 					return true
 				}
 			}).getOrNull() // TODO: remove global texture overrides, maybe
 			if (model == null) {
-				lastCopiedStack = Pair(item, Text.translatable("firmament.tooltip.copied.modelid.fail"))
+				lastCopiedStack = Pair(item, Component.translatable("firmament.tooltip.copied.modelid.fail"))
 				return
 			}
 			ClipboardUtils.setTextContent(model.toString())
 			lastCopiedStack =
-				Pair(item, Text.stringifiedTranslatable("firmament.tooltip.copied.modelid", model.toString()))
+				Pair(item, Component.translatableEscape("firmament.tooltip.copied.modelid", model.toString()))
 		} else if (it.matches(TConfig.copyNbtData)) {
 			// TODO: copy full nbt
-			val nbt = item.get(DataComponentTypes.CUSTOM_DATA)?.unsafeNbt?.toPrettyString() ?: "<empty>"
+			val nbt = item.get(DataComponents.CUSTOM_DATA)?.unsafeNbt?.toPrettyString() ?: "<empty>"
 			ClipboardUtils.setTextContent(nbt)
-			lastCopiedStack = Pair(item, Text.translatable("firmament.tooltip.copied.nbt"))
+			lastCopiedStack = Pair(item, Component.translatable("firmament.tooltip.copied.nbt"))
 		} else if (it.matches(TConfig.copyLoreData)) {
 			val list = mutableListOf(item.displayNameAccordingToNbt)
 			list.addAll(item.loreAccordingToNbt)
 			ClipboardUtils.setTextContent(list.joinToString("\n") {
-				TextCodecs.CODEC.encodeStart(JsonOps.INSTANCE, it).result().getOrNull().toString()
+				ComponentSerialization.CODEC.encodeStart(JsonOps.INSTANCE, it).result().getOrNull().toString()
 			})
-			lastCopiedStack = Pair(item, Text.translatable("firmament.tooltip.copied.lore"))
+			lastCopiedStack = Pair(item, Component.translatable("firmament.tooltip.copied.lore"))
 		} else if (it.matches(TConfig.copySkullTexture)) {
 			if (item.item != Items.PLAYER_HEAD) {
-				lastCopiedStack = Pair(item, Text.translatable("firmament.tooltip.copied.skull-id.fail.no-skull"))
+				lastCopiedStack = Pair(item, Component.translatable("firmament.tooltip.copied.skull-id.fail.no-skull"))
 				return
 			}
-			val profile = item.get(DataComponentTypes.PROFILE)
+			val profile = item.get(DataComponents.PROFILE)
 			if (profile == null) {
-				lastCopiedStack = Pair(item, Text.translatable("firmament.tooltip.copied.skull-id.fail.no-profile"))
+				lastCopiedStack = Pair(item, Component.translatable("firmament.tooltip.copied.skull-id.fail.no-profile"))
 				return
 			}
 			val skullTexture = getSkullId(profile)
 			if (skullTexture == null) {
-				lastCopiedStack = Pair(item, Text.translatable("firmament.tooltip.copied.skull-id.fail.no-texture"))
+				lastCopiedStack = Pair(item, Component.translatable("firmament.tooltip.copied.skull-id.fail.no-texture"))
 				return
 			}
 			ClipboardUtils.setTextContent(skullTexture.toString())
 			lastCopiedStack =
-				Pair(item, Text.stringifiedTranslatable("firmament.tooltip.copied.skull-id", skullTexture.toString()))
+				Pair(item, Component.translatableEscape("firmament.tooltip.copied.skull-id", skullTexture.toString()))
 			println("Copied skull id: $skullTexture")
 		} else if (it.matches(TConfig.copyItemStack)) {
 			val nbt = ItemStack.CODEC
-				.encodeStart(MC.currentOrDefaultRegistries.getOps(NbtOps.INSTANCE), item)
+				.encodeStart(MC.currentOrDefaultRegistries.createSerializationContext(NbtOps.INSTANCE), item)
 				.orThrow
 			ClipboardUtils.setTextContent(nbt.toPrettyString())
-			lastCopiedStack = Pair(item, Text.stringifiedTranslatable("firmament.tooltip.copied.stack"))
+			lastCopiedStack = Pair(item, Component.translatableEscape("firmament.tooltip.copied.stack"))
 		} else if (it.matches(TConfig.copyTitle)) {
-			val allTitles = NbtList()
+			val allTitles = ListTag()
 			val inventoryNames =
-				it.screen.screenHandler.slots
-					.mapNotNullTo(mutableSetOf()) { it.inventory }
+				it.screen.menu.slots
+					.mapNotNullTo(mutableSetOf()) { it.container }
 					.filterIsInstance<Nameable>()
 					.map { it.name }
 			for (it in listOf(it.screen.title) + inventoryNames) {
-				allTitles.add(TextCodecs.CODEC.encodeStart(NbtOps.INSTANCE, it).result().getOrNull()!!)
+				allTitles.add(ComponentSerialization.CODEC.encodeStart(NbtOps.INSTANCE, it).result().getOrNull()!!)
 			}
 			ClipboardUtils.setTextContent(allTitles.toPrettyString())
 			MC.sendChat(tr("firmament.power-user.title.copied", "Copied screen and inventory titles"))
@@ -221,23 +221,23 @@ object PowerUserTools {
 	fun onCopyWorldInfo(it: WorldKeyboardEvent) {
 		if (it.matches(TConfig.copySkullTexture)) {
 			val p = MC.camera ?: return
-			val blockHit = p.raycast(20.0, 0.0f, false) ?: return
+			val blockHit = p.pick(20.0, 0.0f, false) ?: return
 			if (blockHit.type != HitResult.Type.BLOCK || blockHit !is BlockHitResult) {
-				MC.sendChat(Text.translatable("firmament.tooltip.copied.skull.fail"))
+				MC.sendChat(Component.translatable("firmament.tooltip.copied.skull.fail"))
 				return
 			}
-			val blockAt = p.world.getBlockState(blockHit.blockPos)?.block
-			val entity = p.world.getBlockEntity(blockHit.blockPos)
-			if (blockAt !is SkullBlock || entity !is SkullBlockEntity || entity.owner == null) {
-				MC.sendChat(Text.translatable("firmament.tooltip.copied.skull.fail"))
+			val blockAt = p.level.getBlockState(blockHit.blockPos)?.block
+			val entity = p.level.getBlockEntity(blockHit.blockPos)
+			if (blockAt !is SkullBlock || entity !is SkullBlockEntity || entity.ownerProfile == null) {
+				MC.sendChat(Component.translatable("firmament.tooltip.copied.skull.fail"))
 				return
 			}
-			val id = getSkullId(entity.owner!!)
+			val id = getSkullId(entity.ownerProfile!!)
 			if (id == null) {
-				MC.sendChat(Text.translatable("firmament.tooltip.copied.skull.fail"))
+				MC.sendChat(Component.translatable("firmament.tooltip.copied.skull.fail"))
 			} else {
 				ClipboardUtils.setTextContent(id.toString())
-				MC.sendChat(Text.stringifiedTranslatable("firmament.tooltip.copied.skull", id.toString()))
+				MC.sendChat(Component.translatableEscape("firmament.tooltip.copied.skull", id.toString()))
 			}
 		}
 	}
@@ -246,10 +246,10 @@ object PowerUserTools {
 	fun addItemId(it: ItemTooltipEvent) {
 		if (TConfig.showItemIds) {
 			val id = it.stack.skyBlockId ?: return
-			it.lines.add(Text.stringifiedTranslatable("firmament.tooltip.skyblockid", id.neuItem).grey())
+			it.lines.add(Component.translatableEscape("firmament.tooltip.skyblockid", id.neuItem).grey())
 		}
 		val (item, text) = lastCopiedStack ?: return
-		if (!ItemStack.areEqual(item, it.stack)) {
+		if (!ItemStack.matches(item, it.stack)) {
 			lastCopiedStack = null
 			return
 		}

@@ -4,10 +4,10 @@ import io.github.moulberry.repo.NEURepository
 import io.github.moulberry.repo.data.NEUCraftingRecipe
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
-import net.minecraft.block.Blocks
-import net.minecraft.item.ItemStack
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.item.ItemStack
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.repo.SBItemStack
 import moe.nea.firmament.util.tr
@@ -25,7 +25,7 @@ object SBCraftingRecipeRenderer : GenericRecipeRenderer<NEUCraftingRecipe> {
 		if (recipe.extraText != null && recipe.extraText!!.isNotBlank()) {
 			layouter.createTooltip(
 				arrow,
-				Text.of(recipe.extraText!!),
+				Component.nullToEmpty(recipe.extraText!!),
 			)
 		}
 
@@ -63,6 +63,6 @@ object SBCraftingRecipeRenderer : GenericRecipeRenderer<NEUCraftingRecipe> {
 	}
 
 	override val icon: ItemStack = ItemStack(Blocks.CRAFTING_TABLE)
-	override val title: Text = tr("firmament.category.crafting", "SkyBlock Crafting")
-	override val identifier: Identifier = Firmament.identifier("crafting_recipe")
+	override val title: Component = tr("firmament.category.crafting", "SkyBlock Crafting")
+	override val identifier: ResourceLocation = Firmament.identifier("crafting_recipe")
 }

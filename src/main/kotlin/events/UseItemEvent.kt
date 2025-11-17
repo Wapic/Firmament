@@ -1,11 +1,11 @@
 package moe.nea.firmament.events
 
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.ItemStack
-import net.minecraft.util.Hand
-import net.minecraft.world.World
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.level.Level
 
-data class UseItemEvent(val playerEntity: PlayerEntity, val world: World, val hand: Hand) : FirmamentEvent.Cancellable() {
+data class UseItemEvent(val playerEntity: Player, val world: Level, val hand: InteractionHand) : FirmamentEvent.Cancellable() {
 	companion object : FirmamentEventBus<UseItemEvent>()
-	val item: ItemStack = playerEntity.getStackInHand(hand)
+	val item: ItemStack = playerEntity.getItemInHand(hand)
 }

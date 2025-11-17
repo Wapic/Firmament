@@ -1,17 +1,17 @@
 package moe.nea.firmament.util
 
 import java.util.Optional
-import net.minecraft.text.ClickEvent
-import net.minecraft.text.HoverEvent
-import net.minecraft.text.MutableText
-import net.minecraft.text.OrderedText
-import net.minecraft.text.PlainTextContent
-import net.minecraft.text.StringVisitable
-import net.minecraft.text.Style
-import net.minecraft.text.Text
-import net.minecraft.text.TextColor
-import net.minecraft.text.TranslatableTextContent
-import net.minecraft.util.Formatting
+import net.minecraft.network.chat.ClickEvent
+import net.minecraft.network.chat.HoverEvent
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.util.FormattedCharSequence
+import net.minecraft.network.chat.contents.PlainTextContents
+import net.minecraft.network.chat.FormattedText
+import net.minecraft.network.chat.Style
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.TextColor
+import net.minecraft.network.chat.contents.TranslatableContents
+import net.minecraft.ChatFormatting
 
 
 val formattingChars = "kmolnrKMOLNR".toSet()
@@ -36,15 +36,15 @@ fun CharSequence.removeColorCodes(keepNonColorCodes: Boolean = false): String {
 	return stringBuffer.toString()
 }
 
-fun OrderedText.reconstitute(): MutableText {
-	val base = Text.literal("")
+fun FormattedCharSequence.reconstitute(): MutableComponent {
+	val base = Component.literal("")
 	base.setStyle(Style.EMPTY.withItalic(false))
 	var lastColorCode = Style.EMPTY
 	val text = StringBuilder()
 	this.accept { index, style, codePoint ->
 		if (style != lastColorCode) {
 			if (text.isNotEmpty())
-				base.append(Text.literal(text.toString()).setStyle(lastColorCode))
+				base.append(Component.literal(text.toString()).setStyle(lastColorCode))
 			lastColorCode = style
 			text.clear()
 		}
@@ -52,20 +52,20 @@ fun OrderedText.reconstitute(): MutableText {
 		true
 	}
 	if (text.isNotEmpty())
-		base.append(Text.literal(text.toString()).setStyle(lastColorCode))
+		base.append(Component.literal(text.toString()).setStyle(lastColorCode))
 	return base
 
 }
 
-fun StringVisitable.reconstitute(): MutableText {
-	val base = Text.literal("")
+fun FormattedText.reconstitute(): MutableComponent {
+	val base = Component.literal("")
 	base.setStyle(Style.EMPTY.withItalic(false))
 	var lastColorCode = Style.EMPTY
 	val text = StringBuilder()
 	this.visit({ style, string ->
 		if (style != lastColorCode) {
 			if (text.isNotEmpty())
-				base.append(Text.literal(text.toString()).setStyle(lastColorCode))
+				base.append(Component.literal(text.toString()).setStyle(lastColorCode))
 			lastColorCode = style
 			text.clear()
 		}
@@ -73,17 +73,17 @@ fun StringVisitable.reconstitute(): MutableText {
 		Optional.empty<Unit>()
 	}, Style.EMPTY)
 	if (text.isNotEmpty())
-		base.append(Text.literal(text.toString()).setStyle(lastColorCode))
+		base.append(Component.literal(text.toString()).setStyle(lastColorCode))
 	return base
 
 }
 
-val Text.unformattedString: String
+val Component.unformattedString: String
 	get() = string.removeColorCodes() // TODO: maybe shortcircuit this with .visit
 
-val Text.directLiteralStringContent: String? get() = (this.content as? PlainTextContent)?.string()
+val Component.directLiteralStringContent: String? get() = (this.contents as? PlainTextContents)?.text()
 
-fun Text.getLegacyFormatString(trimmed: Boolean = false): String =
+fun Component.getLegacyFormatString(trimmed: Boolean = false): String =
 	run {
 		var lastCode = "§r"
 		val sb = StringBuilder()
@@ -126,65 +126,65 @@ fun Text.getLegacyFormatString(trimmed: Boolean = false): String =
 		it
 	}
 
-private val textColorLUT = Formatting.entries
-	.mapNotNull { formatting -> formatting.colorValue?.let { it to formatting } }
+private val textColorLUT = ChatFormatting.entries
+	.mapNotNull { formatting -> formatting.color?.let { it to formatting } }
 	.toMap()
 
-fun TextColor.toChatFormatting(): Formatting? {
-	return textColorLUT[this.rgb]
+fun TextColor.toChatFormatting(): ChatFormatting? {
+	return textColorLUT[this.value]
 }
 
-fun Text.iterator(): Sequence<Text> {
+fun Component.iterator(): Sequence<Component> {
 	return sequenceOf(this) + siblings.asSequence()
 		.flatMap { it.iterator() } // TODO: in theory we want to properly inherit styles here
 }
 
-fun Text.allSiblings(): List<Text> = listOf(this) + siblings.flatMap { it.allSiblings() }
+fun Component.allSiblings(): List<Component> = listOf(this) + siblings.flatMap { it.allSiblings() }
 
-fun MutableText.withColor(formatting: Formatting): MutableText = this.styled {
+fun MutableComponent.withColor(formatting: ChatFormatting): MutableComponent = this.withStyle {
 	it.withColor(formatting)
 		.withItalic(false)
 		.withBold(false)
 }
 
-fun MutableText.blue() = withColor(Formatting.BLUE)
-fun MutableText.aqua() = withColor(Formatting.AQUA)
-fun MutableText.lime() = withColor(Formatting.GREEN)
-fun MutableText.darkGreen() = withColor(Formatting.DARK_GREEN)
-fun MutableText.purple() = withColor(Formatting.DARK_PURPLE)
-fun MutableText.pink() = withColor(Formatting.LIGHT_PURPLE)
-fun MutableText.yellow() = withColor(Formatting.YELLOW)
-fun MutableText.gold() = withColor(Formatting.GOLD)
-fun MutableText.grey() = withColor(Formatting.GRAY)
-fun MutableText.darkGrey() = withColor(Formatting.DARK_GRAY)
-fun MutableText.red() = withColor(Formatting.RED)
-fun MutableText.white() = withColor(Formatting.WHITE)
-fun MutableText.bold(): MutableText = styled { it.withBold(true) }
-fun MutableText.hover(text: Text): MutableText = styled { it.withHoverEvent(HoverEvent.ShowText(text)) }
-fun MutableText.boolColour(
-	bool: Boolean,
-	ifTrue: Formatting = Formatting.GREEN,
-	ifFalse: Formatting = Formatting.DARK_RED
+fun MutableComponent.blue() = withColor(ChatFormatting.BLUE)
+fun MutableComponent.aqua() = withColor(ChatFormatting.AQUA)
+fun MutableComponent.lime() = withColor(ChatFormatting.GREEN)
+fun MutableComponent.darkGreen() = withColor(ChatFormatting.DARK_GREEN)
+fun MutableComponent.purple() = withColor(ChatFormatting.DARK_PURPLE)
+fun MutableComponent.pink() = withColor(ChatFormatting.LIGHT_PURPLE)
+fun MutableComponent.yellow() = withColor(ChatFormatting.YELLOW)
+fun MutableComponent.gold() = withColor(ChatFormatting.GOLD)
+fun MutableComponent.grey() = withColor(ChatFormatting.GRAY)
+fun MutableComponent.darkGrey() = withColor(ChatFormatting.DARK_GRAY)
+fun MutableComponent.red() = withColor(ChatFormatting.RED)
+fun MutableComponent.white() = withColor(ChatFormatting.WHITE)
+fun MutableComponent.bold(): MutableComponent = withStyle { it.withBold(true) }
+fun MutableComponent.hover(text: Component): MutableComponent = withStyle { it.withHoverEvent(HoverEvent.ShowText(text)) }
+fun MutableComponent.boolColour(
+    bool: Boolean,
+    ifTrue: ChatFormatting = ChatFormatting.GREEN,
+    ifFalse: ChatFormatting = ChatFormatting.DARK_RED
 ) =
 	if (bool) withColor(ifTrue) else withColor(ifFalse)
 
-fun MutableText.clickCommand(command: String): MutableText {
+fun MutableComponent.clickCommand(command: String): MutableComponent {
 	require(command.startsWith("/"))
-	return this.styled {
+	return this.withStyle {
 		it.withClickEvent(ClickEvent.RunCommand(command))
 	}
 }
 
-fun MutableText.prepend(text: Text): MutableText {
+fun MutableComponent.prepend(text: Component): MutableComponent {
 	siblings.addFirst(text)
 	return this
 }
 
-fun Text.transformEachRecursively(function: (Text) -> Text): Text {
-	val c = this.content
-	if (c is TranslatableTextContent) {
-		return Text.translatableWithFallback(c.key, c.fallback, *c.args.map {
-			(it as? Text ?: Text.literal(it.toString())).transformEachRecursively(function)
+fun Component.transformEachRecursively(function: (Component) -> Component): Component {
+	val c = this.contents
+	if (c is TranslatableContents) {
+		return Component.translatableWithFallback(c.key, c.fallback, *c.args.map {
+			(it as? Component ?: Component.literal(it.toString())).transformEachRecursively(function)
 		}.toTypedArray()).also { new ->
 			new.style = this.style
 			new.siblings.clear()
@@ -201,8 +201,8 @@ fun Text.transformEachRecursively(function: (Text) -> Text): Text {
 	}
 }
 
-fun tr(key: String, default: String): MutableText = error("Compiler plugin did not run.")
-fun trResolved(key: String, vararg args: Any): MutableText = Text.stringifiedTranslatable(key, *args)
+fun tr(key: String, default: String): MutableComponent = error("Compiler plugin did not run.")
+fun trResolved(key: String, vararg args: Any): MutableComponent = Component.translatableEscape(key, *args)
 fun titleCase(str: String): String {
 	return str
 		.lowercase()

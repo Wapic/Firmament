@@ -5,7 +5,7 @@ import org.joml.Vector2i
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ProcessChatEvent
 import moe.nea.firmament.gui.hud.MoulConfigHud
@@ -105,11 +105,11 @@ object PristineProfitTracker {
 		val moneyPerSecond = moneyHistogram.averagePer({ it }, 1.seconds)
 		if (collectionPerSecond == null || moneyPerSecond == null) return
 		ProfitHud.collectionCurrent = collectionPerSecond
-		ProfitHud.collectionText = Text.stringifiedTranslatable("firmament.pristine-profit.collection",
+		ProfitHud.collectionText = Component.translatableEscape("firmament.pristine-profit.collection",
 		                                                        formatCommas(collectionPerSecond * SECONDS_PER_HOUR,
 		                                                                     1)).formattedString()
 		ProfitHud.moneyCurrent = moneyPerSecond
-		ProfitHud.moneyText = Text.stringifiedTranslatable("firmament.pristine-profit.money",
+		ProfitHud.moneyText = Component.translatableEscape("firmament.pristine-profit.money",
 		                                                   formatCommas(moneyPerSecond * SECONDS_PER_HOUR, 1))
 			.formattedString()
 		val data = DConfig.data

@@ -3,34 +3,34 @@ package moe.nea.firmament.events
 import java.util.Objects
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.component.DataComponentTypes
-import net.minecraft.item.ItemStack
-import net.minecraft.util.Identifier
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.ItemStack
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.util.collections.WeakCache
 import moe.nea.firmament.util.collections.WeakCache.CacheFunction
 import moe.nea.firmament.util.mc.IntrospectableItemModelManager
 
 // TODO: assert an order on these events
 data class CustomItemModelEvent(
-	val itemStack: ItemStack,
-	val itemModelManager: IntrospectableItemModelManager,
-	var overrideModel: Identifier? = null,
+    val itemStack: ItemStack,
+    val itemModelManager: IntrospectableItemModelManager,
+    var overrideModel: ResourceLocation? = null,
 ) : FirmamentEvent() {
 	companion object : FirmamentEventBus<CustomItemModelEvent>() {
 		val weakCache =
-			object : WeakCache<ItemStack, IntrospectableItemModelManager, Optional<Identifier>>("ItemModelIdentifier") {
+			object : WeakCache<ItemStack, IntrospectableItemModelManager, Optional<ResourceLocation>>("ItemModelIdentifier") {
 				override fun mkRef(
-					key: ItemStack,
-					extraData: IntrospectableItemModelManager
-				): WeakCache<ItemStack, IntrospectableItemModelManager, Optional<Identifier>>.Ref {
+                    key: ItemStack,
+                    extraData: IntrospectableItemModelManager
+				): WeakCache<ItemStack, IntrospectableItemModelManager, Optional<ResourceLocation>>.Ref {
 					return IRef(key, extraData)
 				}
 
 				inner class IRef(weakInstance: ItemStack, data: IntrospectableItemModelManager) :
 					Ref(weakInstance, data) {
 					override fun shouldBeEvicted(): Boolean = false
-					val isSimpleStack = weakInstance.componentChanges.isEmpty || (weakInstance.componentChanges.size() == 1 && weakInstance.get(
-						DataComponentTypes.CUSTOM_DATA)?.isEmpty == true)
+					val isSimpleStack = weakInstance.componentsPatch.isEmpty || (weakInstance.componentsPatch.size() == 1 && weakInstance.get(
+						DataComponents.CUSTOM_DATA)?.isEmpty == true)
 					val item = weakInstance.item
 					override fun hashCode(): Int {
 						if (isSimpleStack)
@@ -49,26 +49,26 @@ data class CustomItemModelEvent(
 		val cache = CacheFunction.WithExtraData(weakCache, ::getModelIdentifier0)
 
 		@JvmStatic
-		fun getModelIdentifier(itemStack: ItemStack?, itemModelManager: IntrospectableItemModelManager): Identifier? {
+		fun getModelIdentifier(itemStack: ItemStack?, itemModelManager: IntrospectableItemModelManager): ResourceLocation? {
 			if (itemStack == null) return null
 			return cache.invoke(itemStack, itemModelManager).getOrNull()
 		}
 
 		fun getModelIdentifier0(
-			itemStack: ItemStack,
-			itemModelManager: IntrospectableItemModelManager
-		): Optional<Identifier> {
+            itemStack: ItemStack,
+            itemModelManager: IntrospectableItemModelManager
+		): Optional<ResourceLocation> {
 			// TODO: add an error / warning if the model does not exist
 			return Optional.ofNullable(publish(CustomItemModelEvent(itemStack, itemModelManager)).overrideModel)
 		}
 	}
 
-	fun overrideIfExists(overrideModel: Identifier) {
+	fun overrideIfExists(overrideModel: ResourceLocation) {
 		if (itemModelManager.hasModel_firmament(overrideModel))
 			this.overrideModel = overrideModel
 	}
 
-	fun overrideIfEmpty(identifier: Identifier) {
+	fun overrideIfEmpty(identifier: ResourceLocation) {
 		if (overrideModel == null)
 			overrideModel = identifier
 	}

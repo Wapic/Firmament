@@ -3,12 +3,12 @@ package moe.nea.firmament.features.inventory.storageoverlay
 import io.github.notenoughupdates.moulconfig.ChromaColour
 import java.util.SortedMap
 import kotlinx.serialization.serializer
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
-import net.minecraft.client.gui.screen.ingame.HandledScreen
-import net.minecraft.entity.player.PlayerInventory
-import net.minecraft.item.Items
-import net.minecraft.network.packet.c2s.play.CloseHandledScreenC2SPacket
-import net.minecraft.text.Text
+import net.minecraft.client.gui.screens.inventory.ContainerScreen
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.item.Items
+import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ChestInventoryUpdateEvent
 import moe.nea.firmament.events.ScreenChangeEvent
@@ -71,7 +71,7 @@ object StorageOverlay {
 			(MC.screen as? StorageOverlayScreen)
 				?: (MC.handledScreen?.customGui as? StorageOverlayCustom)?.overview
 				?: return
-		val stack = event.slot.stack ?: return
+		val stack = event.slot.item ?: return
 		val search = storageOverlayScreen.searchText.get().takeIf { it.isNotBlank() } ?: return
 		if (storageOverlayScreen.matchesSearch(stack, search)) {
 			event.context.fill(
@@ -100,7 +100,7 @@ object StorageOverlay {
 
 	@Subscribe
 	fun onClick(event: SlotClickEvent) {
-		if (lastStorageOverlay != null && event.slot.inventory !is PlayerInventory && event.slot.index < 9
+		if (lastStorageOverlay != null && event.slot.container !is Inventory && event.slot.containerSlot < 9
 			&& event.stack.item != Items.BLACK_STAINED_GLASS_PANE
 		) {
 			skipNextStorageOverlayBackflip = true
@@ -111,18 +111,18 @@ object StorageOverlay {
 	fun onScreenChange(it: ScreenChangeEvent) {
 		if (it.old == null && it.new == null) return
 		val storageOverlayScreen = it.old as? StorageOverlayScreen
-			?: ((it.old as? HandledScreen<*>)?.customGui as? StorageOverlayCustom)?.overview
+			?: ((it.old as? AbstractContainerScreen<*>)?.customGui as? StorageOverlayCustom)?.overview
 		var storageOverviewScreen = it.old as? StorageOverviewScreen
-		val screen = it.new as? GenericContainerScreen
+		val screen = it.new as? ContainerScreen
 		rememberContent(currentHandler)
 		val oldHandler = currentHandler
 		currentHandler = StorageBackingHandle.fromScreen(screen)
 		if (storageOverviewScreen != null && oldHandler is StorageBackingHandle.HasBackingScreen) {
 			val player = MC.player
 			assert(player != null)
-			player?.networkHandler?.sendPacket(CloseHandledScreenC2SPacket(oldHandler.handler.syncId))
-			if (player?.currentScreenHandler === oldHandler.handler) {
-				player.currentScreenHandler = player.playerScreenHandler
+			player?.connection?.send(ServerboundContainerClosePacket(oldHandler.handler.containerId))
+			if (player?.containerMenu === oldHandler.handler) {
+				player.containerMenu = player.inventoryMenu
 			}
 		}
 		storageOverviewScreen = storageOverviewScreen ?: lastStorageOverlay
@@ -164,7 +164,7 @@ object StorageOverlay {
 		handler: StorageBackingHandle.Overview,
 		data: SortedMap<StoragePageSlot, StorageData.StorageInventory>
 	) {
-		for ((index, stack) in handler.handler.stacks.withIndex()) {
+		for ((index, stack) in handler.handler.items.withIndex()) { // TODO: replace with slot iteration
 			// Ignore unloaded item stacks
 			if (stack.isEmpty) continue
 			val slot = StoragePageSlot.fromOverviewSlotIndex(index) ?: continue
@@ -186,7 +186,7 @@ object StorageOverlay {
 		data: SortedMap<StoragePageSlot, StorageData.StorageInventory>
 	) {
 		val newStacks =
-			VirtualInventory(handler.handler.stacks.take(handler.handler.rows * 9).drop(9).map { it.copy() })
+			VirtualInventory(handler.handler.items.take(handler.handler.rowCount * 9).drop(9).map { it.copy() })
 		data.compute(handler.storagePageSlot) { slot, existingInventory ->
 			(existingInventory ?: StorageData.StorageInventory(
 				slot.defaultName(),

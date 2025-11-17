@@ -6,30 +6,30 @@ import moe.nea.firmament.events.HotbarItemRenderEvent;
 import moe.nea.firmament.events.HudRenderEvent;
 import moe.nea.firmament.features.fixes.Fixes;
 import moe.nea.firmament.util.SBData;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.hud.InGameHud;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(InGameHud.class)
+@Mixin(Gui.class)
 public class HudRenderEventsPatch {
     @Inject(method = "renderSleepOverlay", at = @At(value = "HEAD"))
-    public void renderCallBack(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+    public void renderCallBack(GuiGraphics context, DeltaTracker tickCounter, CallbackInfo ci) {
         HudRenderEvent.Companion.publish(new HudRenderEvent(context, tickCounter));
     }
 
-    @Inject(method = "renderHotbarItem", at = @At("HEAD"))
-    public void onRenderHotbarItem(DrawContext context, int x, int y, RenderTickCounter tickCounter, PlayerEntity player, ItemStack stack, int seed, CallbackInfo ci) {
+    @Inject(method = "renderSlot", at = @At("HEAD"))
+    public void onRenderHotbarItem(GuiGraphics context, int x, int y, DeltaTracker tickCounter, Player player, ItemStack stack, int seed, CallbackInfo ci) {
         if (stack != null && !stack.isEmpty())
             HotbarItemRenderEvent.Companion.publish(new HotbarItemRenderEvent(stack, context, x, y, tickCounter));
     }
 
-	@Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "renderEffects", at = @At("HEAD"), cancellable = true)
 	public void hideStatusEffects(CallbackInfo ci) {
 		if (Fixes.TConfig.INSTANCE.getHidePotionEffectsHud() && SBData.INSTANCE.isOnSkyblock()) ci.cancel();
 	}

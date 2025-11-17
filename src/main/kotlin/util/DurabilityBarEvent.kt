@@ -2,7 +2,7 @@
 package moe.nea.firmament.util
 
 import me.shedaniel.math.Color
-import net.minecraft.item.ItemStack
+import net.minecraft.world.item.ItemStack
 import moe.nea.firmament.events.FirmamentEvent
 import moe.nea.firmament.events.FirmamentEventBus
 

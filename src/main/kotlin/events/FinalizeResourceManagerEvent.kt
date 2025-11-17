@@ -2,25 +2,25 @@ package moe.nea.firmament.events
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
-import net.minecraft.resource.ReloadableResourceManagerImpl
-import net.minecraft.resource.ResourceManager
-import net.minecraft.resource.ResourceReloader
+import net.minecraft.server.packs.resources.ReloadableResourceManager
+import net.minecraft.server.packs.resources.ResourceManager
+import net.minecraft.server.packs.resources.PreparableReloadListener
 
 data class FinalizeResourceManagerEvent(
-	val resourceManager: ReloadableResourceManagerImpl,
+    val resourceManager: ReloadableResourceManager,
 ) : FirmamentEvent() {
 	companion object : FirmamentEventBus<FinalizeResourceManagerEvent>()
 
 	inline fun registerOnApply(name: String, crossinline function: () -> Unit) {
-		resourceManager.registerReloader(object : ResourceReloader {
+		resourceManager.registerReloadListener(object : PreparableReloadListener {
 			override fun reload(
-				store: ResourceReloader.Store,
-				prepareExecutor: Executor,
-				reloadSynchronizer: ResourceReloader.Synchronizer,
-				applyExecutor: Executor
+                store: PreparableReloadListener.SharedState,
+                prepareExecutor: Executor,
+                reloadSynchronizer: PreparableReloadListener.PreparationBarrier,
+                applyExecutor: Executor
 			): CompletableFuture<Void> {
 				return CompletableFuture.completedFuture(Unit)
-					.thenCompose(reloadSynchronizer::whenPrepared)
+					.thenCompose(reloadSynchronizer::wait)
 					.thenAcceptAsync({ function() }, applyExecutor)
 			}
 

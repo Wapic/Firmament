@@ -2,10 +2,10 @@ package moe.nea.firmament.util.mc
 
 import com.mojang.serialization.Codec
 import io.netty.buffer.ByteBuf
-import net.minecraft.component.ComponentType
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.registry.Registries
-import net.minecraft.registry.Registry
+import net.minecraft.core.component.DataComponentType
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.Registry
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ClientInitEvent
@@ -19,18 +19,18 @@ object FirmamentDataComponentTypes {
 
 	private fun <T> register(
 		id: String,
-		builderOperator: (ComponentType.Builder<T>) -> Unit
-	): ComponentType<T> {
+		builderOperator: (DataComponentType.Builder<T>) -> Unit
+	): DataComponentType<T> {
 		return Registry.register(
-			Registries.DATA_COMPONENT_TYPE,
+			BuiltInRegistries.DATA_COMPONENT_TYPE,
 			Firmament.identifier(id),
-			ComponentType.builder<T>().also(builderOperator)
+			DataComponentType.builder<T>().also(builderOperator)
 				.build()
 		)
 	}
 
-	fun <T> errorCodec(message: String): PacketCodec<in ByteBuf, T> =
-		object : PacketCodec<ByteBuf, T> {
+	fun <T> errorCodec(message: String): StreamCodec<in ByteBuf, T> =
+		object : StreamCodec<ByteBuf, T> {
 			override fun decode(buf: ByteBuf?): T? {
 				error(message)
 			}
@@ -40,16 +40,16 @@ object FirmamentDataComponentTypes {
 			}
 		}
 
-	fun <T, B : ComponentType.Builder<T>> B.neverEncode(message: String = "This element should never be encoded or decoded"): B {
-		packetCodec(errorCodec(message))
-		codec(null)
+	fun <T, B : DataComponentType.Builder<T>> B.neverEncode(message: String = "This element should never be encoded or decoded"): B {
+		networkSynchronized(errorCodec(message))
+		persistent(null)
 		return this
 	}
 
 	val IS_BROKEN = register<Boolean>(
 		"is_broken"
 	) {
-		it.codec(Codec.BOOL.fieldOf("is_broken").codec())
+		it.persistent(Codec.BOOL.fieldOf("is_broken").codec())
 	}
 
 	val CUSTOM_MINING_BLOCK_DATA = register<MiningRepoData.CustomMiningBlock>("custom_mining_block") {

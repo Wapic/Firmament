@@ -4,17 +4,17 @@ import java.util.Optional
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.resource.ResourceManager
-import net.minecraft.resource.SinglePreparationResourceReloader
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
-import net.minecraft.util.profiler.Profiler
+import net.minecraft.server.packs.resources.ResourceManager
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.profiling.ProfilerFiller
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.FinalizeResourceManagerEvent
 import moe.nea.firmament.util.collections.WeakCache
 
-object CustomTextColors : SinglePreparationResourceReloader<CustomTextColors.TextOverrides?>() {
+object CustomTextColors : SimplePreparableReloadListener<CustomTextColors.TextOverrides?>() {
 	@Serializable
 	data class TextOverrides(
 		val defaultColor: Int,
@@ -42,26 +42,26 @@ object CustomTextColors : SinglePreparationResourceReloader<CustomTextColors.Tex
 
 	@Subscribe
 	fun registerTextColorReloader(event: FinalizeResourceManagerEvent) {
-		event.resourceManager.registerReloader(this)
+		event.resourceManager.registerReloadListener(this)
 	}
 
-	val cache = WeakCache.memoize<Text, Optional<TextOverride>>("CustomTextColor") { text ->
+	val cache = WeakCache.memoize<Component, Optional<TextOverride>>("CustomTextColor") { text ->
 		val override = textOverrides ?: return@memoize Optional.empty()
 		Optional.ofNullable(override.overrides.find { it.predicate.matches(text) })
 	}
 
-	fun mapTextColor(text: Text, oldColor: Int): Int {
+	fun mapTextColor(text: Component, oldColor: Int): Int {
 		val override = cache(text).orElse(null)
 		return override?.override ?: textOverrides?.defaultColor ?: oldColor
 	}
 
 	override fun prepare(
-		manager: ResourceManager,
-		profiler: Profiler
+        manager: ResourceManager,
+        profiler: ProfilerFiller
 	): TextOverrides? {
-		val resource = manager.getResource(Identifier.of("firmskyblock", "overrides/text_colors.json")).getOrNull()
+		val resource = manager.getResource(ResourceLocation.fromNamespaceAndPath("firmskyblock", "overrides/text_colors.json")).getOrNull()
 			?: return null
-		return Firmament.tryDecodeJsonFromStream<TextOverrides>(resource.inputStream)
+		return Firmament.tryDecodeJsonFromStream<TextOverrides>(resource.open())
 			.getOrElse {
 				Firmament.logger.error("Could not parse text_colors.json", it)
 				null
@@ -71,9 +71,9 @@ object CustomTextColors : SinglePreparationResourceReloader<CustomTextColors.Tex
 	var textOverrides: TextOverrides? = null
 
 	override fun apply(
-		prepared: TextOverrides?,
-		manager: ResourceManager,
-		profiler: Profiler
+        prepared: TextOverrides?,
+        manager: ResourceManager,
+        profiler: ProfilerFiller
 	) {
 		textOverrides = prepared
 	}

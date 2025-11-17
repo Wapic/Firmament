@@ -1,6 +1,6 @@
 package moe.nea.firmament.events
 
-import net.minecraft.item.ItemStack
+import net.minecraft.world.item.ItemStack
 import moe.nea.firmament.util.MC
 
 sealed class ChestInventoryUpdateEvent : FirmamentEvent() {

@@ -7,9 +7,9 @@ import com.mojang.serialization.DataResult
 import com.mojang.serialization.Decoder
 import com.mojang.serialization.DynamicOps
 import com.mojang.serialization.Encoder
-import net.minecraft.client.render.item.model.ItemModelTypes
-import net.minecraft.item.ItemStack
-import net.minecraft.util.Identifier
+import net.minecraft.client.renderer.item.ItemModels
+import net.minecraft.world.item.ItemStack
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.FinalizeResourceManagerEvent
@@ -49,11 +49,11 @@ object CustomModelOverrideParser {
 			}
 		)
 
-	val predicateParsers = mutableMapOf<Identifier, FirmamentModelPredicateParser>()
+	val predicateParsers = mutableMapOf<ResourceLocation, FirmamentModelPredicateParser>()
 
 
 	fun registerPredicateParser(name: String, parser: FirmamentModelPredicateParser) {
-		predicateParsers[Identifier.of("firmament", name)] = parser
+		predicateParsers[ResourceLocation.fromNamespaceAndPath("firmament", name)] = parser
 	}
 
 	init {
@@ -91,7 +91,7 @@ object CustomModelOverrideParser {
 				parsedPredicates.add(PullingPredicate.AnyPulling)
 			}
 			if (!predicateName.startsWith("firmament:")) continue
-			val identifier = Identifier.of(predicateName)
+			val identifier = ResourceLocation.parse(predicateName)
 			val parser = predicateParsers[identifier] ?: return neverPredicate
 			val parsedPredicate = parser.parse(predicates[predicateName]) ?: return neverPredicate
 			parsedPredicates.add(parsedPredicate)
@@ -110,11 +110,11 @@ object CustomModelOverrideParser {
 
 	@Subscribe
 	fun finalizeResources(event: FinalizeResourceManagerEvent) {
-		ItemModelTypes.ID_MAPPER.put(
+		ItemModels.ID_MAPPER.put(
 			Firmament.identifier("predicates/legacy"),
 			PredicateModel.Unbaked.CODEC
 		)
-		ItemModelTypes.ID_MAPPER.put(
+		ItemModels.ID_MAPPER.put(
 			Firmament.identifier("head_model"),
 			HeadModelChooser.Unbaked.CODEC
 		)

@@ -3,25 +3,25 @@
 package moe.nea.firmament.mixins.custommodels;
 
 import moe.nea.firmament.features.texturepack.CustomSkyBlockTextures;
-import net.minecraft.block.SkullBlock;
-import net.minecraft.block.entity.SkullBlockEntity;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.level.block.SkullBlock;
+import net.minecraft.world.level.block.entity.SkullBlockEntity;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
+import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(SkullBlockEntityRenderer.class)
+@Mixin(SkullBlockRenderer.class)
 public class CustomSkullTexturePatch {
 	@Inject(
-		method = "renderSkull",
+		method = "resolveSkullRenderType",
 		at = @At("HEAD"),
 		cancellable = true
 	)
-	private void onGetRenderLayer(SkullBlock.SkullType skullType, SkullBlockEntity blockEntity, CallbackInfoReturnable<RenderLayer> cir) {
-		CustomSkyBlockTextures.INSTANCE.modifySkullTexture(skullType, blockEntity.getOwner(), cir);
+	private void onGetRenderLayer(SkullBlock.Type skullType, SkullBlockEntity blockEntity, CallbackInfoReturnable<RenderType> cir) {
+		CustomSkyBlockTextures.INSTANCE.modifySkullTexture(skullType, blockEntity.getOwnerProfile(), cir);
 	}
 }

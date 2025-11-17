@@ -1,6 +1,6 @@
 package moe.nea.firmament.gui.config
 
-import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.gui.screens.Screen
 import moe.nea.firmament.util.compatloader.CompatLoader
 
 interface FirmamentConfigScreenProvider {

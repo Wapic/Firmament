@@ -2,22 +2,22 @@ package moe.nea.firmament.features.inventory.storageoverlay
 
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.Click
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
-import net.minecraft.client.input.CharInput
-import net.minecraft.client.input.KeyInput
-import net.minecraft.entity.player.PlayerInventory
-import net.minecraft.screen.slot.Slot
+import net.minecraft.client.Minecraft
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.screens.inventory.ContainerScreen
+import net.minecraft.client.input.CharacterEvent
+import net.minecraft.client.input.KeyEvent
+import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.inventory.Slot
 import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
 import moe.nea.firmament.util.customgui.CustomGui
 import moe.nea.firmament.util.focusedItemStack
 
 class StorageOverlayCustom(
-	val handler: StorageBackingHandle,
-	val screen: GenericContainerScreen,
-	val overview: StorageOverlayScreen,
+    val handler: StorageBackingHandle,
+    val screen: ContainerScreen,
+    val overview: StorageOverlayScreen,
 ) : CustomGui() {
 	override fun onVoluntaryExit(): Boolean {
 		overview.isExiting = true
@@ -29,18 +29,18 @@ class StorageOverlayCustom(
 		return overview.getBounds()
 	}
 
-	override fun afterSlotRender(context: DrawContext, slot: Slot) {
-		if (slot.inventory !is PlayerInventory)
+	override fun afterSlotRender(context: GuiGraphics, slot: Slot) {
+		if (slot.container !is Inventory)
 			context.disableScissor()
 	}
 
-	override fun beforeSlotRender(context: DrawContext, slot: Slot) {
-		if (slot.inventory !is PlayerInventory)
+	override fun beforeSlotRender(context: GuiGraphics, slot: Slot) {
+		if (slot.container !is Inventory)
 			overview.createScissors(context)
 	}
 
 	override fun onInit() {
-		overview.init(MinecraftClient.getInstance(), screen.width, screen.height)
+		overview.init(Minecraft.getInstance(), screen.width, screen.height)
 		overview.init()
 		screen as AccessorHandledScreen
 		screen.x_Firmament = overview.measurements.x
@@ -52,7 +52,7 @@ class StorageOverlayCustom(
 	override fun isPointOverSlot(slot: Slot, xOffset: Int, yOffset: Int, pointX: Double, pointY: Double): Boolean {
 		if (!super.isPointOverSlot(slot, xOffset, yOffset, pointX, pointY))
 			return false
-		if (slot.inventory !is PlayerInventory) {
+		if (slot.container !is Inventory) {
 			if (!overview.getScrollPanelInner().contains(pointX, pointY))
 				return false
 		}
@@ -63,31 +63,31 @@ class StorageOverlayCustom(
 		return false
 	}
 
-	override fun mouseReleased(click: Click): Boolean {
+	override fun mouseReleased(click: MouseButtonEvent): Boolean {
 		return overview.mouseReleased(click)
 	}
 
-	override fun mouseDragged(click: Click, offsetX: Double, offsetY: Double): Boolean {
+	override fun mouseDragged(click: MouseButtonEvent, offsetX: Double, offsetY: Double): Boolean {
 		return overview.mouseDragged(click, offsetX, offsetY)
 	}
 
-	override fun keyReleased(input: KeyInput): Boolean {
+	override fun keyReleased(input: KeyEvent): Boolean {
 		return overview.keyReleased(input)
 	}
 
-	override fun keyPressed(input: KeyInput): Boolean {
+	override fun keyPressed(input: KeyEvent): Boolean {
 		return overview.keyPressed(input)
 	}
 
-	override fun charTyped(input: CharInput): Boolean {
+	override fun charTyped(input: CharacterEvent): Boolean {
 		return overview.charTyped(input)
 	}
 
-	override fun mouseClick(click: Click, doubled: Boolean): Boolean {
+	override fun mouseClick(click: MouseButtonEvent, doubled: Boolean): Boolean {
 		return overview.mouseClicked(click, doubled, (handler as? StorageBackingHandle.Page)?.storagePageSlot)
 	}
 
-	override fun render(drawContext: DrawContext, delta: Float, mouseX: Int, mouseY: Int) {
+	override fun render(drawContext: GuiGraphics, delta: Float, mouseX: Int, mouseY: Int) {
 		overview.drawBackgrounds(drawContext)
 		overview.drawPages(
 			drawContext,
@@ -95,7 +95,7 @@ class StorageOverlayCustom(
 			mouseY,
 			delta,
 			(handler as? StorageBackingHandle.Page)?.storagePageSlot,
-			screen.screenHandler.slots.take(screen.screenHandler.rows * 9).drop(9),
+			screen.menu.slots.take(screen.menu.rowCount * 9).drop(9),
 			Point((screen as AccessorHandledScreen).x_Firmament, screen.y_Firmament)
 		)
 		overview.drawScrollBar(drawContext)
@@ -103,7 +103,7 @@ class StorageOverlayCustom(
 	}
 
 	override fun moveSlot(slot: Slot) {
-		val index = slot.index
+		val index = slot.containerSlot
 		if (index in 0..<36) {
 			val (x, y) = overview.getPlayerInventorySlotPosition(index)
 			slot.x = x - (screen as AccessorHandledScreen).x_Firmament

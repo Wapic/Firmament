@@ -1,17 +1,17 @@
 package moe.nea.firmament.features.items
 
 import io.github.notenoughupdates.moulconfig.ChromaColour
-import net.minecraft.block.Blocks
-import net.minecraft.registry.entry.RegistryEntry
-import net.minecraft.registry.tag.BlockTags
-import net.minecraft.registry.tag.TagKey
-import net.minecraft.text.Text
-import net.minecraft.util.hit.BlockHitResult
-import net.minecraft.util.hit.HitResult
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Vec3d
-import net.minecraft.util.shape.VoxelShapes
-import net.minecraft.world.BlockView
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.core.Holder
+import net.minecraft.tags.BlockTags
+import net.minecraft.tags.TagKey
+import net.minecraft.network.chat.Component
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.HitResult
+import net.minecraft.core.BlockPos
+import net.minecraft.world.phys.Vec3
+import net.minecraft.world.phys.shapes.Shapes
+import net.minecraft.world.level.BlockGetter
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.WorldRenderLastEvent
 import moe.nea.firmament.util.MC
@@ -41,7 +41,7 @@ object EtherwarpOverlay {
 		var failureText by toggle("failure-text") { false }
 	}
 
-	enum class EtherwarpResult(val label: Text?, val color: () -> ChromaColour) {
+	enum class EtherwarpResult(val label: Component?, val color: () -> ChromaColour) {
 		SUCCESS(null, TConfig::cubeColour),
 		INTERACTION_BLOCKED(
 			tr("firmament.etherwarp.fail.tooclosetointeractable", "Too close to interactable"),
@@ -76,10 +76,10 @@ object EtherwarpOverlay {
 	)
 
 	data class Checker<T>(
-		val direct: Set<T>,
-		val byTag: Set<TagKey<T>>,
+        val direct: Set<T>,
+        val byTag: Set<TagKey<T>>,
 	) {
-		fun matches(entry: RegistryEntry<T>): Boolean {
+		fun matches(entry: Holder<T>): Boolean {
 			return entry.value() in direct || checkTags(entry, byTag)
 		}
 	}
@@ -123,34 +123,34 @@ object EtherwarpOverlay {
 	)
 
 
-	fun <T> checkTags(holder: RegistryEntry<out T>, set: Set<TagKey<out T>>) =
-		holder.streamTags()
+	fun <T> checkTags(holder: Holder<out T>, set: Set<TagKey<out T>>) =
+		holder.tags()
 			.anyMatch(set::contains)
 
 
-	fun isEtherwarpTransparent(world: BlockView, blockPos: BlockPos): Boolean {
+	fun isEtherwarpTransparent(world: BlockGetter, blockPos: BlockPos): Boolean {
 		val blockState = world.getBlockState(blockPos)
 		val block = blockState.block
-		if (etherwarpConsidersFat.matches(blockState.registryEntry))
+		if (etherwarpConsidersFat.matches(blockState.blockHolder))
 			return false
-		if (block.defaultState.getCollisionShape(world, blockPos).isEmpty)
+		if (block.defaultBlockState().getCollisionShape(world, blockPos).isEmpty)
 			return true
-		if (etherwarpHallpasses.matches(blockState.registryEntry))
+		if (etherwarpHallpasses.matches(blockState.blockHolder))
 			return true
 		return false
 	}
 
 	sealed interface EtherwarpBlockHit {
-		data class BlockHit(val blockPos: BlockPos, val accuratePos: Vec3d?) : EtherwarpBlockHit
+		data class BlockHit(val blockPos: BlockPos, val accuratePos: Vec3?) : EtherwarpBlockHit
 		data object Miss : EtherwarpBlockHit
 	}
 
-	fun raycastWithEtherwarpTransparency(world: BlockView, start: Vec3d, end: Vec3d): EtherwarpBlockHit {
-		return BlockView.raycast<EtherwarpBlockHit, Unit>(
+	fun raycastWithEtherwarpTransparency(world: BlockGetter, start: Vec3, end: Vec3): EtherwarpBlockHit {
+		return BlockGetter.traverseBlocks<EtherwarpBlockHit, Unit>(
 			start, end, Unit,
 			{ _, blockPos ->
 				if (isEtherwarpTransparent(world, blockPos)) {
-					return@raycast null
+					return@traverseBlocks null
 				}
 //				val defaultedState = world.getBlockState(blockPos).block.defaultState
 //				val hitShape = defaultedState.getCollisionShape(
@@ -161,8 +161,8 @@ object EtherwarpOverlay {
 //				if (world.raycastBlock(start, end, blockPos, hitShape, defaultedState) == null) {
 //					return@raycast null
 //				}
-				val partialResult = world.raycastBlock(start, end, blockPos, VoxelShapes.fullCube(), world.getBlockState(blockPos).block.defaultState)
-				return@raycast EtherwarpBlockHit.BlockHit(blockPos, partialResult?.pos)
+				val partialResult = world.clipWithInteractionOverride(start, end, blockPos, Shapes.block(), world.getBlockState(blockPos).block.defaultBlockState())
+				return@traverseBlocks EtherwarpBlockHit.BlockHit(blockPos, partialResult?.location)
 			},
 			{ EtherwarpBlockHit.Miss })
 	}
@@ -176,8 +176,8 @@ object EtherwarpOverlay {
 	fun renderEtherwarpOverlay(event: WorldRenderLastEvent) {
 		if (!TConfig.etherwarpOverlay) return
 		val player = MC.player ?: return
-		if (TConfig.onlyShowWhileSneaking && !player.isSneaking) return
-		val world = player.world
+		if (TConfig.onlyShowWhileSneaking && !player.isShiftKeyDown) return
+		val world = player.level
 		val heldItem = MC.stackInHand
 		val etherwarpTyp = run {
 			if (heldItem.extraAttributes.contains("ethermerge"))
@@ -188,12 +188,12 @@ object EtherwarpOverlay {
 				return
 		}
 		val playerEyeHeight = // Sneaking: 1.27 (1.21) 1.54 (1.8.9) / Upright: 1.62 (1.8.9,1.21)
-			if (player.isSneaking || etherwarpTyp == EtherwarpItemKind.MERGED)
+			if (player.isShiftKeyDown || etherwarpTyp == EtherwarpItemKind.MERGED)
 				(if (SBData.skyblockLocation?.isModernServer ?: false) 1.27 else 1.54)
 			else 1.62
-		val playerEyePos = player.pos.add(0.0, playerEyeHeight, 0.0)
+		val playerEyePos = player.position.add(0.0, playerEyeHeight, 0.0)
 		val start = playerEyePos
-		val end = player.getRotationVec(0F).multiply(160.0).add(playerEyePos)
+		val end = player.getViewVector(0F).scale(160.0).add(playerEyePos)
 		val hitResult = raycastWithEtherwarpTransparency(
 			world,
 			start,
@@ -202,15 +202,15 @@ object EtherwarpOverlay {
 		if (hitResult !is EtherwarpBlockHit.BlockHit) return
 		val blockPos = hitResult.blockPos
 		val success = run {
-			if (!isEtherwarpTransparent(world, blockPos.up()))
+			if (!isEtherwarpTransparent(world, blockPos.above()))
 				EtherwarpResult.OCCUPIED
-			else if (!isEtherwarpTransparent(world, blockPos.up(2)))
+			else if (!isEtherwarpTransparent(world, blockPos.above(2)))
 				EtherwarpResult.OCCUPIED
-			else if (playerEyePos.squaredDistanceTo(hitResult.accuratePos ?: blockPos.toCenterPos()) > 61 * 61)
+			else if (playerEyePos.distanceToSqr(hitResult.accuratePos ?: blockPos.center) > 61 * 61)
 				EtherwarpResult.TOO_DISTANT
-			else if ((MC.instance.crosshairTarget as? BlockHitResult)
+			else if ((MC.instance.hitResult as? BlockHitResult)
 					?.takeIf { it.type == HitResult.Type.BLOCK }
-					?.let { interactionBlocked.matches(world.getBlockState(it.blockPos).registryEntry) }
+					?.let { interactionBlocked.matches(world.getBlockState(it.blockPos).blockHolder) }
 					?: false
 			)
 				EtherwarpResult.INTERACTION_BLOCKED
@@ -225,7 +225,7 @@ object EtherwarpOverlay {
 				)
 			if (TConfig.wireframe) wireframeCube(blockPos, 10f)
 			if (TConfig.failureText && success.label != null) {
-				withFacingThePlayer(blockPos.toCenterPos()) {
+				withFacingThePlayer(blockPos.center) {
 					text(success.label)
 				}
 			}

@@ -209,7 +209,10 @@ val customTexturesSourceSet = createIsolatedSourceSet("texturePacks", "texturePa
 dependencies {
 	// Minecraft dependencies
 	"minecraft"(libs.minecraft)
-	"mappings"("net.fabricmc:yarn:${libs.versions.yarn.get()}:v2")
+	"mappings"(loom.layered {
+		officialMojangMappings()
+		parchment("org.parchmentmc.data:parchment-1.21.10:2025.10.12@zip")
+	})
 
 	// Hotswap Dependency
 	hotswap(libs.hotswap)

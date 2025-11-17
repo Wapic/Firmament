@@ -2,18 +2,18 @@
 
 package moe.nea.firmament.util
 
-import net.minecraft.client.sound.PositionedSoundInstance
-import net.minecraft.sound.SoundEvent
-import net.minecraft.util.Identifier
+import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import net.minecraft.sounds.SoundEvent
+import net.minecraft.resources.ResourceLocation
 
 // TODO: Replace these with custom sound events that just re use the vanilla ogg s
 object CommonSoundEffects {
-    fun playSound(identifier: Identifier) {
-        MC.soundManager.play(PositionedSoundInstance.master(SoundEvent.of(identifier), 1F))
+    fun playSound(identifier: ResourceLocation) {
+        MC.soundManager.play(SimpleSoundInstance.forUI(SoundEvent.createVariableRangeEvent(identifier), 1F))
     }
 
     fun playFailure() {
-        playSound(Identifier.of("minecraft", "block.anvil.place"))
+        playSound(ResourceLocation.fromNamespaceAndPath("minecraft", "block.anvil.place"))
     }
 
     fun playSuccess() {
@@ -21,6 +21,6 @@ object CommonSoundEffects {
     }
 
     fun playDing() {
-        playSound(Identifier.of("minecraft", "entity.arrow.hit_player"))
+        playSound(ResourceLocation.fromNamespaceAndPath("minecraft", "entity.arrow.hit_player"))
     }
 }

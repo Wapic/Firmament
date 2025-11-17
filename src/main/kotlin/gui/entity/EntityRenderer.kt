@@ -6,14 +6,14 @@ import com.google.gson.JsonObject
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.math.atan
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.screen.ingame.InventoryScreen
-import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.SpawnReason
-import net.minecraft.util.Identifier
-import net.minecraft.world.World
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.screens.inventory.InventoryScreen
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.EntitySpawnReason
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.level.Level
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.iterate
@@ -21,9 +21,9 @@ import moe.nea.firmament.util.openFirmamentResource
 import moe.nea.firmament.util.render.enableScissorWithTranslation
 
 object EntityRenderer {
-	val fakeWorld: World get() = MC.lastWorld!!
+	val fakeWorld: Level get() = MC.lastWorld!!
 	private fun <T : Entity> t(entityType: EntityType<T>): () -> T {
-		return { entityType.create(fakeWorld, SpawnReason.LOAD)!! }
+		return { entityType.create(fakeWorld, EntitySpawnReason.LOAD)!! }
 	}
 
 	val entityIds: Map<String, () -> LivingEntity> = mapOf(
@@ -139,7 +139,7 @@ object EntityRenderer {
 	}
 
 	private val gson = Gson()
-	fun constructEntity(location: Identifier): LivingEntity? {
+	fun constructEntity(location: ResourceLocation): LivingEntity? {
 		return constructEntity(
 			gson.fromJson(
 				location.openFirmamentResource().bufferedReader(), JsonObject::class.java
@@ -149,7 +149,7 @@ object EntityRenderer {
 
 	fun renderEntity(
 		entity: LivingEntity,
-		renderContext: DrawContext,
+		renderContext: GuiGraphics,
 		posX: Int,
 		posY: Int,
 		// TODO: Add width, height properties here
@@ -162,10 +162,10 @@ object EntityRenderer {
 		var bottomOffset = 0.0
 		var currentEntity = entity
 		val maxSize = entity.iterate { it.firstPassenger as? LivingEntity }
-			.map { it.height }
+			.map { it.bbHeight }
 			.sum()
 		while (true) {
-			currentEntity.age = MC.player?.age ?: 0
+			currentEntity.tickCount = MC.player?.tickCount ?: 0
 			drawEntity(
 				renderContext,
 				posX,
@@ -179,14 +179,14 @@ object EntityRenderer {
 				currentEntity
 			)
 			val next = currentEntity.firstPassenger as? LivingEntity ?: break
-			bottomOffset += currentEntity.getPassengerRidingPos(next).y.toFloat() * 0.75F
+			bottomOffset += currentEntity.getPassengerRidingPosition(next).y.toFloat() * 0.75F
 			currentEntity = next
 		}
 	}
 
 
 	fun drawEntity(
-		context: DrawContext,
+		context: GuiGraphics,
 		x1: Int,
 		y1: Int,
 		x2: Int,
@@ -203,22 +203,22 @@ object EntityRenderer {
 		val hw = (x2 - x1) / 2
 		val hh = (y2 - y1) / 2
 		val targetYaw = atan(((centerX - mouseX) / hw)).toFloat()
-		val targetPitch = atan(((centerY - mouseY) / hh - entity.standingEyeHeight * hh / 40)).toFloat()
+		val targetPitch = atan(((centerY - mouseY) / hh - entity.eyeHeight * hh / 40)).toFloat()
 		val rotateToFaceTheFront = Quaternionf().rotateZ(Math.PI.toFloat())
 		val rotateToFaceTheCamera = Quaternionf().rotateX(targetPitch * 20.0f * (Math.PI.toFloat() / 180))
 		rotateToFaceTheFront.mul(rotateToFaceTheCamera)
-		val oldBodyYaw = entity.bodyYaw
-		val oldYaw = entity.yaw
-		val oldPitch = entity.pitch
-		val oldPrevHeadYaw = entity.lastHeadYaw
-		val oldHeadYaw = entity.headYaw
-		entity.bodyYaw = 180.0f + targetYaw * 20.0f
-		entity.yaw = 180.0f + targetYaw * 40.0f
-		entity.pitch = -targetPitch * 20.0f
-		entity.headYaw = entity.yaw
-		entity.lastHeadYaw = entity.yaw
-		val vector3f = Vector3f(0.0f, (entity.height / 2.0f + bottomOffset).toFloat(), 0.0f)
-		InventoryScreen.drawEntity( // TODO: fix multiple entities rendering the same entity
+		val oldBodyYaw = entity.yBodyRot
+		val oldYaw = entity.yRot
+		val oldPitch = entity.xRot
+		val oldPrevHeadYaw = entity.yHeadRotO
+		val oldHeadYaw = entity.yHeadRot
+		entity.yBodyRot = 180.0f + targetYaw * 20.0f
+		entity.yRot = 180.0f + targetYaw * 40.0f
+		entity.xRot = -targetPitch * 20.0f
+		entity.yHeadRot = entity.yRot
+		entity.yHeadRotO = entity.yRot
+		val vector3f = Vector3f(0.0f, (entity.bbHeight / 2.0f + bottomOffset).toFloat(), 0.0f)
+		InventoryScreen.renderEntityInInventory( // TODO: fix multiple entities rendering the same entity
 			context,
 			x1, y1,
 			x2, y2,
@@ -228,11 +228,11 @@ object EntityRenderer {
 			rotateToFaceTheCamera,
 			entity
 		)
-		entity.bodyYaw = oldBodyYaw
-		entity.yaw = oldYaw
-		entity.pitch = oldPitch
-		entity.lastHeadYaw = oldPrevHeadYaw
-		entity.headYaw = oldHeadYaw
+		entity.yBodyRot = oldBodyYaw
+		entity.yRot = oldYaw
+		entity.xRot = oldPitch
+		entity.yHeadRotO = oldPrevHeadYaw
+		entity.yHeadRot = oldHeadYaw
 		context.disableScissor()
 	}
 

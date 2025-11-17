@@ -1,6 +1,6 @@
 package moe.nea.firmament.features.inventory.buttons
 
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.MC
@@ -17,7 +17,7 @@ object InventoryButtonTemplates {
 			ErrorUtil.catch<InventoryButton?>("Could not import button") {
 				Firmament.json.decodeFromString<InventoryButton>(it).also {
 					if (it.icon?.startsWith("extra:") == true) {
-						MC.sendChat(Text.translatable("firmament.inventory-buttons.import-failed"))
+						MC.sendChat(Component.translatable("firmament.inventory-buttons.import-failed"))
 					}
 				}
 			}.or {

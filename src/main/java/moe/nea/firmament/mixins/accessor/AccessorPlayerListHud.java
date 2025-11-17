@@ -1,8 +1,8 @@
 package moe.nea.firmament.mixins.accessor;
 
-import net.minecraft.client.gui.hud.PlayerListHud;
-import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.components.PlayerTabOverlay;
+import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
@@ -11,21 +11,21 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 import java.util.Comparator;
 import java.util.List;
 
-@Mixin(PlayerListHud.class)
+@Mixin(PlayerTabOverlay.class)
 public interface AccessorPlayerListHud {
 
-	@Accessor("ENTRY_ORDERING")
-	static Comparator<PlayerListEntry> getEntryOrdering() {
+	@Accessor("PLAYER_COMPARATOR")
+	static Comparator<PlayerInfo> getEntryOrdering() {
 		throw new AssertionError();
 	}
 
-	@Invoker("collectPlayerEntries")
-	List<PlayerListEntry> collectPlayerEntries_firmament();
+	@Invoker("getPlayerInfos")
+	List<PlayerInfo> collectPlayerEntries_firmament();
 
 	@Accessor("footer")
-	@Nullable Text getFooter_firmament();
+	@Nullable Component getFooter_firmament();
 
 	@Accessor("header")
-	@Nullable Text getHeader_firmament();
+	@Nullable Component getHeader_firmament();
 
 }

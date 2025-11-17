@@ -2,16 +2,16 @@
 
 package moe.nea.firmament.events
 
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.screen.slot.Slot
-import net.minecraft.util.Identifier
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.world.inventory.Slot
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.util.render.drawGuiTexture
 
 interface SlotRenderEvents {
-    val context: DrawContext
+    val context: GuiGraphics
     val slot: Slot
 
-	fun highlight(sprite: Identifier) {
+	fun highlight(sprite: ResourceLocation) {
 		context.drawGuiTexture(
 			slot.x, slot.y, 0, 16, 16,
 			sprite
@@ -19,14 +19,14 @@ interface SlotRenderEvents {
 	}
 
     data class Before(
-        override val context: DrawContext, override val slot: Slot,
+        override val context: GuiGraphics, override val slot: Slot,
     ) : FirmamentEvent(),
         SlotRenderEvents {
         companion object : FirmamentEventBus<Before>()
     }
 
     data class After(
-        override val context: DrawContext, override val slot: Slot,
+        override val context: GuiGraphics, override val slot: Slot,
     ) : FirmamentEvent(),
         SlotRenderEvents {
         companion object : FirmamentEventBus<After>()

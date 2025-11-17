@@ -1,7 +1,7 @@
 package moe.nea.firmament.features.inventory
 
 import org.lwjgl.glfw.GLFW
-import net.minecraft.item.Items
+import net.minecraft.world.item.Items
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HandledScreenKeyPressedEvent
 import moe.nea.firmament.util.MC
@@ -41,16 +41,16 @@ object WardrobeKeybinds {
 		) {
 			event.cancel()
 
-			val handler = event.screen.screenHandler
+			val handler = event.screen.menu
 			val previousSlot = handler.getSlot(45)
 			val nextSlot = handler.getSlot(53)
 
 			val backPressed = event.matches(TConfig.changePageKeybind) || event.matches(TConfig.previousPage)
 			val nextPressed = event.matches(TConfig.changePageKeybind) || event.matches(TConfig.nextPage)
 
-			if (backPressed && previousSlot.stack.item == Items.ARROW) {
+			if (backPressed && previousSlot.item.item == Items.ARROW) {
 				previousSlot.clickLeftMouseButton(handler)
-			} else if (nextPressed && nextSlot.stack.item == Items.ARROW) {
+			} else if (nextPressed && nextSlot.item.item == Items.ARROW) {
 				nextSlot.clickLeftMouseButton(handler)
 			}
 		}
@@ -63,10 +63,10 @@ object WardrobeKeybinds {
 
 		event.cancel()
 
-		val handler = event.screen.screenHandler
+		val handler = event.screen.menu
 		val invSlot = handler.getSlot(slot)
 
-		val itemStack = invSlot.stack
+		val itemStack = invSlot.item
 		val isSelected = itemStack.item == Items.LIME_DYE
 		val isSelectable = itemStack.item == Items.PINK_DYE
 		if (!isSelectable && !isSelected) return

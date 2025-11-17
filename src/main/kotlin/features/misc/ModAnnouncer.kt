@@ -4,10 +4,10 @@ import io.netty.buffer.ByteBuf
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.loader.api.FabricLoader
-import net.minecraft.network.codec.PacketCodec
-import net.minecraft.network.codec.PacketCodecs
-import net.minecraft.network.packet.CustomPayload
-import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.codec.ByteBufCodecs
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.JoinServerEvent
@@ -37,9 +37,9 @@ object ModAnnouncer {
 		val modVersion: String,
 	) {
 		companion object {
-			val CODEC: PacketCodec<ByteBuf, ModEntry> = PacketCodec.tuple(
-				PacketCodecs.STRING, ModEntry::modid,
-				PacketCodecs.STRING, ModEntry::modVersion,
+			val CODEC: StreamCodec<ByteBuf, ModEntry> = StreamCodec.composite(
+				ByteBufCodecs.STRING_UTF8, ModEntry::modid,
+				ByteBufCodecs.STRING_UTF8, ModEntry::modVersion,
 				::ModEntry
 			)
 		}
@@ -47,15 +47,15 @@ object ModAnnouncer {
 
 	data class ModPacket(
 		val mods: List<ModEntry>,
-	) : CustomPayload {
-		override fun getId(): CustomPayload.Id<out ModPacket> {
+	) : CustomPacketPayload {
+		override fun type(): CustomPacketPayload.Type<out ModPacket> {
 			return ID
 		}
 
 		companion object {
-			val ID = CustomPayload.Id<ModPacket>(Firmament.identifier("mod_list"))
-			val CODEC: PacketCodec<ByteBuf, ModPacket> = ModEntry.CODEC.collect(PacketCodecs.toList())
-				.xmap(::ModPacket, ModPacket::mods)
+			val ID = CustomPacketPayload.Type<ModPacket>(Firmament.identifier("mod_list"))
+			val CODEC: StreamCodec<ByteBuf, ModPacket> = ModEntry.CODEC.apply(ByteBufCodecs.list())
+				.map(::ModPacket, ModPacket::mods)
 		}
 	}
 
@@ -68,10 +68,10 @@ object ModAnnouncer {
 				.map { ModEntry(it.metadata.id, it.metadata.version.friendlyString) })
 		val pbb = PacketByteBufs.create()
 		ModPacket.CODEC.encode(pbb, packet)
-		if (pbb.writerIndex() > CustomPayloadC2SPacket.MAX_PAYLOAD_SIZE)
+		if (pbb.writerIndex() > ServerboundCustomPayloadPacket.MAX_PAYLOAD_SIZE)
 			return
 
-		event.networkHandler.sendPacket(event.packetSender.createPacket(packet))
+		event.networkHandler.send(event.packetSender.createPacket(packet))
 	}
 
 	init {

@@ -5,9 +5,9 @@ import com.mojang.brigadier.context.CommandContext
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.fabricmc.fabric.impl.command.client.ClientCommandInternals
-import net.minecraft.command.CommandRegistryAccess
-import net.minecraft.network.packet.s2c.play.CommandTreeS2CPacket
-import net.minecraft.text.Text
+import net.minecraft.commands.CommandBuildContext
+import net.minecraft.network.protocol.game.ClientboundCommandsPacket
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.commands.DefaultSource
 import moe.nea.firmament.commands.RestArgumentType
@@ -45,13 +45,13 @@ object QuickCommands {
 			ClientCommandInternals.setActiveDispatcher(dispatcher)
 			ClientCommandRegistrationCallback.EVENT.invoker()
 				.register(
-					dispatcher, CommandRegistryAccess.of(
-						network.combinedDynamicRegistries,
-						network.enabledFeatures
+					dispatcher, CommandBuildContext.simple(
+						network.registryAccess,
+						network.enabledFeatures()
 					)
 				)
 			ClientCommandInternals.finalizeInit()
-			network.onCommandTree(lastPacket)
+			network.handleCommands(lastPacket)
 		} catch (ex: Exception) {
 			ClientCommandInternals.setActiveDispatcher(fallback)
 			throw ex
@@ -69,7 +69,7 @@ object QuickCommands {
 		return lf
 	}
 
-	var lastReceivedTreePacket: CommandTreeS2CPacket? = null
+	var lastReceivedTreePacket: ClientboundCommandsPacket? = null
 
 	val kuudraLevelNames = listOf("NORMAL", "HOT", "BURNING", "FIERY", "INFERNAL")
 	val dungeonLevelNames = listOf("ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN")
@@ -103,10 +103,10 @@ object QuickCommands {
 					}
 					val joinName = getNameForFloor(what.replace(" ", "").lowercase())
 					if (joinName == null) {
-						source.sendFeedback(Text.stringifiedTranslatable("firmament.quick-commands.join.unknown", what))
+						source.sendFeedback(Component.translatableEscape("firmament.quick-commands.join.unknown", what))
 					} else {
 						source.sendFeedback(
-							Text.stringifiedTranslatable(
+							Component.translatableEscape(
 								"firmament.quick-commands.join.success",
 								joinName
 							)
@@ -116,7 +116,7 @@ object QuickCommands {
 				}
 			}
 			thenExecute {
-				source.sendFeedback(Text.translatable("firmament.quick-commands.join.explain"))
+				source.sendFeedback(Component.translatable("firmament.quick-commands.join.explain"))
 			}
 		}
 	}
@@ -132,7 +132,7 @@ object QuickCommands {
 			}
 			if (l !in kuudraLevelNames.indices) {
 				source.sendFeedback(
-					Text.stringifiedTranslatable(
+					Component.translatableEscape(
 						"firmament.quick-commands.join.unknown-kuudra",
 						kuudraLevel
 					)
@@ -157,7 +157,7 @@ object QuickCommands {
 			}
 			if (l !in dungeonLevelNames.indices) {
 				source.sendFeedback(
-					Text.stringifiedTranslatable(
+					Component.translatableEscape(
 						"firmament.quick-commands.join.unknown-catacombs",
 						kuudraLevel
 					)

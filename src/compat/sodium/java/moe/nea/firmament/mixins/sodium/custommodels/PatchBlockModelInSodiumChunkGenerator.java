@@ -5,10 +5,10 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import moe.nea.firmament.features.texturepack.CustomBlockTextures;
 import net.caffeinemc.mods.sodium.client.render.chunk.compile.tasks.ChunkBuilderMeshingTask;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.block.BlockModels;
-import net.minecraft.client.render.model.BlockStateModel;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.block.BlockModelShaper;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.core.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -16,9 +16,9 @@ import org.spongepowered.asm.mixin.injection.At;
 public class PatchBlockModelInSodiumChunkGenerator {
 	@WrapOperation(
 		method = "execute(Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/ChunkBuildContext;Lnet/caffeinemc/mods/sodium/client/util/task/CancellationToken;)Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/ChunkBuildOutput;",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/block/BlockModels;getModel(Lnet/minecraft/block/BlockState;)Lnet/minecraft/client/render/model/BlockStateModel;"))
-	private BlockStateModel replaceBlockModel(BlockModels instance, BlockState state, Operation<BlockStateModel> original,
-											  @Local(name = "blockPos") BlockPos.Mutable pos) {
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/BlockModelShaper;getBlockModel(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/client/renderer/block/model/BlockStateModel;"))
+	private BlockStateModel replaceBlockModel(BlockModelShaper instance, BlockState state, Operation<BlockStateModel> original,
+                                              @Local(name = "blockPos") BlockPos.MutableBlockPos pos) {
 		var replacement = CustomBlockTextures.getReplacementModel(state, pos);
 		if (replacement != null) return replacement;
 		CustomBlockTextures.enterFallbackCall();

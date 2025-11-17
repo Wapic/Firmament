@@ -5,53 +5,53 @@ import org.joml.Matrix4f
 import org.joml.Vector3f
 import util.render.CustomRenderLayers
 import kotlin.math.pow
-import net.minecraft.client.render.Camera
-import net.minecraft.client.render.RenderLayer
-import net.minecraft.client.render.RenderLayers
-import net.minecraft.client.render.RenderTickCounter
-import net.minecraft.client.render.TexturedRenderLayers
-import net.minecraft.client.render.VertexConsumer
-import net.minecraft.client.render.VertexConsumerProvider
-import net.minecraft.client.render.state.CameraRenderState
-import net.minecraft.client.texture.Sprite
-import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Box
-import net.minecraft.util.math.Vec3d
+import net.minecraft.client.Camera
+import net.minecraft.client.renderer.RenderType
+import net.minecraft.client.renderer.ItemBlockRenderTypes
+import net.minecraft.client.DeltaTracker
+import net.minecraft.client.renderer.Sheets
+import com.mojang.blaze3d.vertex.VertexConsumer
+import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.state.CameraRenderState
+import net.minecraft.client.renderer.texture.TextureAtlasSprite
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.core.BlockPos
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec3
 import moe.nea.firmament.events.WorldRenderLastEvent
 import moe.nea.firmament.util.FirmFormatters
 import moe.nea.firmament.util.MC
 
 @RenderContextDSL
 class RenderInWorldContext private constructor(
-	val matrixStack: MatrixStack,
+	val matrixStack: PoseStack,
 	private val camera: CameraRenderState,
-	val vertexConsumers: VertexConsumerProvider.Immediate,
+	val vertexConsumers: MultiBufferSource.BufferSource,
 ) {
 	fun block(blockPos: BlockPos, color: Int) {
-		matrixStack.push()
+		matrixStack.pushPose()
 		matrixStack.translate(blockPos.x.toFloat(), blockPos.y.toFloat(), blockPos.z.toFloat())
-		buildCube(matrixStack.peek().positionMatrix, vertexConsumers.getBuffer(CustomRenderLayers.COLORED_QUADS), color)
-		matrixStack.pop()
+		buildCube(matrixStack.last().pose(), vertexConsumers.getBuffer(CustomRenderLayers.COLORED_QUADS), color)
+		matrixStack.popPose()
 	}
 
-	fun box(aabb: Box, color: Int) {
-		matrixStack.push()
+	fun box(aabb: AABB, color: Int) {
+		matrixStack.pushPose()
 		matrixStack.translate(aabb.minX, aabb.minY, aabb.minZ)
-		matrixStack.scale(aabb.lengthX.toFloat(), aabb.lengthY.toFloat(), aabb.lengthZ.toFloat())
-		buildCube(matrixStack.peek().positionMatrix, vertexConsumers.getBuffer(CustomRenderLayers.COLORED_QUADS), color)
-		matrixStack.pop()
+		matrixStack.scale(aabb.xsize.toFloat(), aabb.ysize.toFloat(), aabb.zsize.toFloat())
+		buildCube(matrixStack.last().pose(), vertexConsumers.getBuffer(CustomRenderLayers.COLORED_QUADS), color)
+		matrixStack.popPose()
 	}
 
 	fun sharedVoxelSurface(blocks: Set<BlockPos>, color: Int) {
-		val m = BlockPos.Mutable()
+		val m = BlockPos.MutableBlockPos()
 		val l = vertexConsumers.getBuffer(CustomRenderLayers.COLORED_QUADS)
 		blocks.forEach {
-			matrixStack.push()
+			matrixStack.pushPose()
 			matrixStack.translate(it.x.toFloat(), it.y.toFloat(), it.z.toFloat())
-			val p = matrixStack.peek().positionMatrix
+			val p = matrixStack.last().pose()
 			m.set(it)
 			if (m.setX(it.x + 1) !in blocks) {
 				buildFaceXP(p, l, color)
@@ -73,7 +73,7 @@ class RenderInWorldContext private constructor(
 			if (m.setZ(it.z - 1) !in blocks) {
 				buildFaceZN(p, l, color)
 			}
-			matrixStack.pop()
+			matrixStack.popPose()
 		}
 	}
 
@@ -82,46 +82,46 @@ class RenderInWorldContext private constructor(
 
 		fun align(index: Int, count: Int): Float {
 			return when (this) {
-				CENTER -> (index - count / 2F) * (1 + MC.font.fontHeight.toFloat())
-				BOTTOM -> (index - count) * (1 + MC.font.fontHeight.toFloat())
-				TOP -> (index) * (1 + MC.font.fontHeight.toFloat())
+				CENTER -> (index - count / 2F) * (1 + MC.font.lineHeight.toFloat())
+				BOTTOM -> (index - count) * (1 + MC.font.lineHeight.toFloat())
+				TOP -> (index) * (1 + MC.font.lineHeight.toFloat())
 			}
 		}
 	}
 
-	fun waypoint(position: BlockPos, vararg label: Text) {
+	fun waypoint(position: BlockPos, vararg label: Component) {
 		text(
-			position.toCenterPos(),
+			position.center,
 			*label,
-			Text.literal("§e${FirmFormatters.formatDistance(MC.player?.pos?.distanceTo(position.toCenterPos()) ?: 42069.0)}"),
+			Component.literal("§e${FirmFormatters.formatDistance(MC.player?.position?.distanceTo(position.center) ?: 42069.0)}"),
 			background = 0xAA202020.toInt()
 		)
 	}
 
-	fun withFacingThePlayer(position: Vec3d, block: FacingThePlayerContext.() -> Unit) {
-		matrixStack.push()
+	fun withFacingThePlayer(position: Vec3, block: FacingThePlayerContext.() -> Unit) {
+		matrixStack.pushPose()
 		matrixStack.translate(position.x, position.y, position.z)
 		val actualCameraDistance = position.distanceTo(camera.pos)
 		val distanceToMoveTowardsCamera = if (actualCameraDistance < 10) 0.0 else -(actualCameraDistance - 10.0)
-		val vec = position.subtract(camera.pos).multiply(distanceToMoveTowardsCamera / actualCameraDistance)
+		val vec = position.subtract(camera.pos).scale(distanceToMoveTowardsCamera / actualCameraDistance)
 		matrixStack.translate(vec.x, vec.y, vec.z)
-		matrixStack.multiply(camera.orientation)
+		matrixStack.mulPose(camera.orientation)
 		matrixStack.scale(0.025F, -0.025F, 1F)
 
 		FacingThePlayerContext(this).run(block)
 
-		matrixStack.pop()
-		vertexConsumers.drawCurrentLayer()
+		matrixStack.popPose()
+		vertexConsumers.endLastBatch()
 	}
 
-	fun sprite(position: Vec3d, sprite: Sprite, width: Int, height: Int) {
+	fun sprite(position: Vec3, sprite: TextureAtlasSprite, width: Int, height: Int) {
 		texture(
-			position, sprite.atlasId, width, height, sprite.minU, sprite.minV, sprite.maxU, sprite.maxV
+			position, sprite.atlasLocation(), width, height, sprite.u0, sprite.v0, sprite.u1, sprite.v1
 		)
 	}
 
 	fun texture(
-		position: Vec3d, texture: Identifier, width: Int, height: Int,
+		position: Vec3, texture: ResourceLocation, width: Int, height: Int,
 		u1: Float, v1: Float,
 		u2: Float, v2: Float,
 	) {
@@ -131,8 +131,8 @@ class RenderInWorldContext private constructor(
 	}
 
 	fun text(
-		position: Vec3d,
-		vararg texts: Text,
+		position: Vec3,
+		vararg texts: Component,
 		verticalAlign: VerticalAlign = VerticalAlign.CENTER,
 		background: Int = 0x70808080
 	) {
@@ -141,22 +141,22 @@ class RenderInWorldContext private constructor(
 		}
 	}
 
-	fun tinyBlock(vec3d: Vec3d, size: Float, color: Int) {
-		matrixStack.push()
+	fun tinyBlock(vec3d: Vec3, size: Float, color: Int) {
+		matrixStack.pushPose()
 		matrixStack.translate(vec3d.x, vec3d.y, vec3d.z)
 		matrixStack.scale(size, size, size)
 		matrixStack.translate(-.5, -.5, -.5)
-		buildCube(matrixStack.peek().positionMatrix, vertexConsumers.getBuffer(CustomRenderLayers.COLORED_QUADS), color)
-		matrixStack.pop()
-		vertexConsumers.draw()
+		buildCube(matrixStack.last().pose(), vertexConsumers.getBuffer(CustomRenderLayers.COLORED_QUADS), color)
+		matrixStack.popPose()
+		vertexConsumers.endBatch()
 	}
 
 	fun wireframeCube(blockPos: BlockPos, lineWidth: Float = 10F) {
-		val buf = vertexConsumers.getBuffer(RenderLayer.LINES)
-		matrixStack.push()
+		val buf = vertexConsumers.getBuffer(RenderType.LINES)
+		matrixStack.pushPose()
 		// TODO: add color arg to this
 		// TODO: this does not render through blocks (or water layers) anymore
-		RenderSystem.lineWidth(lineWidth / camera.pos.squaredDistanceTo(blockPos.toCenterPos()).pow(0.25).toFloat())
+		RenderSystem.lineWidth(lineWidth / camera.pos.distanceToSqr(blockPos.center).pow(0.25).toFloat())
 		val offset = 1 / 512F
 		matrixStack.translate(
 			blockPos.x.toFloat() - offset,
@@ -166,25 +166,25 @@ class RenderInWorldContext private constructor(
 		val scale = 1 + 2 * offset
 		matrixStack.scale(scale, scale, scale)
 
-		buildWireFrameCube(matrixStack.peek(), buf)
-		matrixStack.pop()
-		vertexConsumers.draw()
+		buildWireFrameCube(matrixStack.last(), buf)
+		matrixStack.popPose()
+		vertexConsumers.endBatch()
 	}
 
-	fun line(vararg points: Vec3d, color: Int, lineWidth: Float = 10F) {
+	fun line(vararg points: Vec3, color: Int, lineWidth: Float = 10F) {
 		line(points.toList(), color, lineWidth)
 	}
 
-	fun tracer(toWhere: Vec3d, color: Int, lineWidth: Float = 3f) {
+	fun tracer(toWhere: Vec3, color: Int, lineWidth: Float = 3f) {
 		val cameraForward = Vector3f(0f, 0f, -1f).rotate(camera.orientation)
-		line(camera.pos.add(Vec3d(cameraForward)), toWhere, color = color, lineWidth = lineWidth)
+		line(camera.pos.add(Vec3(cameraForward)), toWhere, color = color, lineWidth = lineWidth)
 	}
 
-	fun line(points: List<Vec3d>, color: Int, lineWidth: Float = 10F) {
+	fun line(points: List<Vec3>, color: Int, lineWidth: Float = 10F) {
 		RenderSystem.lineWidth(lineWidth)
 		val buffer = vertexConsumers.getBuffer(CustomRenderLayers.LINES)
 
-		val matrix = matrixStack.peek()
+		val matrix = matrixStack.last()
 		var lastNormal: Vector3f? = null
 		points.zipWithNext().forEach { (a, b) ->
 			val normal = Vector3f(b.x.toFloat(), b.y.toFloat(), b.z.toFloat())
@@ -192,13 +192,13 @@ class RenderInWorldContext private constructor(
 				.normalize()
 			val lastNormal0 = lastNormal ?: normal
 			lastNormal = normal
-			buffer.vertex(matrix.positionMatrix, a.x.toFloat(), a.y.toFloat(), a.z.toFloat())
-				.color(color)
-				.normal(matrix, lastNormal0.x, lastNormal0.y, lastNormal0.z)
+			buffer.addVertex(matrix.pose(), a.x.toFloat(), a.y.toFloat(), a.z.toFloat())
+				.setColor(color)
+				.setNormal(matrix, lastNormal0.x, lastNormal0.y, lastNormal0.z)
 
-			buffer.vertex(matrix.positionMatrix, b.x.toFloat(), b.y.toFloat(), b.z.toFloat())
-				.color(color)
-				.normal(matrix, normal.x, normal.y, normal.z)
+			buffer.addVertex(matrix.pose(), b.x.toFloat(), b.y.toFloat(), b.z.toFloat())
+				.setColor(color)
+				.setNormal(matrix, normal.x, normal.y, normal.z)
 
 		}
 
@@ -207,7 +207,7 @@ class RenderInWorldContext private constructor(
 
 	companion object {
 		private fun doLine(
-			matrix: MatrixStack.Entry,
+			matrix: PoseStack.Pose,
 			buf: VertexConsumer,
 			i: Float,
 			j: Float,
@@ -219,18 +219,18 @@ class RenderInWorldContext private constructor(
 			val normal = Vector3f(x, y, z)
 				.sub(i, j, k)
 				.normalize()
-			buf.vertex(matrix.positionMatrix, i, j, k)
-				.normal(matrix, normal.x, normal.y, normal.z)
-				.color(-1)
+			buf.addVertex(matrix.pose(), i, j, k)
+				.setNormal(matrix, normal.x, normal.y, normal.z)
+				.setColor(-1)
 
-			buf.vertex(matrix.positionMatrix, x, y, z)
-				.normal(matrix, normal.x, normal.y, normal.z)
-				.color(-1)
+			buf.addVertex(matrix.pose(), x, y, z)
+				.setNormal(matrix, normal.x, normal.y, normal.z)
+				.setColor(-1)
 
 		}
 
 
-		private fun buildWireFrameCube(matrix: MatrixStack.Entry, buf: VertexConsumer) {
+		private fun buildWireFrameCube(matrix: PoseStack.Pose, buf: VertexConsumer) {
 			for (i in 0..1) {
 				for (j in 0..1) {
 					val i = i.toFloat()
@@ -243,45 +243,45 @@ class RenderInWorldContext private constructor(
 		}
 
 		private fun buildFaceZP(matrix: Matrix4f, buf: VertexConsumer, rgba: Int) {
-			buf.vertex(matrix, 0F, 0F, 1F).color(rgba)
-			buf.vertex(matrix, 0F, 1F, 1F).color(rgba)
-			buf.vertex(matrix, 1F, 1F, 1F).color(rgba)
-			buf.vertex(matrix, 1F, 0F, 1F).color(rgba)
+			buf.addVertex(matrix, 0F, 0F, 1F).setColor(rgba)
+			buf.addVertex(matrix, 0F, 1F, 1F).setColor(rgba)
+			buf.addVertex(matrix, 1F, 1F, 1F).setColor(rgba)
+			buf.addVertex(matrix, 1F, 0F, 1F).setColor(rgba)
 		}
 
 		private fun buildFaceZN(matrix: Matrix4f, buf: VertexConsumer, rgba: Int) {
-			buf.vertex(matrix, 0F, 0F, 0F).color(rgba)
-			buf.vertex(matrix, 1F, 0F, 0F).color(rgba)
-			buf.vertex(matrix, 1F, 1F, 0F).color(rgba)
-			buf.vertex(matrix, 0F, 1F, 0F).color(rgba)
+			buf.addVertex(matrix, 0F, 0F, 0F).setColor(rgba)
+			buf.addVertex(matrix, 1F, 0F, 0F).setColor(rgba)
+			buf.addVertex(matrix, 1F, 1F, 0F).setColor(rgba)
+			buf.addVertex(matrix, 0F, 1F, 0F).setColor(rgba)
 		}
 
 		private fun buildFaceXP(matrix: Matrix4f, buf: VertexConsumer, rgba: Int) {
-			buf.vertex(matrix, 1F, 0F, 0F).color(rgba)
-			buf.vertex(matrix, 1F, 1F, 0F).color(rgba)
-			buf.vertex(matrix, 1F, 1F, 1F).color(rgba)
-			buf.vertex(matrix, 1F, 0F, 1F).color(rgba)
+			buf.addVertex(matrix, 1F, 0F, 0F).setColor(rgba)
+			buf.addVertex(matrix, 1F, 1F, 0F).setColor(rgba)
+			buf.addVertex(matrix, 1F, 1F, 1F).setColor(rgba)
+			buf.addVertex(matrix, 1F, 0F, 1F).setColor(rgba)
 		}
 
 		private fun buildFaceXN(matrix: Matrix4f, buf: VertexConsumer, rgba: Int) {
-			buf.vertex(matrix, 0F, 0F, 0F).color(rgba)
-			buf.vertex(matrix, 0F, 0F, 1F).color(rgba)
-			buf.vertex(matrix, 0F, 1F, 1F).color(rgba)
-			buf.vertex(matrix, 0F, 1F, 0F).color(rgba)
+			buf.addVertex(matrix, 0F, 0F, 0F).setColor(rgba)
+			buf.addVertex(matrix, 0F, 0F, 1F).setColor(rgba)
+			buf.addVertex(matrix, 0F, 1F, 1F).setColor(rgba)
+			buf.addVertex(matrix, 0F, 1F, 0F).setColor(rgba)
 		}
 
 		private fun buildFaceYN(matrix: Matrix4f, buf: VertexConsumer, rgba: Int) {
-			buf.vertex(matrix, 0F, 0F, 0F).color(rgba)
-			buf.vertex(matrix, 0F, 0F, 1F).color(rgba)
-			buf.vertex(matrix, 1F, 0F, 1F).color(rgba)
-			buf.vertex(matrix, 1F, 0F, 0F).color(rgba)
+			buf.addVertex(matrix, 0F, 0F, 0F).setColor(rgba)
+			buf.addVertex(matrix, 0F, 0F, 1F).setColor(rgba)
+			buf.addVertex(matrix, 1F, 0F, 1F).setColor(rgba)
+			buf.addVertex(matrix, 1F, 0F, 0F).setColor(rgba)
 		}
 
 		private fun buildFaceYP(matrix: Matrix4f, buf: VertexConsumer, rgba: Int) {
-			buf.vertex(matrix, 0F, 1F, 0F).color(rgba)
-			buf.vertex(matrix, 1F, 1F, 0F).color(rgba)
-			buf.vertex(matrix, 1F, 1F, 1F).color(rgba)
-			buf.vertex(matrix, 0F, 1F, 1F).color(rgba)
+			buf.addVertex(matrix, 0F, 1F, 0F).setColor(rgba)
+			buf.addVertex(matrix, 1F, 1F, 0F).setColor(rgba)
+			buf.addVertex(matrix, 1F, 1F, 1F).setColor(rgba)
+			buf.addVertex(matrix, 0F, 1F, 1F).setColor(rgba)
 		}
 
 		private fun buildCube(matrix4f: Matrix4f, buf: VertexConsumer, rgba: Int) {
@@ -295,7 +295,7 @@ class RenderInWorldContext private constructor(
 
 		fun renderInWorld(event: WorldRenderLastEvent, block: RenderInWorldContext. () -> Unit) {
 
-			event.matrices.push()
+			event.matrices.pushPose()
 			event.matrices.translate(-event.camera.pos.x, -event.camera.pos.y, -event.camera.pos.z)
 
 			val ctx = RenderInWorldContext(
@@ -306,8 +306,8 @@ class RenderInWorldContext private constructor(
 
 			block(ctx)
 
-			event.matrices.pop()
-			event.vertexConsumers.draw()
+			event.matrices.popPose()
+			event.vertexConsumers.endBatch()
 		}
 	}
 }

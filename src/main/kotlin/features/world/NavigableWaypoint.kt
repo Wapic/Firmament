@@ -1,7 +1,7 @@
 package moe.nea.firmament.features.world
 
 import io.github.moulberry.repo.data.NEUItem
-import net.minecraft.util.math.BlockPos
+import net.minecraft.core.BlockPos
 import moe.nea.firmament.util.SkyBlockIsland
 
 abstract class NavigableWaypoint {

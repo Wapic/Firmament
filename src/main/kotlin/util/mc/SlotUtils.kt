@@ -1,46 +1,46 @@
 package moe.nea.firmament.util.mc
 
 import org.lwjgl.glfw.GLFW
-import net.minecraft.screen.ScreenHandler
-import net.minecraft.screen.slot.Slot
-import net.minecraft.screen.slot.SlotActionType
+import net.minecraft.world.inventory.AbstractContainerMenu
+import net.minecraft.world.inventory.Slot
+import net.minecraft.world.inventory.ClickType
 import moe.nea.firmament.util.MC
 
 object SlotUtils {
-	fun Slot.clickMiddleMouseButton(handler: ScreenHandler) {
-		MC.interactionManager?.clickSlot(
-			handler.syncId,
-			this.id,
+	fun Slot.clickMiddleMouseButton(handler: AbstractContainerMenu) {
+		MC.interactionManager?.handleInventoryMouseClick(
+			handler.containerId,
+			this.index,
 			GLFW.GLFW_MOUSE_BUTTON_MIDDLE,
-			SlotActionType.CLONE,
+			ClickType.CLONE,
 			MC.player
 		)
 	}
 
-	fun Slot.swapWithHotBar(handler: ScreenHandler, hotbarIndex: Int) {
-		MC.interactionManager?.clickSlot(
-			handler.syncId, this.id,
-			hotbarIndex, SlotActionType.SWAP,
+	fun Slot.swapWithHotBar(handler: AbstractContainerMenu, hotbarIndex: Int) {
+		MC.interactionManager?.handleInventoryMouseClick(
+			handler.containerId, this.index,
+			hotbarIndex, ClickType.SWAP,
 			MC.player
 		)
 	}
 
-	fun Slot.clickRightMouseButton(handler: ScreenHandler) {
-		MC.interactionManager?.clickSlot(
-			handler.syncId,
-			this.id,
+	fun Slot.clickRightMouseButton(handler: AbstractContainerMenu) {
+		MC.interactionManager?.handleInventoryMouseClick(
+			handler.containerId,
+			this.index,
 			GLFW.GLFW_MOUSE_BUTTON_RIGHT,
-			SlotActionType.PICKUP,
+			ClickType.PICKUP,
 			MC.player
 		)
 	}
 
-	fun Slot.clickLeftMouseButton(handler: ScreenHandler) {
-		MC.interactionManager?.clickSlot(
-			handler.syncId,
-			this.id,
+	fun Slot.clickLeftMouseButton(handler: AbstractContainerMenu) {
+		MC.interactionManager?.handleInventoryMouseClick(
+			handler.containerId,
+			this.index,
 			GLFW.GLFW_MOUSE_BUTTON_LEFT,
-			SlotActionType.PICKUP,
+			ClickType.PICKUP,
 			MC.player
 		)
 	}

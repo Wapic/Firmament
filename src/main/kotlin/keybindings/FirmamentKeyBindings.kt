@@ -6,15 +6,18 @@ import com.mojang.blaze3d.platform.InputConstants
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.gui.config.ManagedOption
 import moe.nea.firmament.util.TestUtil
+import moe.nea.firmament.util.data.ManagedConfig
 
 object FirmamentKeyBindings {
-	val cat = KeyMapping.Category(Firmament.identifier("category"))
+	val cats = mutableMapOf<ManagedConfig.Category, KeyMapping.Category>()
+
+
 	fun registerKeyBinding(name: String, config: ManagedOption<SavedKeyBinding>) {
 		val vanillaKeyBinding = KeyMapping(
 			name,
 			InputConstants.Type.KEYSYM,
 			-1,
-			cat
+			cats.computeIfAbsent(config.element.category) { KeyMapping.Category(Firmament.identifier(it.name.lowercase())) }
 		)
 		if (!TestUtil.isInTest) {
 			KeyBindingHelper.registerKeyBinding(vanillaKeyBinding)

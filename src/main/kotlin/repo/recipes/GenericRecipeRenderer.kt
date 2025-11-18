@@ -8,7 +8,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.repo.SBItemStack
 
-interface GenericRecipeRenderer<T : NEURecipe> {
+interface GenericRecipeRenderer<T : Any> {
 	fun render(recipe: T, bounds: Rectangle, layouter: RecipeLayouter, mainItem: SBItemStack?)
 	fun getInputs(recipe: T): Collection<SBItemStack>
 	fun getOutputs(recipe: T): Collection<SBItemStack>

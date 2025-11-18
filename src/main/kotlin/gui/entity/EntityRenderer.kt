@@ -3,6 +3,7 @@ package moe.nea.firmament.gui.entity
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import me.shedaniel.math.Dimension
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.math.atan
@@ -236,5 +237,5 @@ object EntityRenderer {
 		context.disableScissor()
 	}
 
-
+	val defaultSize = Dimension(50, 80)
 }

@@ -16,6 +16,8 @@ interface GenericRecipeRenderer<T : Any> {
 	val title: Component
 	val identifier: ResourceLocation
 	fun findAllRecipes(neuRepository: NEURepository): Iterable<T>
+	fun discoverExtraRecipes(neuRepository: NEURepository, itemStack: SBItemStack, mustBeInOutputs: Boolean): Iterable<T> = emptyList()
 	val displayHeight: Int get() = 66
+	val displayWidth: Int get() = 150
 	val typ: Class<T>
 }

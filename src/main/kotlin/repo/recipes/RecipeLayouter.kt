@@ -18,7 +18,8 @@ interface RecipeLayouter {
 		 * Create a bigger background and mark the slot as output. The coordinates should still refer the upper left corner of the item stack, not of the bigger background.
 		 */
 		BIG_OUTPUT,
-		DISPLAY,
+		DISPLAY,;
+		val isBig get() = this == BIG_OUTPUT
 	}
 
 
@@ -32,7 +33,7 @@ interface RecipeLayouter {
 		x: Int, y: Int,
 		content: SBItemStack?,
 		slotKind: SlotKind,
-	): ItemSlot
+	): ItemSlot = createCyclingItemSlot(x, y, listOfNotNull(content), slotKind)
 
 	interface CyclingItemSlot : ItemSlot {
 		fun onUpdate(action: () -> Unit)
@@ -59,7 +60,7 @@ interface RecipeLayouter {
 	fun createArrow(x: Int, y: Int): Rectangle
 
 	fun createMoulConfig(x: Int, y: Int, w: Int, h: Int, component: GuiComponent)
-	fun createFire(ingredientsCenter: Point, animationTicks: Int)
+	fun createFire(point: Point, animationTicks: Int)
 	fun createEntity(rectangle: Rectangle, entity: LivingEntity)
 }
 

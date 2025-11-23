@@ -1,5 +1,7 @@
 package moe.nea.firmament.features.items.recipes
 
+import me.shedaniel.math.Dimension
+import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
 import net.minecraft.client.gui.components.Renderable
 import net.minecraft.client.gui.components.events.GuiEventListener
@@ -18,7 +20,9 @@ abstract class RecipeWidget : GuiEventListener, Renderable, NarratableEntry {
 
 	open fun tick() {}
 	private var _focused = false
-	abstract val rect: Rectangle
+	abstract var position: Point
+	abstract val size: Dimension
+	open val rect: Rectangle get() = Rectangle(position, size)
 	override fun setFocused(focused: Boolean) {
 		this._focused = focused
 	}

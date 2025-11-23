@@ -33,7 +33,8 @@ object RecipeRegistry {
 		if (event.matches(SavedKeyBinding.keyWithoutMods(InputConstants.KEY_R))) {
 			val stack = event.screen.focusedItemStack ?: return
 			val recipes = getRecipesFor(SBItemStack(stack))
-			MC.screen = RecipeScreen(recipes.firstOrNull() ?: return)
+			if (recipes.isEmpty()) return
+			MC.screen = RecipeScreen(recipes.toList())
 		}
 	}
 
@@ -66,8 +67,8 @@ object RecipeRegistry {
 			return m
 		}
 
-		lateinit var recipesForIndex : Map<SkyblockId, List<RenderableRecipe<*>>>
-		lateinit var usagesForIndex : Map<SkyblockId, List<RenderableRecipe<*>>>
+		lateinit var recipesForIndex: Map<SkyblockId, List<RenderableRecipe<*>>>
+		lateinit var usagesForIndex: Map<SkyblockId, List<RenderableRecipe<*>>>
 		override fun reload(recipe: NEURepository) {
 			recipesForIndex = createIndex(true)
 			usagesForIndex = createIndex(false)

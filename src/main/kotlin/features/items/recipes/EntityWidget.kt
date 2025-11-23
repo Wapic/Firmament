@@ -1,11 +1,16 @@
 package moe.nea.firmament.features.items.recipes
 
-import me.shedaniel.math.Rectangle
+import me.shedaniel.math.Dimension
+import me.shedaniel.math.Point
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.world.entity.LivingEntity
 import moe.nea.firmament.gui.entity.EntityRenderer
 
-class EntityWidget(override val rect: Rectangle, val entity: LivingEntity) : RecipeWidget() {
+class EntityWidget(
+	override var position: Point,
+	override val size: Dimension,
+	val entity: LivingEntity
+) : RecipeWidget() {
 	override fun render(
 		guiGraphics: GuiGraphics,
 		mouseX: Int,

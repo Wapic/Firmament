@@ -8,13 +8,13 @@ import net.minecraft.network.chat.Component
 import moe.nea.firmament.repo.recipes.RecipeLayouter
 import moe.nea.firmament.util.MC
 
-class ComponentWidget(val point: Point, var text: Component) : RecipeWidget(), RecipeLayouter.Updater<Component> {
+class ComponentWidget(override var position: Point, var text: Component) : RecipeWidget(), RecipeLayouter.Updater<Component> {
 	override fun update(newValue: Component) {
 		this.text = newValue
 	}
 
-	override val rect: Rectangle
-		get() = Rectangle(point, Dimension(MC.font.width(text), MC.font.lineHeight))
+	override val size: Dimension
+		get() = Dimension(MC.font.width(text), MC.font.lineHeight)
 
 	override fun render(
 		guiGraphics: GuiGraphics,
@@ -22,6 +22,6 @@ class ComponentWidget(val point: Point, var text: Component) : RecipeWidget(), R
 		mouseY: Int,
 		partialTick: Float
 	) {
-		guiGraphics.drawString(MC.font, text, point.x, point.y, -1)
+		guiGraphics.drawString(MC.font, text, position.x, position.y, -1)
 	}
 }

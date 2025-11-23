@@ -6,41 +6,39 @@ import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback
 import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.client.gui.components.Tooltip
 import net.minecraft.network.chat.Component
-import net.minecraft.util.FormattedCharSequence
-import net.minecraft.world.inventory.tooltip.TooltipComponent
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.TooltipFlag
 import moe.nea.firmament.events.ItemTooltipEvent
-import moe.nea.firmament.keybindings.GenericInputAction
 import moe.nea.firmament.keybindings.SavedKeyBinding
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
 import moe.nea.firmament.repo.SBItemStack
 import moe.nea.firmament.repo.recipes.RecipeLayouter
 import moe.nea.firmament.util.ErrorUtil
-import moe.nea.firmament.util.FirmFormatters
 import moe.nea.firmament.util.FirmFormatters.shortFormat
 import moe.nea.firmament.util.MC
-import moe.nea.firmament.util.TimeMark
 import moe.nea.firmament.util.darkGrey
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.mc.loreAccordingToNbt
 
 class ItemSlotWidget(
-	val point: Point,
+	point: Point,
 	var content: List<SBItemStack>,
 	val slotKind: RecipeLayouter.SlotKind
 ) : RecipeWidget(),
 	RecipeLayouter.CyclingItemSlot {
-	val backgroundTopLeft =
-		if (slotKind.isBig) Point(point.x - 4, point.y - 4)
-		else Point(point.x - 1, point.y - 1)
+	override var position = point
+	override val size get() = Dimension(16, 16)
+	val itemRect get() = Rectangle(position, Dimension(16, 16))
+
+	val backgroundTopLeft
+		get() =
+			if (slotKind.isBig) Point(position.x - 4, position.y - 4)
+			else Point(position.x - 1, position.y - 1)
 	val backgroundSize =
 		if (slotKind.isBig) Dimension(16 + 8, 16 + 8)
 		else Dimension(18, 18)
-	val itemRect = Rectangle(point, Dimension(16, 16))
 	override val rect: Rectangle
 		get() = Rectangle(backgroundTopLeft, backgroundSize)
 
@@ -54,17 +52,18 @@ class ItemSlotWidget(
 		val stack = current().asImmutableItemStack()
 		// TODO: draw slot background
 		if (stack.isEmpty) return
-		guiGraphics.renderItem(stack, point.x, point.y)
+		guiGraphics.renderItem(stack, position.x, position.y)
 		guiGraphics.renderItemDecorations(
-			MC.font, stack, point.x, point.y,
+			MC.font, stack, position.x, position.y,
 			if (stack.count >= SHORT_NUM_CUTOFF) shortFormat(stack.count.toDouble())
 			else null
 		)
-		if (itemRect.contains(mouseX, mouseY))
-			guiGraphics.setTooltipForNextFrame(
-				MC.font, getTooltip(stack), Optional.empty(),
-				mouseX, mouseY
-			)
+		if (itemRect.contains(mouseX, mouseY)
+			&& guiGraphics.containsPointInScissor(mouseX, mouseY)
+		) guiGraphics.setTooltipForNextFrame(
+			MC.font, getTooltip(stack), Optional.empty(),
+			mouseX, mouseY
+		)
 	}
 
 	companion object {

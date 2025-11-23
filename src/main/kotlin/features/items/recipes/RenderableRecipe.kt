@@ -11,7 +11,7 @@ class RenderableRecipe<T : Any>(
 	val mainItemStack: SBItemStack?,
 ) {
 	fun render(bounds: Rectangle): StandaloneRecipeRenderer {
-		val layouter = StandaloneRecipeRenderer()
+		val layouter = StandaloneRecipeRenderer(bounds)
 		renderer.render(recipe, bounds, layouter, mainItemStack)
 		return layouter
 	}

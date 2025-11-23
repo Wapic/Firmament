@@ -10,7 +10,7 @@ import net.minecraft.world.entity.LivingEntity
 import moe.nea.firmament.repo.SBItemStack
 import moe.nea.firmament.repo.recipes.RecipeLayouter
 
-class StandaloneRecipeRenderer : AbstractContainerEventHandler(), RecipeLayouter {
+class StandaloneRecipeRenderer(val bounds: Rectangle) : AbstractContainerEventHandler(), RecipeLayouter {
 
 	fun tick() {
 		widgets.forEach { it.tick() }
@@ -30,11 +30,13 @@ class StandaloneRecipeRenderer : AbstractContainerEventHandler(), RecipeLayouter
 		return addWidget(ItemSlotWidget(Point(x, y), content, slotKind))
 	}
 
+	val Rectangle.topLeft get() = Point(x, y)
+
 	override fun createTooltip(
 		rectangle: Rectangle,
 		label: List<Component>
 	) {
-		addWidget(TooltipWidget(rectangle, label))
+		addWidget(TooltipWidget(rectangle.topLeft, rectangle.size, label))
 	}
 
 	override fun createLabel(
@@ -64,7 +66,7 @@ class StandaloneRecipeRenderer : AbstractContainerEventHandler(), RecipeLayouter
 	}
 
 	override fun createEntity(rectangle: Rectangle, entity: LivingEntity) {
-		addWidget(EntityWidget(rectangle, entity))
+		addWidget(EntityWidget(rectangle.topLeft, rectangle.size, entity))
 	}
 
 	val widgets: MutableList<RecipeWidget> = mutableListOf()

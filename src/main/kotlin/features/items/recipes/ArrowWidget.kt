@@ -7,9 +7,9 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.resources.ResourceLocation
 
-class ArrowWidget(val point: Point) : RecipeWidget() {
-	override val rect: Rectangle
-		get() = Rectangle(point, Dimension(14, 14))
+class ArrowWidget(override var position: Point) : RecipeWidget() {
+	override val size: Dimension
+		get() = Dimension(14, 14)
 
 	companion object {
 		val arrowSprite = ResourceLocation.withDefaultNamespace("container/furnace/lit_progress")
@@ -28,8 +28,8 @@ class ArrowWidget(val point: Point) : RecipeWidget() {
 			14,
 			0,
 			0,
-			point.x,
-			point.y,
+			position.x,
+			position.y,
 			14,
 			14
 		)

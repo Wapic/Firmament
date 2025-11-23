@@ -1,8 +1,13 @@
 package moe.nea.firmament.util.render
 
+import me.shedaniel.math.Rectangle
 import org.joml.Matrix3x2f
 import org.joml.Vector3f
 import net.minecraft.client.gui.GuiGraphics
+
+fun GuiGraphics.enableScissorWithTranslation(rect: Rectangle) {
+	enableScissor(rect.minX, rect.minY, rect.maxX, rect.maxY)
+}
 
 fun GuiGraphics.enableScissorWithTranslation(x1: Float, y1: Float, x2: Float, y2: Float) {
 	enableScissor(x1.toInt(), y1.toInt(), x2.toInt(), y2.toInt())

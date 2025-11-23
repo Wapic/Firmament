@@ -1,12 +1,15 @@
 package moe.nea.firmament.features.items.recipes
 
+import me.shedaniel.math.Dimension
+import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 import moe.nea.firmament.repo.recipes.RecipeLayouter
 
 class TooltipWidget(
-	override val rect: Rectangle,
+	override var position: Point,
+	override val size: Dimension,
 	label: List<Component>
 ) : RecipeWidget(), RecipeLayouter.Updater<List<Component>> {
 	override fun update(newValue: List<Component>) {

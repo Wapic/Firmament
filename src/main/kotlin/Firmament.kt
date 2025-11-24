@@ -39,6 +39,7 @@ import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.events.registration.registerFirmamentEvents
 import moe.nea.firmament.features.FeatureManager
 import moe.nea.firmament.gui.config.storage.FirmamentConfigLoader
+import moe.nea.firmament.impl.v1.FirmamentAPIImpl
 import moe.nea.firmament.repo.HypixelStaticData
 import moe.nea.firmament.repo.RepoManager
 import moe.nea.firmament.util.MC
@@ -123,6 +124,7 @@ object Firmament {
 			globalJob.cancel()
 		})
 		registerFirmamentEvents()
+		FirmamentAPIImpl.loadExtensions()
 		ItemTooltipCallback.EVENT.register { stack, context, type, lines ->
 			ItemTooltipEvent.publish(ItemTooltipEvent(stack, context, type, lines))
 		}

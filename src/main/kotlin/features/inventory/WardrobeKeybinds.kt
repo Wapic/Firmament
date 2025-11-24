@@ -1,6 +1,7 @@
 package moe.nea.firmament.features.inventory
 
 import org.lwjgl.glfw.GLFW
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.world.item.Items
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HandledScreenKeyPressedEvent
@@ -29,6 +30,7 @@ object WardrobeKeybinds {
 	@Subscribe
 	fun switchSlot(event: HandledScreenKeyPressedEvent) {
 		if (MC.player == null || MC.world == null || MC.interactionManager == null) return
+		if (event.screen !is AbstractContainerScreen<*>) return
 
 		val regex = Regex("Wardrobe \\([12]/2\\)")
 		if (!regex.matches(event.screen.title.string)) return

@@ -11,6 +11,7 @@ import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HandledScreenClickEvent
 import moe.nea.firmament.events.HandledScreenForegroundEvent
 import moe.nea.firmament.events.HandledScreenPushREIEvent
+import moe.nea.firmament.impl.v1.FirmamentAPIImpl
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.ScreenUtil
 import moe.nea.firmament.util.TimeMark
@@ -40,9 +41,11 @@ object InventoryButtons {
 	)
 
 	fun getValidButtons(screen: AbstractContainerScreen<*>): Sequence<InventoryButton> {
-		return DConfig.data.buttons.asSequence().filter { button ->
-			button.isValid() && (!TConfig.onlyInv || screen is InventoryScreen)
+		if (TConfig.onlyInv && screen !is InventoryScreen) return emptySequence()
+		if (FirmamentAPIImpl.extensions.any { it.shouldHideInventoryButtons(screen) }) {
+			return emptySequence()
 		}
+		return DConfig.data.buttons.asSequence().filter(InventoryButton::isValid)
 	}
 
 

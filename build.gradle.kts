@@ -14,6 +14,8 @@ import com.google.gson.JsonObject
 import moe.nea.licenseextractificator.LicenseDiscoveryTask
 import moe.nea.mcautotranslations.gradle.CollectTranslations
 import net.fabricmc.loom.LoomGradleExtension
+import net.fabricmc.loom.task.RemapJarTask
+import net.fabricmc.loom.task.RemapSourcesJarTask
 import net.fabricmc.loom.task.RunGameTask
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -88,7 +90,13 @@ val shadowJar = tasks.register("shadowJar", ShadowJar::class)
 val mergedSourceSetsJar = tasks.register("mergedSourceSetsJar", ShadowJar::class)
 
 val compatSourceSets: MutableSet<SourceSet> = mutableSetOf()
-fun createIsolatedSourceSet(name: String, path: String = "compat/$name", isEnabled: Boolean = true): SourceSet {
+fun createIsolatedSourceSet(
+	name: String,
+	path: String = "compat/$name",
+	isEnabled: Boolean = true,
+	inheritsFromMain: Boolean = true,
+	enableKsp: Boolean = true,
+): SourceSet {
 	val ss = sourceSets.create(name) {
 		this.java.setSrcDirs(listOf(layout.projectDirectory.dir("src/$path/java")))
 		this.kotlin.setSrcDirs(listOf(layout.projectDirectory.dir("src/$path/java")))
@@ -100,6 +108,8 @@ fun createIsolatedSourceSet(name: String, path: String = "compat/$name", isEnabl
 			this.commandLineArgumentProviders.add { // TODO: update https://github.com/google/ksp/issues/2075
 				listOf("firmament.sourceset=${ss.name}")
 			}
+			if (!enableKsp)
+				this.enabled = false
 		}
 		tasks.named("compile${upperName}Kotlin", KotlinCompile::class) {
 			this.enabled = isEnabled
@@ -116,7 +126,8 @@ fun createIsolatedSourceSet(name: String, path: String = "compat/$name", isEnabl
 	}
 	configurations {
 		(ss.implementationConfigurationName) {
-			extendsFrom(getByName(mainSS.compileClasspathConfigurationName))
+			if (inheritsFromMain)
+				extendsFrom(getByName(mainSS.compileClasspathConfigurationName))
 		}
 		(ss.annotationProcessorConfigurationName) {
 			extendsFrom(getByName(mainSS.annotationProcessorConfigurationName))
@@ -125,15 +136,18 @@ fun createIsolatedSourceSet(name: String, path: String = "compat/$name", isEnabl
 			if (isEnabled)
 				extendsFrom(getByName(ss.runtimeClasspathConfigurationName))
 		}
-		("ksp$upperName") {
-			extendsFrom(ksp.get())
-		}
+		if (enableKsp)
+			("ksp$upperName") {
+				extendsFrom(ksp.get())
+			}
 	}
 	dependencies {
 		if (isEnabled)
 			runtimeOnly(ss.output)
-		(ss.implementationConfigurationName)(project.files(tasks.compileKotlin.map { it.destinationDirectory }))
-		(ss.implementationConfigurationName)(project.files(tasks.compileJava.map { it.destinationDirectory }))
+		if (inheritsFromMain) {
+			(ss.implementationConfigurationName)(project.files(tasks.compileKotlin.map { it.destinationDirectory }))
+			(ss.implementationConfigurationName)(project.files(tasks.compileJava.map { it.destinationDirectory }))
+		}
 	}
 	mergedSourceSetsJar.configure {
 		from(ss.output)
@@ -205,6 +219,7 @@ val reiSourceSet = createIsolatedSourceSet("rei", isEnabled = false)
 val moulconfigSourceSet = createIsolatedSourceSet("moulconfig")
 val irisSourceSet = createIsolatedSourceSet("iris")
 val customTexturesSourceSet = createIsolatedSourceSet("texturePacks", "texturePacks")
+val apiSourceSet = createIsolatedSourceSet("api", "api", inheritsFromMain = false, enableKsp = false)
 
 dependencies {
 	// Minecraft dependencies
@@ -223,6 +238,11 @@ dependencies {
 	modImplementation(libs.moulconfig)
 	modImplementation(libs.manninghamMills)
 	modImplementation(libs.basicMath)
+	implementation(apiSourceSet.output)
+	(apiSourceSet.implementationConfigurationName)(loom.namedMinecraftJars)
+	(apiSourceSet.implementationConfigurationName)(libs.jspecify)
+	(apiSourceSet.implementationConfigurationName)(libs.jbAnnotations)
+	//	configurations.forEach { println(it.name) }
 	include(libs.basicMath)
 	(modmenuSourceSet.modImplementationConfigurationName)(libs.modmenu)
 	modImplementation(libs.hypixelmodapi)
@@ -389,10 +409,36 @@ tasks.withType<JavaCompile> {
 	}
 }
 
+fun AbstractArchiveTask.badjar() = destinationDirectory.set(layout.buildDirectory.dir("badjars"))
 tasks.jar {
-	destinationDirectory.set(layout.buildDirectory.dir("badjars"))
+	badjar()
 	archiveClassifier.set("slim")
 }
+val apiJarNamed = tasks.register("apiJarNamed", Jar::class) {
+	badjar()
+	archiveClassifier = "api-named"
+	from(apiSourceSet.output)
+}
+val apiJar = tasks.register("apiJar", RemapJarTask::class) {
+	inputFile = apiJarNamed.flatMap { it.archiveFile }
+	addNestedDependencies = false
+	archiveClassifier = "api"
+}
+val apiSourcesJarNamed = tasks.register("apiSourcesJarNamed", Jar::class) {
+	badjar()
+	from(apiSourceSet.allSource)
+	archiveClassifier = "api-sources-named"
+}
+val apiSourcesJar = tasks.register("apiSourceSJar", RemapSourcesJarTask::class) {
+	inputFile = apiSourcesJarNamed.flatMap { it.archiveFile }
+	archiveClassifier = "api-sources"
+}
+
+tasks.assemble {
+	dependsOn(apiJar)
+	dependsOn(apiSourcesJar)
+}
+
 mergedSourceSetsJar.configure {
 	from(zipTree(tasks.jar.flatMap { it.archiveFile }))
 	destinationDirectory.set(layout.buildDirectory.dir("badjars"))

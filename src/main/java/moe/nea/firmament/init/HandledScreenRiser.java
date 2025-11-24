@@ -2,11 +2,13 @@
 package moe.nea.firmament.init;
 
 import me.shedaniel.mm.api.ClassTinkerers;
+import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
@@ -27,6 +29,8 @@ public class HandledScreenRiser extends RiserUtils {
 	Intermediary.InterClass KeyInput = Intermediary.<KeyEvent>intermediaryClass();
 	Intermediary.InterClass CharInput = Intermediary.<CharacterEvent>intermediaryClass();
 	Intermediary.InterClass HandledScreen = Intermediary.<AbstractContainerScreen>intermediaryClass();
+	Intermediary.InterClass AbstractContainerEventHandler = Intermediary.<AbstractContainerEventHandler>intermediaryClass();
+	Intermediary.InterClass MouseButtonEvent = Intermediary.<MouseButtonEvent>intermediaryClass();
 	Intermediary.InterMethod mouseScrolled = Intermediary.intermediaryMethod(
 		GuiEventListener::mouseScrolled,
 		Intermediary.ofClass(boolean.class),
@@ -35,6 +39,14 @@ public class HandledScreenRiser extends RiserUtils {
 		Intermediary.ofClass(double.class),
 		Intermediary.ofClass(double.class)
 	);
+	Intermediary.InterMethod mouseClickedScreen = Intermediary.intermediaryMethod(
+		//onMouseClicked$firmament
+		GuiEventListener::mouseClicked,
+		Intermediary.ofClass(boolean.class),
+		MouseButtonEvent,
+		Intermediary.ofClass(boolean.class)
+	);
+	;
 	Intermediary.InterMethod keyReleased = Intermediary.intermediaryMethod(
 		GuiEventListener::keyReleased,
 		Intermediary.ofClass(boolean.class),
@@ -47,12 +59,12 @@ public class HandledScreenRiser extends RiserUtils {
 	);
 
 
-
 	@Override
 	public void addTinkerers() {
 		addTransformation(HandledScreen, this::addMouseScroll, true);
 		addTransformation(HandledScreen, this::addKeyReleased, true);
 		addTransformation(HandledScreen, this::addCharTyped, true);
+		addTransformation(Screen, this::addMouseClicked, true);
 	}
 
 	/**
@@ -86,7 +98,7 @@ public class HandledScreenRiser extends RiserUtils {
 
 	void addKeyReleased(ClassNode classNode) {
 		addSuperInjector(
-			classNode, keyReleased.mapped(), keyReleased.mappedDesc(), "keyReleased_firmament",
+			classNode, keyReleased.mapped(), keyReleased.mappedDesc(), HandledScreen, Screen, "keyReleased_firmament",
 			insns -> {
 				// ALOAD 0, load this
 				insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
@@ -95,9 +107,25 @@ public class HandledScreenRiser extends RiserUtils {
 			});
 	}
 
+	void addMouseClicked(ClassNode classNode) {
+		addSuperInjector(
+			classNode, mouseClickedScreen.mapped(), mouseClickedScreen.mappedDesc(),
+			Screen, AbstractContainerEventHandler, "onMouseClicked$firmament",
+			insns -> {
+				// load this
+				insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+				// load mouse event
+				insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
+				// load doubled
+				insns.add(new VarInsnNode(Opcodes.ILOAD, 2));
+			}
+		);
+	}
+
 	void addCharTyped(ClassNode classNode) {
 		addSuperInjector(
-			classNode, charTyped.mapped(), charTyped.mappedDesc(), "charTyped_firmament",
+			classNode, charTyped.mapped(), charTyped.mappedDesc(),
+			HandledScreen, Screen, "charTyped_firmament",
 			insns -> {
 				// ALOAD 0, load this
 				insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
@@ -110,6 +138,8 @@ public class HandledScreenRiser extends RiserUtils {
 		ClassNode classNode,
 		String name,
 		Type desc,
+		Intermediary.InterClass currentClass,
+		Intermediary.InterClass parentClass,
 		String firmamentName,
 		Consumer<InsnList> loadArgs
 	) {
@@ -125,7 +155,7 @@ public class HandledScreenRiser extends RiserUtils {
 			var insns = keyReleasedNode.instructions;
 			loadArgs.accept(insns);
 			// INVOKESPECIAL call super method
-			insns.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, Screen.mapped().getInternalName(),
+			insns.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, parentClass.mapped().getInternalName(),
 				name, desc.getDescriptor()));
 			// IRETURN return int on stack (booleans are int at runtime)
 			insns.add(new InsnNode(Opcodes.IRETURN));
@@ -134,7 +164,7 @@ public class HandledScreenRiser extends RiserUtils {
 		insertTrueHandler(keyReleasedNode, loadArgs, insns -> {
 			// INVOKEVIRTUAL call custom handler
 			insns.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL,
-				HandledScreen.mapped().getInternalName(),
+				currentClass.mapped().getInternalName(),
 				firmamentName,
 				desc.getDescriptor()));
 		});
@@ -143,7 +173,7 @@ public class HandledScreenRiser extends RiserUtils {
 
 	void addMouseScroll(ClassNode classNode) {
 		addSuperInjector(
-			classNode, mouseScrolled.mapped(), mouseScrolled.mappedDesc(), "mouseScrolled_firmament",
+			classNode, mouseScrolled.mapped(), mouseScrolled.mappedDesc(), HandledScreen, Screen, "mouseScrolled_firmament",
 			insns -> {
 				// ALOAD 0, load this
 				insns.add(new VarInsnNode(Opcodes.ALOAD, 0));

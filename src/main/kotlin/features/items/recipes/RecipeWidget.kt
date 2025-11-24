@@ -34,4 +34,8 @@ abstract class RecipeWidget : GuiEventListener, Renderable, NarratableEntry {
 	override fun isFocused(): Boolean {
 		return this._focused
 	}
+
+	override fun isMouseOver(mouseX: Double, mouseY: Double): Boolean {
+		return rect.contains(mouseX, mouseY)
+	}
 }

@@ -3,7 +3,6 @@ package moe.nea.firmament.features.items.recipes
 import com.mojang.blaze3d.platform.InputConstants
 import io.github.moulberry.repo.IReloadable
 import io.github.moulberry.repo.NEURepository
-import net.fabricmc.fabric.mixin.client.gametest.input.InputUtilMixin
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HandledScreenKeyPressedEvent
 import moe.nea.firmament.events.ReloadRegistrationEvent
@@ -29,13 +28,19 @@ object RecipeRegistry {
 
 
 	@Subscribe
-	fun onDebugRecipe(event: HandledScreenKeyPressedEvent) {
-		if (event.matches(SavedKeyBinding.keyWithoutMods(InputConstants.KEY_R))) {
-			val stack = event.screen.focusedItemStack ?: return
-			val recipes = getRecipesFor(SBItemStack(stack))
-			if (recipes.isEmpty()) return
-			MC.screen = RecipeScreen(recipes.toList())
-		}
+	fun showUsages(event: HandledScreenKeyPressedEvent) {
+		val provider =
+			if (event.matches(SavedKeyBinding.keyWithoutMods(InputConstants.KEY_R))) {
+				::getRecipesFor
+			} else if (event.matches(SavedKeyBinding.keyWithoutMods(InputConstants.KEY_U))) {
+				::getUsagesFor
+			} else {
+				return
+			}
+		val stack = event.screen.focusedItemStack ?: return
+		val recipes = provider(SBItemStack(stack))
+		if (recipes.isEmpty()) return
+		MC.screen = RecipeScreen(recipes.toList())
 	}
 
 

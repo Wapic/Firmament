@@ -49,24 +49,6 @@ public abstract class MixinHandledScreen<T extends AbstractContainerMenu> {
 		this.playerInventory = inventory;
 	}
 
-	@Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Screen;keyPressed(Lnet/minecraft/client/input/KeyEvent;)Z", shift = At.Shift.BEFORE), cancellable = true)
-	public void onKeyPressed(KeyEvent input, CallbackInfoReturnable<Boolean> cir) {
-		if (HandledScreenKeyPressedEvent.Companion.publish(new HandledScreenKeyPressedEvent(
-			(AbstractContainerScreen<?>) (Object) this,
-			GenericInputAction.of(input),
-			InputModifiers.of(input))).getCancelled()) {
-			cir.setReturnValue(true);
-		}
-	}
-
-	@Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-	public void onMouseClicked(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
-		if (HandledScreenKeyPressedEvent.Companion.publish(new HandledScreenKeyPressedEvent((AbstractContainerScreen<?>) (Object) this,
-			GenericInputAction.mouse(click), InputModifiers.current())).getCancelled()) {
-			cir.setReturnValue(true);
-		}
-	}
-
 	@Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
 	private void onMouseReleased(MouseButtonEvent click, CallbackInfoReturnable<Boolean> cir) {
 		var self = (AbstractContainerScreen<?>) (Object) this;

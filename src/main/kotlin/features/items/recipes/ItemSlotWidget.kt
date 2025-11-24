@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.TooltipFlag
+import moe.nea.firmament.api.v1.FirmamentItemWidget
 import moe.nea.firmament.events.ItemTooltipEvent
 import moe.nea.firmament.keybindings.SavedKeyBinding
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
@@ -27,7 +28,8 @@ class ItemSlotWidget(
 	var content: List<SBItemStack>,
 	val slotKind: RecipeLayouter.SlotKind
 ) : RecipeWidget(),
-	RecipeLayouter.CyclingItemSlot {
+	RecipeLayouter.CyclingItemSlot,
+	FirmamentItemWidget {
 	override var position = point
 	override val size get() = Dimension(16, 16)
 	val itemRect get() = Rectangle(position, Dimension(16, 16))
@@ -121,5 +123,18 @@ class ItemSlotWidget(
 		content = listOf(newValue)
 		// SAFE: content was just assigned to a non-empty list
 		index = index.coerceIn(content.indices)
+	}
+
+	override fun getPlacement(): FirmamentItemWidget.Placement {
+		return FirmamentItemWidget.Placement.RECIPE_SCREEN
+	}
+
+	@OptIn(ExpensiveItemCacheApi::class)
+	override fun getItemStack(): ItemStack {
+		return current().asImmutableItemStack()
+	}
+
+	override fun getSkyBlockId(): String {
+		return current().skyblockId.neuItem
 	}
 }

@@ -13,6 +13,7 @@ import net.minecraft.world.item.Items
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.NbtOps
 import net.minecraft.advancements.critereon.NbtPredicate
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.ComponentSerialization
 import net.minecraft.resources.ResourceLocation
@@ -202,7 +203,7 @@ object PowerUserTools {
 				.orThrow
 			ClipboardUtils.setTextContent(nbt.toPrettyString())
 			lastCopiedStack = Pair(item, Component.translatableEscape("firmament.tooltip.copied.stack"))
-		} else if (it.matches(TConfig.copyTitle)) {
+		} else if (it.matches(TConfig.copyTitle) && it.screen is AbstractContainerScreen<*>) {
 			val allTitles = ListTag()
 			val inventoryNames =
 				it.screen.menu.slots

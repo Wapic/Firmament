@@ -1,6 +1,7 @@
 package moe.nea.firmament.features.items.recipes
 
 import io.github.notenoughupdates.moulconfig.gui.GuiComponent
+import me.shedaniel.math.Dimension
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler
@@ -58,7 +59,7 @@ class StandaloneRecipeRenderer(val bounds: Rectangle) : AbstractContainerEventHa
 		h: Int,
 		component: GuiComponent
 	) {
-		TODO("Not yet implemented")
+		addWidget(MoulConfigWidget(component, Point(x, y), Dimension(w, h)))
 	}
 
 	override fun createFire(point: Point, animationTicks: Int) {

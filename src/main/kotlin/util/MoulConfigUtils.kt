@@ -26,6 +26,7 @@ import kotlin.time.Duration.Companion.seconds
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import com.mojang.blaze3d.platform.InputConstants
+import me.shedaniel.math.Rectangle
 import net.minecraft.network.chat.Component
 import moe.nea.firmament.gui.BarComponent
 import moe.nea.firmament.gui.FirmButtonComponent
@@ -292,7 +293,22 @@ object MoulConfigUtils {
 		return component.mouseEvent(mouseEvent, immContext.translated(x, y, w, h))
 	}
 
-	fun createInPlaceFullContext(drawContext: GuiGraphics?, mouseX: Int, mouseY: Int): GuiImmediateContext {
+	fun <T> createAndTranslateFullContext(
+		drawContext: GuiGraphics?,
+		mouseX: Number, mouseY: Number,
+		rectangle: Rectangle,
+		block: (GuiImmediateContext) -> T
+	): T {
+		val ctx = createInPlaceFullContext(drawContext, mouseX, mouseY)
+		val pose = drawContext?.pose()
+		pose?.pushMatrix()
+		pose?.translate(rectangle.x.toFloat(), rectangle.y.toFloat())
+		val result = block(ctx.translated(rectangle.x, rectangle.y, rectangle.width, rectangle.height))
+		pose?.popMatrix()
+		return result
+	}
+
+	fun createInPlaceFullContext(drawContext: GuiGraphics?, mouseX: Number, mouseY: Number): GuiImmediateContext {
 		ErrorUtil.softCheck(
 			"created moulconfig context with pre-existing translations.",
 			drawContext?.isUntranslatedGuiDrawContext() != false
@@ -302,8 +318,8 @@ object MoulConfigUtils {
 		val immContext = GuiImmediateContext(
 			context,
 			0, 0, 0, 0,
-			mouseX, mouseY,
-			mouseX, mouseY,
+			mouseX.toInt(), mouseY.toInt(),
+			mouseX.toInt(), mouseY.toInt(),
 			mouseX.toFloat(),
 			mouseY.toFloat()
 		)

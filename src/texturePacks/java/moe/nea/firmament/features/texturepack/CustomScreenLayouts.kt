@@ -31,6 +31,7 @@ import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
 import moe.nea.firmament.mixins.accessor.AccessorScreenHandler
 import moe.nea.firmament.util.ErrorUtil.intoCatch
 import moe.nea.firmament.util.IdentifierSerializer
+import moe.nea.firmament.util.accessors.castAccessor
 
 object CustomScreenLayouts : SimplePreparableReloadListener<List<CustomScreenLayouts.CustomScreenLayout>>() {
 
@@ -102,7 +103,7 @@ object CustomScreenLayouts : SimplePreparableReloadListener<List<CustomScreenLay
 		}
 
 		fun renderGeneric(context: GuiGraphics, screen: AbstractContainerScreen<*>) {
-			screen as AccessorHandledScreen
+			screen.castAccessor()
 			val originalX: Int = (screen.width - screen.backgroundWidth_Firmament) / 2
 			val originalY: Int = (screen.height - screen.backgroundHeight_Firmament) / 2
 			val modifiedX = originalX + this.x

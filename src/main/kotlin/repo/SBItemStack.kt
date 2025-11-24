@@ -329,7 +329,9 @@ data class SBItemStack constructor(
 		val reforge = ReforgeStore.modifierLut[reforgeId] ?: return
 		val reforgeStats = reforge.reforgeStats?.get(rarity) ?: mapOf()
 		itemStack.displayNameAccordingToNbt = itemStack.displayNameAccordingToNbt.copy()
-			.prepend(Component.literal(reforge.reforgeName + " ").withStyle(Rarity.colourMap[rarity] ?: ChatFormatting.WHITE))
+			.prepend(
+				Component.literal(reforge.reforgeName + " ").withStyle(Rarity.colourMap[rarity] ?: ChatFormatting.WHITE)
+			)
 		val data = itemStack.extraAttributes.copy()
 		data.putString("modifier", reforgeId.id)
 		itemStack.extraAttributes = data
@@ -355,6 +357,7 @@ data class SBItemStack constructor(
 	// TODO: avoid instantiating the item stack here
 	@ExpensiveItemCacheApi
 	val itemType: ItemType? get() = ItemType.fromItemStack(asImmutableItemStack())
+
 	@ExpensiveItemCacheApi
 	val rarity: Rarity? get() = Rarity.fromItem(asImmutableItemStack())
 
@@ -390,6 +393,13 @@ data class SBItemStack constructor(
 			return itemStack
 		}
 
+
+	/**
+	 * estimate the lore content without creating an itemstack instance
+	 */
+	fun estimateLore(): List<Component> {
+		return (neuItem?.lore?.map { ItemCache.un189Lore(it) } ?: emptyList()) + extraLore
+	}
 
 	private fun starString(stars: Int): Component {
 		if (stars <= 0) return Component.empty()

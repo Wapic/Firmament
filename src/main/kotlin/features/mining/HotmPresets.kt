@@ -24,6 +24,7 @@ import moe.nea.firmament.util.ClipboardUtils
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.TemplateUtil
 import moe.nea.firmament.util.TimeMark
+import moe.nea.firmament.util.accessors.castAccessor
 import moe.nea.firmament.util.customgui.CustomGui
 import moe.nea.firmament.util.customgui.customGui
 import moe.nea.firmament.util.mc.CommonTextures
@@ -124,7 +125,7 @@ object HotmPresets {
 				screen.height / 2 - 100,
 				300, 200
 			)
-			val screen = screen as AccessorHandledScreen
+			val screen = screen.castAccessor()
 			screen.x_Firmament = bounds.x
 			screen.y_Firmament = bounds.y
 			screen.backgroundWidth_Firmament = bounds.width
@@ -156,7 +157,9 @@ object HotmPresets {
 				}
 			}
 			if (allRows == coveredRows) {
-				ClipboardUtils.setTextContent(TemplateUtil.encodeTemplate(SHARE_PREFIX, HotmPreset(
+				ClipboardUtils.setTextContent(
+					TemplateUtil.encodeTemplate(
+					SHARE_PREFIX, HotmPreset(
 					unlockedPerks.map { PerkPreset(it) }
 				)))
 				hasAll = true

@@ -71,35 +71,36 @@ class ItemSlotWidget(
 	companion object {
 		val SHORT_NUM_CUTOFF = 1000
 		var canUseTooltipEvent = true
+
+		fun getTooltip(itemStack: ItemStack): List<Component> {
+			val lore = mutableListOf(itemStack.displayNameAccordingToNbt)
+			lore.addAll(itemStack.loreAccordingToNbt)
+			if (canUseTooltipEvent) {
+				try {
+					ItemTooltipCallback.EVENT.invoker().getTooltip(
+						itemStack, Item.TooltipContext.EMPTY,
+						TooltipFlag.NORMAL, lore
+					)
+				} catch (ex: Exception) {
+					canUseTooltipEvent = false
+					ErrorUtil.softError("Failed to use vanilla tooltips", ex)
+				}
+			} else {
+				ItemTooltipEvent.publish(
+					ItemTooltipEvent(
+						itemStack,
+						Item.TooltipContext.EMPTY,
+						TooltipFlag.NORMAL,
+						lore
+					)
+				)
+			}
+			if (itemStack.count >= SHORT_NUM_CUTOFF && lore.isNotEmpty())
+				lore.add(1, Component.literal("${itemStack.count}x").darkGrey())
+			return lore
+		}
 	}
 
-	fun getTooltip(itemStack: ItemStack): List<Component> {
-		val lore = mutableListOf(itemStack.displayNameAccordingToNbt)
-		lore.addAll(itemStack.loreAccordingToNbt)
-		if (canUseTooltipEvent) {
-			try {
-				ItemTooltipCallback.EVENT.invoker().getTooltip(
-					itemStack, Item.TooltipContext.EMPTY,
-					TooltipFlag.NORMAL, lore
-				)
-			} catch (ex: Exception) {
-				canUseTooltipEvent = false
-				ErrorUtil.softError("Failed to use vanilla tooltips", ex)
-			}
-		} else {
-			ItemTooltipEvent.publish(
-				ItemTooltipEvent(
-					itemStack,
-					Item.TooltipContext.EMPTY,
-					TooltipFlag.NORMAL,
-					lore
-				)
-			)
-		}
-		if (itemStack.count >= SHORT_NUM_CUTOFF && lore.isNotEmpty())
-			lore.add(1, Component.literal("${itemStack.count}x").darkGrey())
-		return lore
-	}
 
 	override fun tick() {
 		if (SavedKeyBinding.isShiftDown()) return

@@ -11,6 +11,7 @@ import net.minecraft.client.input.KeyEvent
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.Slot
 import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
+import moe.nea.firmament.util.accessors.castAccessor
 import moe.nea.firmament.util.customgui.CustomGui
 import moe.nea.firmament.util.focusedItemStack
 
@@ -42,7 +43,7 @@ class StorageOverlayCustom(
 	override fun onInit() {
 		overview.init(Minecraft.getInstance(), screen.width, screen.height)
 		overview.init()
-		screen as AccessorHandledScreen
+		screen.castAccessor()
 		screen.x_Firmament = overview.measurements.x
 		screen.y_Firmament = overview.measurements.y
 		screen.backgroundWidth_Firmament = overview.measurements.totalWidth
@@ -96,7 +97,7 @@ class StorageOverlayCustom(
 			delta,
 			(handler as? StorageBackingHandle.Page)?.storagePageSlot,
 			screen.menu.slots.take(screen.menu.rowCount * 9).drop(9),
-			Point((screen as AccessorHandledScreen).x_Firmament, screen.y_Firmament)
+			Point((screen.castAccessor()).x_Firmament, screen.y_Firmament)
 		)
 		overview.drawScrollBar(drawContext)
 		overview.drawControls(drawContext, mouseX, mouseY)
@@ -106,7 +107,7 @@ class StorageOverlayCustom(
 		val index = slot.containerSlot
 		if (index in 0..<36) {
 			val (x, y) = overview.getPlayerInventorySlotPosition(index)
-			slot.x = x - (screen as AccessorHandledScreen).x_Firmament
+			slot.x = x - (screen.castAccessor()).x_Firmament
 			slot.y = y - screen.y_Firmament
 		} else {
 			slot.x = -100000

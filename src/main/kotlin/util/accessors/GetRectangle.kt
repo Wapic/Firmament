@@ -7,7 +7,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
 
 fun AbstractContainerScreen<*>.getProperRectangle(): Rectangle {
-    this as AccessorHandledScreen
+    this.castAccessor()
     return Rectangle(
         getX_Firmament(),
         getY_Firmament(),

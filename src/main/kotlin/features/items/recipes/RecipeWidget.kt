@@ -27,10 +27,6 @@ abstract class RecipeWidget : GuiEventListener, Renderable, NarratableEntry {
 		this._focused = focused
 	}
 
-	override fun getRectangle(): ScreenRectangle {
-		return rect.asScreenRectangle()
-	}
-
 	override fun isFocused(): Boolean {
 		return this._focused
 	}

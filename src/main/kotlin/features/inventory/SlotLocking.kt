@@ -42,6 +42,7 @@ import moe.nea.firmament.util.CommonSoundEffects
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData
 import moe.nea.firmament.util.SkyBlockIsland
+import moe.nea.firmament.util.accessors.castAccessor
 import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.data.ManagedConfig
 import moe.nea.firmament.util.data.ProfileSpecificDataHolder
@@ -295,7 +296,7 @@ object SlotLocking {
 	fun onLockUUID(it: HandledScreenKeyPressedEvent) {
 		if (!it.matches(TConfig.lockUUID)) return
 		val inventory = MC.handledScreen ?: return
-		inventory as AccessorHandledScreen
+		inventory.castAccessor()
 
 		val slot = inventory.focusedSlot_Firmament ?: return
 		val stack = slot.item ?: return
@@ -330,7 +331,7 @@ object SlotLocking {
 	@Subscribe
 	fun onLockSlotKeyRelease(it: HandledScreenKeyReleasedEvent) {
 		val inventory = MC.handledScreen ?: return
-		inventory as AccessorHandledScreen
+		inventory.castAccessor()
 		val slot = inventory.focusedSlot_Firmament
 		val storedSlot = storedLockingSlot ?: return
 
@@ -364,7 +365,7 @@ object SlotLocking {
 	fun onRenderAllBoundSlots(event: HandledScreenForegroundEvent) {
 		val boundSlots = currentWorldData?.boundSlots ?: return
 		fun findByIndex(index: Int) = event.screen.getSlotByIndex(index, true)
-		val accScreen = event.screen as AccessorHandledScreen
+		val accScreen = event.screen.castAccessor()
 		val sx = accScreen.x_Firmament
 		val sy = accScreen.y_Firmament
 		val highlitSlots = mutableSetOf<Slot>()
@@ -409,14 +410,20 @@ object SlotLocking {
 	@Subscribe
 	fun onRenderCurrentDraggingSlot(event: HandledScreenForegroundEvent) {
 		val draggingSlot = storedLockingSlot ?: return
-		val accScreen = event.screen as AccessorHandledScreen
+		val accScreen = event.screen.castAccessor()
 		val hoveredSlot = accScreen.focusedSlot_Firmament
 			?.takeIf { it.container is Inventory }
 			?.takeIf { it == draggingSlot || it.isHotbar() != draggingSlot.isHotbar() }
 		val sx = accScreen.x_Firmament
 		val sy = accScreen.y_Firmament
 		val (borderX, borderY) = draggingSlot.lineCenter()
-		event.context.submitOutline(draggingSlot.x + sx, draggingSlot.y + sy, 16, 16, 0xFF00FF00u.toInt()) // TODO: 1.21.10
+		event.context.submitOutline(
+			draggingSlot.x + sx,
+			draggingSlot.y + sy,
+			16,
+			16,
+			0xFF00FF00u.toInt()
+		) // TODO: 1.21.10
 		if (hoveredSlot == null) {
 			event.context.drawLine(
 				borderX + sx, borderY + sy,
@@ -477,7 +484,7 @@ object SlotLocking {
 	@Subscribe
 	fun onLockSlot(it: HandledScreenKeyPressedEvent) {
 		val inventory = MC.handledScreen ?: return
-		inventory as AccessorHandledScreen
+		inventory.castAccessor()
 
 		val slot = inventory.focusedSlot_Firmament ?: return
 		if (slot.container !is Inventory) return

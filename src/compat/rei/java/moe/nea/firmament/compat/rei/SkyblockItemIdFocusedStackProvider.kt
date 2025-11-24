@@ -13,7 +13,6 @@ import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
 object SkyblockItemIdFocusedStackProvider : FocusedStackProvider {
     override fun provide(screen: Screen?, mouse: Point?): CompoundEventResult<EntryStack<*>> {
         if (screen !is HandledScreen<*>) return CompoundEventResult.pass()
-        screen as AccessorHandledScreen
         val focusedSlot = screen.focusedSlot_Firmament ?: return CompoundEventResult.pass()
         val item = focusedSlot.stack ?: return CompoundEventResult.pass()
         return CompoundEventResult.interruptTrue(SBItemEntryDefinition.getEntry(item))

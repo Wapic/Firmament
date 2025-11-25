@@ -6,7 +6,18 @@ import net.minecraft.client.gui.screens.Screen;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * An extension to firmament, allowing you to hook into firmaments functions.
+ *
+ * <p>To register, set the entrypoint {@code firmament:v1} to an implementation of this class.</p>
+ * @see #ENTRYPOINT_NAME
+ */
 public interface FirmamentExtension {
+
+	/**
+	 * Name of the entry point that should be used registering firmament extensions.
+	 */
+	String ENTRYPOINT_NAME = "firmament:v1";
 
 	/**
 	 * This method gets called during client initialization, if firmament is installed. Can be used as an alternative to

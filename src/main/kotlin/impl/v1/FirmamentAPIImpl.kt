@@ -54,7 +54,7 @@ object FirmamentAPIImpl : FirmamentAPI() {
 
 	fun loadExtensions() {
 		for (container in FabricLoader.getInstance()
-			.getEntrypointContainers("firmament:v1", FirmamentExtension::class.java)) {
+			.getEntrypointContainers(FirmamentExtension.ENTRYPOINT_NAME, FirmamentExtension::class.java)) {
 			Firmament.logger.info("Loading extension ${container.entrypoint} from ${container.provider.metadata.name}")
 			loadExtension(container.entrypoint)
 		}

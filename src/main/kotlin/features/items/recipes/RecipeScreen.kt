@@ -35,7 +35,7 @@ class RecipeScreen(
 	var scrollPortWidth: Int = 0
 	var heightEstimate: Int = 0
 	val gutter = 10
-	override fun init() {// TODO: wrap all of this in a scroll layout
+	override fun init() {
 		super.init()
 		scrollViewport = minOf(height - 20, 250)
 		scrollPortWidth = 0

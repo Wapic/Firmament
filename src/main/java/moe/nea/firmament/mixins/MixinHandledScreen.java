@@ -53,7 +53,7 @@ public abstract class MixinHandledScreen<T extends AbstractContainerMenu> {
 	private void onMouseReleased(MouseButtonEvent click, CallbackInfoReturnable<Boolean> cir) {
 		var self = (AbstractContainerScreen<?>) (Object) this;
 		var clickEvent = new HandledScreenClickEvent(self, click.x(), click.y(), click.button());
-		var keyEvent = new HandledScreenKeyReleasedEvent(self, GenericInputAction.mouse(click), InputModifiers.current());
+		var keyEvent = new HandledScreenKeyReleasedEvent(self, GenericInputAction.mouse(click), InputModifiers.of(click.modifiers()));
 		if (HandledScreenClickEvent.Companion.publish(clickEvent).getCancelled()
 			|| HandledScreenKeyReleasedEvent.Companion.publish(keyEvent).getCancelled()) {
 			cir.setReturnValue(true);

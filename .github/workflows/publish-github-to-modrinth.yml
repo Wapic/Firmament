@@ -19,6 +19,7 @@ jobs:
         steps:
             -   run: |
                     gh release download "$TAG" -p '*.jar' --repo "$REPO"
+                    rm -f *-sources.jar *-api.jar *-api-sources.jar
                 env:
                     TAG: ${{ github.event.release.tag_name }}
                     REPO: ${{ github.repository }}

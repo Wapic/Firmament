@@ -27,13 +27,16 @@ jobs:
                     ./gradlew assemble --scan
             -   name: Move build artifact around and print check sum
                 run: |
-                    rm -f build/libs/*sources*.jar
+                    rm -f build/libs/*sources*.jar build/libs/*-api.jar
                     sha256sum build/libs/*.jar
             -   name: Upload build artifact
                 uses: actions/upload-artifact@v4
                 with:
                     name: built-mod-jar
                     path: build/libs/Firmament-*.jar
+                    exclude: |
+                        build/libs/*-sources.jar
+                        build/libs/*-api.jar
 
     test:
         name: Test

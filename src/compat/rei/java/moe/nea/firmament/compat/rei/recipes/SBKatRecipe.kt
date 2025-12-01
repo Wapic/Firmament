@@ -18,11 +18,12 @@ import me.shedaniel.rei.api.client.gui.widgets.Widgets
 import me.shedaniel.rei.api.client.registry.display.DisplayCategory
 import me.shedaniel.rei.api.common.category.CategoryIdentifier
 import kotlin.time.Duration.Companion.seconds
-import net.minecraft.client.gui.Click
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.Element
-import net.minecraft.item.Items
-import net.minecraft.text.Text
+import net.minecraft.client.gui.navigation.ScreenDirection
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.components.events.GuiEventListener
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.world.item.Items
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.compat.rei.SBItemEntryDefinition
 import moe.nea.firmament.repo.PetData
@@ -38,7 +39,7 @@ class SBKatRecipe(override val neuRecipe: NEUKatUpgradeRecipe) : SBRecipe() {
 		override fun getCategoryIdentifier(): CategoryIdentifier<SBKatRecipe> =
 			CategoryIdentifier.of(Firmament.MOD_ID, "kat_recipe")
 
-		override fun getTitle(): Text = Text.literal("Kat Pet Upgrade")
+		override fun getTitle(): Component = Component.literal("Kat Pet Upgrade")
 		override fun getDisplayHeight(): Int {
 			return 100
 		}
@@ -55,12 +56,12 @@ class SBKatRecipe(override val neuRecipe: NEUKatUpgradeRecipe) : SBRecipe() {
 				val inputLevelLabelCenter = Point(bounds.minX + 30 - 18 + 5 + 8, bounds.minY + 25)
 				val inputLevelLabel = Widgets.createLabel(
 					inputLevelLabelCenter,
-					Text.literal("")
+					Component.literal("")
 				).centered()
 				val outputLevelLabelCenter = Point(bounds.maxX - 30 + 8, bounds.minY + 25)
 				val outputLevelLabel = Widgets.createLabel(
 					outputLevelLabelCenter,
-					Text.literal("")
+					Component.literal("")
 				).centered()
 				val coinStack = SBItemStack(SkyblockId.COINS, recipe.coins.toInt())
 				levelValue.whenChanged { oldValue, newValue ->
@@ -71,14 +72,14 @@ class SBKatRecipe(override val neuRecipe: NEUKatUpgradeRecipe) : SBRecipe() {
 					val oldOutput = outputStack.getPetData() ?: return@whenChanged
 					val newOutput = PetData(oldOutput.rarity, oldOutput.petId, newInput.exp)
 					outputStack.setPetData(newOutput)
-					inputLevelLabel.message = Text.literal(newInput.levelData.currentLevel.toString())
+					inputLevelLabel.message = Component.literal(newInput.levelData.currentLevel.toString())
 					inputLevelLabel.bounds.location = Point(
-						inputLevelLabelCenter.x - MC.font.getWidth(inputLevelLabel.message) / 2,
+						inputLevelLabelCenter.x - MC.font.width(inputLevelLabel.message) / 2,
 						inputLevelLabelCenter.y
 					)
-					outputLevelLabel.message = Text.literal(newOutput.levelData.currentLevel.toString())
+					outputLevelLabel.message = Component.literal(newOutput.levelData.currentLevel.toString())
 					outputLevelLabel.bounds.location = Point(
-						outputLevelLabelCenter.x - MC.font.getWidth(outputLevelLabel.message) / 2,
+						outputLevelLabelCenter.x - MC.font.width(outputLevelLabel.message) / 2,
 						outputLevelLabelCenter.y
 					)
 					coinStack.setStackSize((recipe.coins * (1 - 0.3 * newValue / 100)).toInt())
@@ -99,7 +100,7 @@ class SBKatRecipe(override val neuRecipe: NEUKatUpgradeRecipe) : SBRecipe() {
 				add(
 					Widgets.withTooltip(
 						Widgets.createArrow(Point(bounds.centerX - arrowWidth / 2, bounds.minY + 40)),
-						Text.literal("Upgrade time: " + FirmFormatters.formatTimespan(recipe.seconds.seconds))
+						Component.literal("Upgrade time: " + FirmFormatters.formatTimespan(recipe.seconds.seconds))
 					)
 				)
 
@@ -140,13 +141,13 @@ fun wrapWidget(bounds: Rectangle, component: GuiComponent): Widget {
 			return bounds
 		}
 
-		override fun children(): List<Element> {
+		override fun children(): List<GuiEventListener> {
 			return listOf()
 		}
 
-		override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
-			context.matrices.pushMatrix()
-			context.matrices.translate(bounds.minX.toFloat(), bounds.minY.toFloat())
+		override fun render(context: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
+			context.pose().pushMatrix()
+			context.pose().translate(bounds.minX.toFloat(), bounds.minY.toFloat())
 			component.render(
 				GuiImmediateContext(
 					MoulConfigRenderContext(context),
@@ -157,7 +158,7 @@ fun wrapWidget(bounds: Rectangle, component: GuiComponent): Widget {
 					mouseX.toFloat(), mouseY.toFloat()
 				)
 			)
-			context.matrices.popMatrix()
+			context.pose().popMatrix()
 		}
 
 		override fun mouseMoved(mouseX: Double, mouseY: Double) {
@@ -176,50 +177,50 @@ fun wrapWidget(bounds: Rectangle, component: GuiComponent): Widget {
 			)
 		}
 
-		override fun mouseClicked(click: Click, doubled: Boolean): Boolean {
-			val mouseXInt = click.x.toInt()
-			val mouseYInt = click.y.toInt()
+		override fun mouseClicked(event: MouseButtonEvent, isDoubleClick: Boolean): Boolean {
+			val mouseXInt = event.x.toInt()
+			val mouseYInt = event.y.toInt()
 			return component.mouseEvent(
-				MouseEvent.Click(click.button(), true),
+				MouseEvent.Click(event.button(), true),
 				GuiImmediateContext(
 					IMinecraft.INSTANCE.provideTopLevelRenderContext(),
 					bounds.minX, bounds.minY,
 					bounds.width, bounds.height,
 					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
 					mouseXInt, mouseYInt,
-					click.x.toFloat(), click.y.toFloat()
+					event.x.toFloat(), event.y.toFloat()
 				)
 			)
 		}
 
-		override fun mouseReleased(click: Click): Boolean {
-			val mouseXInt = click.x.toInt()
-			val mouseYInt = click.y.toInt()
+		override fun mouseReleased(event: MouseButtonEvent): Boolean {
+			val mouseXInt = event.x.toInt()
+			val mouseYInt = event.y.toInt()
 			return component.mouseEvent(
-				MouseEvent.Click(click.button(), false),
+				MouseEvent.Click(event.button(), false),
 				GuiImmediateContext(
 					IMinecraft.INSTANCE.provideTopLevelRenderContext(),
 					bounds.minX, bounds.minY,
 					bounds.width, bounds.height,
 					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
 					mouseXInt, mouseYInt,
-					click.x.toFloat(), click.y.toFloat()
+					event.x.toFloat(), event.y.toFloat()
 				)
 			)
 		}
 
-		override fun mouseDragged(click: Click, offsetX: Double, offsetY: Double): Boolean {
-			val mouseXInt = click.x.toInt()
-			val mouseYInt = click.y.toInt()
+		override fun mouseDragged(event: MouseButtonEvent, mouseX: Double, mouseY: Double): Boolean {
+			val mouseXInt = event.x.toInt()
+			val mouseYInt = event.y.toInt()
 			return component.mouseEvent(
-				MouseEvent.Move(offsetX.toFloat(), offsetY.toFloat()),
+				MouseEvent.Move(0f, 0f),
 				GuiImmediateContext(
 					IMinecraft.INSTANCE.provideTopLevelRenderContext(),
 					bounds.minX, bounds.minY,
 					bounds.width, bounds.height,
 					mouseXInt - bounds.minX, mouseYInt - bounds.minY,
 					mouseXInt, mouseYInt,
-					click.x.toFloat(), click.y.toFloat()
+					event.x.toFloat(), event.y.toFloat()
 				)
 			)
 

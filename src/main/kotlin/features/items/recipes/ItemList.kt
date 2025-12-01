@@ -206,8 +206,11 @@ object ItemList {
 		return lastRenderPositions.firstOrNull { it.first.containsPoint(mouseX, mouseY) }
 	}
 
+	val isItemListEnabled get() = false
+
 	@Subscribe
 	fun onClick(event: HandledScreenClickEvent) {
+		if(!isItemListEnabled)return
 		val pe = popupElement
 		val me = MouseButtonEvent(
 			event.mouseX, event.mouseY,
@@ -235,6 +238,7 @@ object ItemList {
 
 	@Subscribe
 	fun onRender(event: HandledScreenForegroundEvent) {
+		if(!isItemListEnabled) return
 		lastHoveredItemStack = null
 		lastRenderPositions = listOf()
 		val exclusions = collectExclusions(event.screen)

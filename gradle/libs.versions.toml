@@ -19,7 +19,7 @@ fabric_api = "0.138.3+1.21.10"
 architectury = "18.0.6"
 modmenu = "16.0.0-rc.1"
 # Update from https://maven.architectury.dev/me/shedaniel/RoughlyEnoughItems-fabric/ (but is typically late)
-rei = "20.0.811"
+rei = "21.9.812"
 reidev = "33d8900cd6621816680634fcbae2dd07f1cffbd3"
 
 # Update from https://maven.architectury.dev/dev/architectury/loom/dev.architectury.loom.gradle.plugin/

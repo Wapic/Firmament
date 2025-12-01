@@ -2,8 +2,8 @@ package moe.nea.firmament.compat.rei
 
 import com.mojang.serialization.Codec
 import me.shedaniel.rei.api.common.entry.EntrySerializer
-import net.minecraft.network.RegistryByteBuf
-import net.minecraft.network.codec.PacketCodec
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
 import moe.nea.firmament.repo.SBItemStack
 
 object NEUItemEntrySerializer : EntrySerializer<SBItemStack> {
@@ -11,7 +11,7 @@ object NEUItemEntrySerializer : EntrySerializer<SBItemStack> {
 		return SBItemStack.CODEC
 	}
 
-	override fun streamCodec(): PacketCodec<RegistryByteBuf, SBItemStack> {
+	override fun streamCodec(): StreamCodec<RegistryFriendlyByteBuf, SBItemStack> {
 		return SBItemStack.PACKET_CODEC.cast()
 	}
 }

@@ -13,13 +13,14 @@ import me.shedaniel.rei.api.client.registry.transfer.TransferHandler
 import me.shedaniel.rei.api.client.registry.transfer.TransferHandlerRegistry
 import me.shedaniel.rei.api.common.entry.EntryStack
 import me.shedaniel.rei.api.common.entry.type.VanillaEntryTypes
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen
-import net.minecraft.client.gui.screen.ingame.HandledScreen
-import net.minecraft.item.ItemStack
-import net.minecraft.text.Text
-import net.minecraft.util.ActionResult
-import net.minecraft.util.Identifier
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.gui.screens.inventory.ContainerScreen
+import net.minecraft.client.gui.screens.inventory.MenuAccess
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.world.item.ItemStack
+import net.minecraft.network.chat.Component
+import net.minecraft.world.InteractionResult
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.compat.rei.recipes.GenericREIRecipeCategory
 import moe.nea.firmament.compat.rei.recipes.SBKatRecipe
 import moe.nea.firmament.compat.rei.recipes.SBMobDropRecipe
@@ -50,7 +51,7 @@ class FirmamentReiPlugin : REIClientPlugin {
 			return EntryStack.of(VanillaEntryTypes.ITEM, value.asImmutableItemStack())
 		}
 
-		val SKYBLOCK_ITEM_TYPE_ID = Identifier.of("firmament", "skyblockitems")
+		val SKYBLOCK_ITEM_TYPE_ID = ResourceLocation.fromNamespaceAndPath("firmament", "skyblockitems")
 	}
 
 	@OptIn(ExpensiveItemCacheApi::class)
@@ -66,14 +67,14 @@ class FirmamentReiPlugin : REIClientPlugin {
 				?: error("Could not find neu item ${recipe.output.itemId} which is used in a recipe output")
 			val useSuperCraft = context.isStackedCrafting || RepoManager.TConfig.alwaysSuperCraft
 			if (neuItem.isVanilla && useSuperCraft) return@TransferHandler TransferHandler.Result.createFailed(
-				Text.translatable(
+				Component.translatable(
 					"firmament.recipe.novanilla"
 				)
 			)
 			var shouldReturn = true
 			if (context.isActuallyCrafting && !useSuperCraft) {
-				val craftingScreen = (screen as? GenericContainerScreen)
-					?.takeIf { it.title?.unformattedString == CraftingOverlay.CRAFTING_SCREEN_NAME }
+				val craftingScreen = (screen as? ContainerScreen)
+					?.takeIf { it.title?.string == CraftingOverlay.CRAFTING_SCREEN_NAME }
 				if (craftingScreen == null) {
 					MC.sendCommand("craft")
 					shouldReturn = false
@@ -107,7 +108,7 @@ class FirmamentReiPlugin : REIClientPlugin {
 	}
 
 	override fun registerExclusionZones(zones: ExclusionZones) {
-		zones.register(HandledScreen::class.java) { HandledScreenPushREIEvent.publish(HandledScreenPushREIEvent(it)).rectangles }
+		zones.register(AbstractContainerScreen::class.java) { HandledScreenPushREIEvent.publish(HandledScreenPushREIEvent(it)).rectangles }
 		zones.register(StorageOverlayScreen::class.java) { it.getBounds() }
 	}
 
@@ -143,7 +144,7 @@ class FirmamentReiPlugin : REIClientPlugin {
 				.forEach { (parent, children) ->
 					registry.group(
 						SkyblockId(parent).identifier,
-						Text.literal(RepoManager.getNEUItem(SkyblockId(parent))?.displayName ?: parent),
+						Component.literal(RepoManager.getNEUItem(SkyblockId(parent))?.displayName ?: parent),
 						(children + parent).map { SBItemEntryDefinition.getEntry(SkyblockId(it)) })
 				}
 	}
@@ -154,8 +155,8 @@ class FirmamentReiPlugin : REIClientPlugin {
 				return screen == StorageOverlayScreen::class.java
 			}
 
-			override fun <R : Screen?> shouldScreenBeOverlaid(screen: R): ActionResult {
-				return ActionResult.SUCCESS
+			override fun <R : Screen?> shouldScreenBeOverlaid(screen: R): InteractionResult {
+				return InteractionResult.SUCCESS
 			}
 		})
 		registry.registerFocusedStack(SkyblockItemIdFocusedStackProvider)

@@ -9,8 +9,8 @@ import me.shedaniel.rei.api.client.gui.widgets.Widgets
 import me.shedaniel.rei.api.client.registry.display.DisplayCategory
 import me.shedaniel.rei.api.common.category.CategoryIdentifier
 import me.shedaniel.rei.api.common.entry.EntryIngredient
-import net.minecraft.item.Items
-import net.minecraft.text.Text
+import net.minecraft.world.item.Items
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.compat.rei.SBItemEntryDefinition
 import moe.nea.firmament.util.skyblockId
@@ -26,7 +26,7 @@ class SBShopRecipe(override val neuRecipe: NEUNpcShopRecipe) : SBRecipe() {
 		val catIdentifier = CategoryIdentifier.of<SBShopRecipe>(Firmament.MOD_ID, "npc_shopping")
 		override fun getCategoryIdentifier(): CategoryIdentifier<SBShopRecipe> = catIdentifier
 
-		override fun getTitle(): Text = Text.literal("SkyBlock NPC Shopping")
+		override fun getTitle(): Component = Component.literal("SkyBlock NPC Shopping")
 
 		override fun getIcon(): Renderer = SBItemEntryDefinition.getPassthrough(Items.EMERALD)
 		override fun setupDisplay(display: SBShopRecipe, bounds: Rectangle): List<Widget> {

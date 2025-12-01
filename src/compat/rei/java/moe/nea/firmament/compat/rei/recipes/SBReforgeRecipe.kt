@@ -19,12 +19,12 @@ import me.shedaniel.rei.api.common.display.Display
 import me.shedaniel.rei.api.common.display.DisplaySerializer
 import me.shedaniel.rei.api.common.entry.EntryIngredient
 import me.shedaniel.rei.api.common.entry.EntryStack
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.SpawnReason
-import net.minecraft.registry.entry.RegistryEntry
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
-import net.minecraft.village.VillagerProfession
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntitySpawnReason
+import net.minecraft.core.Holder
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.entity.npc.VillagerProfession
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.compat.rei.EntityWidget
 import moe.nea.firmament.compat.rei.SBItemEntryDefinition
@@ -60,7 +60,7 @@ class SBReforgeRecipe(
 			return catIdentifier
 		}
 
-		override fun getTitle(): Text {
+		override fun getTitle(): Component {
 			return tr("firmament.recipecategory.reforge", "Reforge")
 		}
 
@@ -108,10 +108,10 @@ class SBReforgeRecipe(
 					Rarity.entries.mapNotNull { rarity ->
 						display.reforge.reforgeCosts?.get(rarity)?.let { rarity to it }
 					}.map { (rarity, cost) ->
-						Text.literal("")
+						Component.literal("")
 							.append(rarity.text)
 							.append(": ")
-							.append(Text.literal("${FirmFormatters.formatCommas(cost, 0)} Coins").gold())
+							.append(Component.literal("${FirmFormatters.formatCommas(cost, 0)} Coins").gold())
 					}
 				))
 			} else {
@@ -120,8 +120,8 @@ class SBReforgeRecipe(
 					FloatingDimension(EntityWidget.defaultSize.width * size, EntityWidget.defaultSize.height * size)
 				list.add(Widgets.withTooltip(
 					EntityWidget(
-						EntityType.VILLAGER.create(EntityRenderer.fakeWorld, SpawnReason.COMMAND)
-							?.also { it.villagerData = it.villagerData.withProfession(MC.currentOrDefaultRegistries.getEntryOrThrow(VillagerProfession.WEAPONSMITH)) },
+						EntityType.VILLAGER.create(EntityRenderer.fakeWorld, EntitySpawnReason.COMMAND)
+							?.also { it.villagerData = it.villagerData.withProfession(MC.currentOrDefaultRegistries, VillagerProfession.WEAPONSMITH) },
 						Point(bounds.minX + 10 + 24 + 8 - dimension.width / 2, bounds.centerY - dimension.height / 2),
 						dimension
 					),
@@ -207,8 +207,8 @@ class SBReforgeRecipe(
 		return catIdentifier
 	}
 
-	override fun getDisplayLocation(): Optional<Identifier> {
-		return Optional.empty()
+	override fun getDisplayLocation(): Optional<ResourceLocation> {
+		return Optional.empty<ResourceLocation>()
 	}
 
 	override fun getSerializer(): DisplaySerializer<out Display>? {

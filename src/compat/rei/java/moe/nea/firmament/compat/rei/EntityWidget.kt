@@ -5,9 +5,9 @@ import me.shedaniel.math.FloatingDimension
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
 import me.shedaniel.rei.api.client.gui.widgets.WidgetWithBounds
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.Element
-import net.minecraft.entity.LivingEntity
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.components.events.GuiEventListener
+import net.minecraft.world.entity.LivingEntity
 import moe.nea.firmament.gui.entity.EntityRenderer
 import moe.nea.firmament.util.ErrorUtil
 
@@ -17,13 +17,13 @@ class EntityWidget(
 	val point: Point,
 	val size: FloatingDimension = FloatingDimension(defaultSize)
 ) : WidgetWithBounds() {
-	override fun children(): List<Element> {
+	override fun children(): List<GuiEventListener> {
 		return emptyList()
 	}
 
 	var hasErrored = false
 
-	override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
+	override fun render(context: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float) {
 		try {
 			if (!hasErrored) {
 				EntityRenderer.renderEntity(

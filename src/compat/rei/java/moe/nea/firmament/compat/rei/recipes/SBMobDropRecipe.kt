@@ -9,9 +9,9 @@ import me.shedaniel.rei.api.client.gui.widgets.Widgets
 import me.shedaniel.rei.api.client.registry.display.DisplayCategory
 import me.shedaniel.rei.api.common.category.CategoryIdentifier
 import me.shedaniel.rei.api.common.util.EntryStacks
-import net.minecraft.item.Items
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
+import net.minecraft.world.item.Items
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.Firmament
 import moe.nea.firmament.compat.rei.EntityWidget
 import moe.nea.firmament.compat.rei.SBItemEntryDefinition
@@ -24,7 +24,7 @@ class SBMobDropRecipe(override val neuRecipe: NEUMobDropRecipe) : SBRecipe() {
 		override fun getCategoryIdentifier(): CategoryIdentifier<SBMobDropRecipe> =
 			CategoryIdentifier.of(Firmament.MOD_ID, "mob_drop_recipe")
 
-		override fun getTitle(): Text = Text.literal("Mob Drops")
+		override fun getTitle(): Component = Component.literal("Mob Drops")
 		override fun getDisplayHeight(): Int {
 			return 100
 		}
@@ -35,23 +35,23 @@ class SBMobDropRecipe(override val neuRecipe: NEUMobDropRecipe) : SBRecipe() {
 				add(Widgets.createRecipeBase(bounds))
 				val source = display.neuRecipe.render
 				val entity = if (source.startsWith("@")) {
-					EntityRenderer.constructEntity(Identifier.of(source.substring(1)))
+					EntityRenderer.constructEntity(ResourceLocation.parse(source.substring(1)))
 				} else {
 					EntityRenderer.applyModifiers(source, listOf())
 				}
 				val level = display.neuRecipe.level
 				val fullMobName =
-					if (level > 0) Text.translatable("firmament.recipe.mobs.name", level, display.neuRecipe.name)
-					else Text.translatable("firmament.recipe.mobs.name.nolevel", display.neuRecipe.name)
-				val tt = mutableListOf<Text>()
+					if (level > 0) Component.translatable("firmament.recipe.mobs.name", level, display.neuRecipe.name)
+					else Component.translatable("firmament.recipe.mobs.name.nolevel", display.neuRecipe.name)
+				val tt = mutableListOf<Component>()
 				tt.add((fullMobName))
-				tt.add(Text.literal(""))
+				tt.add(Component.literal(""))
 				if (display.neuRecipe.coins > 0) {
-					tt.add(Text.stringifiedTranslatable("firmament.recipe.mobs.coins", display.neuRecipe.coins))
+					tt.add(Component.translatable("firmament.recipe.mobs.coins", display.neuRecipe.coins))
 				}
 				if (display.neuRecipe.combatExperience > 0) {
 					tt.add(
-						Text.stringifiedTranslatable(
+						Component.translatable(
 							"firmament.recipe.mobs.combat",
 							display.neuRecipe.combatExperience
 						)
@@ -59,14 +59,14 @@ class SBMobDropRecipe(override val neuRecipe: NEUMobDropRecipe) : SBRecipe() {
 				}
 				if (display.neuRecipe.enchantingExperience > 0) {
 					tt.add(
-						Text.stringifiedTranslatable(
+						Component.translatable(
 							"firmament.recipe.mobs.exp",
 							display.neuRecipe.enchantingExperience
 						)
 					)
 				}
 				if (display.neuRecipe.extra != null)
-					display.neuRecipe.extra.mapTo(tt) { Text.literal(it) }
+					display.neuRecipe.extra.mapTo(tt) { Component.literal(it) }
 				if (tt.size == 2)
 					tt.removeAt(1)
 				add(
@@ -76,15 +76,15 @@ class SBMobDropRecipe(override val neuRecipe: NEUMobDropRecipe) : SBRecipe() {
 					)
 				)
 				add(
-					Widgets.createLabel(Point(bounds.minX + 15, bounds.minY + 5), Text.literal(display.neuRecipe.name))
+					Widgets.createLabel(Point(bounds.minX + 15, bounds.minY + 5), Component.literal(display.neuRecipe.name))
 						.leftAligned()
 				)
 				var x = bounds.minX + 60
 				var y = bounds.minY + 20
 				for (drop in display.neuRecipe.drops) {
-					val lore = drop.extra.mapTo(mutableListOf()) { Text.literal(it) }
+					val lore = drop.extra.mapTo(mutableListOf()) { Component.literal(it) }
 					if (drop.chance != null) {
-						lore += listOf(Text.translatable("firmament.recipe.mobs.drops", drop.chance))
+						lore += listOf(Component.translatable("firmament.recipe.mobs.drops", drop.chance))
 					}
 					val item = SBItemEntryDefinition.getEntry(drop.dropItem)
 						.value.copy(extraLore = lore)

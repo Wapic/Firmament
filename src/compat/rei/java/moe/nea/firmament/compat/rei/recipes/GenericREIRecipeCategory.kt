@@ -9,7 +9,7 @@ import me.shedaniel.rei.api.client.registry.display.DisplayCategory
 import me.shedaniel.rei.api.client.registry.display.DisplayRegistry
 import me.shedaniel.rei.api.common.category.CategoryIdentifier
 import me.shedaniel.rei.api.common.util.EntryStacks
-import net.minecraft.text.Text
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.compat.rei.REIRecipeLayouter
 import moe.nea.firmament.compat.rei.neuDisplayGeneratorWithItem
 import moe.nea.firmament.repo.SBItemStack
@@ -36,7 +36,7 @@ class GenericREIRecipeCategory<T : NEURecipe>(
 		return renderer.displayHeight
 	}
 
-	override fun getTitle(): Text? {
+	override fun getTitle(): Component? {
 		return renderer.title
 	}
 

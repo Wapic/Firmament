@@ -15,12 +15,12 @@ import me.shedaniel.rei.api.client.gui.widgets.Tooltip
 import me.shedaniel.rei.api.client.gui.widgets.TooltipContext
 import me.shedaniel.rei.api.common.entry.EntryStack
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.item.ItemStack
-import net.minecraft.item.Items
-import net.minecraft.item.tooltip.TooltipType
-import net.minecraft.text.Text
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import net.minecraft.world.item.TooltipFlag
+import net.minecraft.network.chat.Component
 import moe.nea.firmament.events.ItemTooltipEvent
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
 import moe.nea.firmament.repo.ItemCache
@@ -28,6 +28,7 @@ import moe.nea.firmament.repo.RepoManager
 import moe.nea.firmament.repo.SBItemStack
 import moe.nea.firmament.util.ErrorUtil
 import moe.nea.firmament.util.FirmFormatters
+import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.darkGrey
 import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.mc.loreAccordingToNbt
@@ -38,7 +39,7 @@ object NEUItemEntryRenderer : EntryRenderer<SBItemStack> {
 	@OptIn(ExpensiveItemCacheApi::class)
 	override fun render(
 		entry: EntryStack<SBItemStack>,
-		context: DrawContext,
+		context: GuiGraphics,
 		bounds: Rectangle,
 		mouseX: Int,
 		mouseY: Int,
@@ -52,22 +53,22 @@ object NEUItemEntryRenderer : EntryRenderer<SBItemStack> {
 			entry.value.asImmutableItemStack()
 		}
 
-		context.matrices.pushMatrix()
-		context.matrices.translate(bounds.centerX.toFloat(), bounds.centerY.toFloat(), )
-		context.matrices.scale(bounds.width.toFloat() / 16F, bounds.height.toFloat() / 16F, )
-		context.drawItemWithoutEntity(itemToRender, -8, -8)
-		context.drawStackOverlay(
-			minecraft.textRenderer, itemToRender, -8, -8,
+		context.pose().pushMatrix()
+		context.pose().translate(bounds.centerX.toFloat(), bounds.centerY.toFloat())
+		context.pose().scale(bounds.width.toFloat() / 16F, bounds.height.toFloat() / 16F)
+		context.renderItem(itemToRender, -8, -8)
+		context.renderItemDecorations(
+			MC.font, itemToRender, -8, -8,
 			if (entry.value.getStackSize() > 1000) FirmFormatters.shortFormat(
 				entry.value.getStackSize()
 					.toDouble()
 			)
 			else null
 		)
-		context.matrices.popMatrix()
+		context.pose().popMatrix()
 	}
 
-	val minecraft = MinecraftClient.getInstance()
+	val minecraft = Minecraft.getInstance()
 	var canUseVanillaTooltipEvents = true
 
 	@OptIn(ExpensiveItemCacheApi::class)
@@ -75,9 +76,9 @@ object NEUItemEntryRenderer : EntryRenderer<SBItemStack> {
 		if (!entry.value.isWarm() && !RepoManager.TConfig.perfectRenders.rendersPerfectText()) {
 			val neuItem = entry.value.neuItem
 			if (neuItem != null) {
-				val lore = mutableListOf<Text>()
-				lore.add(Text.literal(neuItem.displayName))
-				neuItem.lore.mapTo(mutableListOf()) { Text.literal(it) }
+				val lore = mutableListOf<Component>()
+				lore.add(Component.literal(neuItem.displayName))
+				neuItem.lore.mapTo(mutableListOf()) { Component.literal(it) }
 				return Tooltip.create(lore)
 			}
 		}
@@ -89,7 +90,7 @@ object NEUItemEntryRenderer : EntryRenderer<SBItemStack> {
 		if (canUseVanillaTooltipEvents) {
 			try {
 				ItemTooltipCallback.EVENT.invoker().getTooltip(
-					stack, tooltipContext.vanillaContext(), TooltipType.BASIC, lore
+					stack, tooltipContext.vanillaContext(), TooltipFlag.Default.NORMAL, lore
 				)
 			} catch (ex: Exception) {
 				canUseVanillaTooltipEvents = false
@@ -100,13 +101,13 @@ object NEUItemEntryRenderer : EntryRenderer<SBItemStack> {
 				ItemTooltipEvent(
 					stack,
 					tooltipContext.vanillaContext(),
-					TooltipType.BASIC,
+					TooltipFlag.Default.NORMAL,
 					lore
 				)
 			)
 		}
 		if (entry.value.getStackSize() > 1000 && lore.isNotEmpty())
-			lore.add(1, Text.literal("${entry.value.getStackSize()}x").darkGrey())
+			lore.add(1, Component.literal("${entry.value.getStackSize()}x").darkGrey())
 		// TODO: tags aren't sent as early now so some tooltip components that use tags will crash the game
 //		stack.getTooltip(
 //			Item.TooltipContext.create(
@@ -114,7 +115,7 @@ object NEUItemEntryRenderer : EntryRenderer<SBItemStack> {
 //					?: MC.defaultRegistries
 //			),
 //			MC.player,
-//			TooltipType.BASIC
+//			TooltipFlag.Default.NORMAL
 //		)
 		return Tooltip.create(lore)
 	}

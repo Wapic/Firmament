@@ -9,11 +9,11 @@ import me.shedaniel.rei.api.common.entry.comparison.ComparisonContext
 import me.shedaniel.rei.api.common.entry.type.EntryDefinition
 import me.shedaniel.rei.api.common.entry.type.EntryType
 import me.shedaniel.rei.api.common.entry.type.VanillaEntryTypes
-import net.minecraft.item.ItemConvertible
-import net.minecraft.item.ItemStack
-import net.minecraft.registry.tag.TagKey
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
+import net.minecraft.world.level.ItemLike
+import net.minecraft.world.item.ItemStack
+import net.minecraft.tags.TagKey
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
 import moe.nea.firmament.compat.rei.FirmamentReiPlugin.Companion.asItemEntry
 import moe.nea.firmament.repo.ExpensiveItemCacheApi
 import moe.nea.firmament.repo.RepoManager
@@ -44,12 +44,12 @@ object SBItemEntryDefinition : EntryDefinition<SBItemStack> {
 	}
 
 	@OptIn(ExpensiveItemCacheApi::class)
-	override fun asFormattedText(entry: EntryStack<SBItemStack>, value: SBItemStack): Text {
+	override fun asFormattedText(entry: EntryStack<SBItemStack>, value: SBItemStack): Component {
 		val neuItem = entry.value.neuItem
 		return if (!RepoManager.TConfig.perfectRenders.rendersPerfectText() || entry.value.isWarm() || neuItem == null) {
 			VanillaEntryTypes.ITEM.definition.asFormattedText(entry.asItemEntry(), value.asImmutableItemStack())
 		} else {
-			Text.literal(neuItem.displayName)
+			Component.literal(neuItem.displayName)
 		}
 	}
 
@@ -77,7 +77,7 @@ object SBItemEntryDefinition : EntryDefinition<SBItemStack> {
 		return value.getStackSize() == 0
 	}
 
-	override fun getIdentifier(entry: EntryStack<SBItemStack>?, value: SBItemStack): Identifier {
+	override fun getIdentifier(entry: EntryStack<SBItemStack>?, value: SBItemStack): ResourceLocation {
 		return value.skyblockId.identifier
 	}
 
@@ -90,7 +90,7 @@ object SBItemEntryDefinition : EntryDefinition<SBItemStack> {
 	fun getEntry(ingredient: NEUIngredient): EntryStack<SBItemStack> =
 		getEntry(SkyblockId(ingredient.itemId), count = ingredient.amount.toInt())
 
-	fun getPassthrough(item: ItemConvertible) = getEntry(SBItemStack.passthrough(ItemStack(item.asItem())))
+	fun getPassthrough(item: ItemLike) = getEntry(SBItemStack.passthrough(ItemStack(item.asItem())))
 
 	fun getEntry(stack: ItemStack): EntryStack<SBItemStack> =
 		getEntry(SBItemStack(stack))

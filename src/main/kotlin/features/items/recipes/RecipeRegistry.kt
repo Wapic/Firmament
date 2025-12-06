@@ -29,6 +29,7 @@ object RecipeRegistry {
 
 	@Subscribe
 	fun showUsages(event: HandledScreenKeyPressedEvent) {
+		if (!ItemList.isItemListEnabled) return
 		val provider =
 			if (event.matches(SavedKeyBinding.keyWithoutMods(InputConstants.KEY_R))) {
 				::getRecipesFor

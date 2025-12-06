@@ -17,7 +17,9 @@ object FirmamentKeyBindings {
 			name,
 			InputConstants.Type.KEYSYM,
 			-1,
-			cats.computeIfAbsent(config.element.category) { KeyMapping.Category(Firmament.identifier(it.name.lowercase())) }
+			cats.computeIfAbsent(config.element.category) {
+				KeyMapping.Category.register(Firmament.identifier(it.name.lowercase()))
+			}
 		)
 		if (!TestUtil.isInTest) {
 			KeyBindingHelper.registerKeyBinding(vanillaKeyBinding)

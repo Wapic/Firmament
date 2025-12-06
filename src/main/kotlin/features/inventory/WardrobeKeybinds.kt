@@ -32,7 +32,7 @@ object WardrobeKeybinds {
 		if (MC.player == null || MC.world == null || MC.interactionManager == null) return
 		if (event.screen !is AbstractContainerScreen<*>) return
 
-		val regex = Regex("Wardrobe \\([12]/2\\)")
+		val regex = Regex("Wardrobe \\([0-9]+/[0-9]+\\)")
 		if (!regex.matches(event.screen.title.string)) return
 		if (!TConfig.wardrobeKeybinds) return
 

@@ -150,6 +150,7 @@ object SlotLocking {
 			SavedKeyBinding.keyWithMods(GLFW.GLFW_KEY_L, InputModifiers.of(shift = true))
 		}
 		val slotBind by keyBinding("bind") { GLFW.GLFW_KEY_L }
+		val lockBound by toggle("lock-bind") { false }
 		val slotBindRequireShift by toggle("require-quick-move") { true }
 		val slotRenderLines by choice("bind-render") { SlotRenderLinesMode.ONLY_BOXES }
 		val slotBindOnlyInInv by toggle("bind-only-in-inv") { false }
@@ -254,7 +255,14 @@ object SlotLocking {
 
 	@Subscribe
 	fun onProtectSlot(it: IsSlotProtectedEvent) {
-		if (it.slot != null && it.slot.container is Inventory && it.slot.containerSlot in (lockedSlots ?: setOf())) {
+		if (it.slot != null
+			&& it.slot.container is Inventory
+			&& (it.slot.containerSlot in (lockedSlots ?: setOf())
+				|| (
+				TConfig.lockBound &&
+					currentWorldData.boundSlots.findMatchingSlots(it.slot.containerSlot).isNotEmpty())
+				)
+		) {
 			it.protect()
 		}
 	}

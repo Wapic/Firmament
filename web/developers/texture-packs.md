@@ -1,6 +1,26 @@
 
 # Custom SkyBlock Items Texture Pack Format
 
+Firmament generally tries to emulate the vanilla structure of resourcepacks whenever possible. Because of that it is extremely helpful to know the general structure of vanilla resource packs. The [minecraft wiki](https://minecraft.wiki/w/Resource_pack) is a good starting place to learn, but some basic terms will be explained here as well.
+
+## Identifiers
+
+Identifiers (also sometimes called resource locations) are a special notation for referring to namespaced files. A basic identifier looks like so: `firmskyblock:models/item/aspect_of_the_end.json`{ident}. Here `firmskyblock` (everything before the colon) is called the namespace and `models/item/aspect_of_the_end.json` (everything after the colon) is called the path. What an identifier means depends on the context in which it is used.
+
+In this document identifiers are coloured green like so: `minecraft:carrot`{ident} (this would be namespace `minecraft`, path `carrot`).
+
+If an identifier does not specify a namespace it defaults to `minecraft`, so `carrot`{ident} would be equivalent to `minecraft:carrot`{ident}.
+
+### Fully-qualified file identifiers
+
+Sooner or later when referring to a resource, it will be resolved to a file. The last step (and the essentially canonical form) of an identifier is what i call the fully-qualified file identifier.
+
+It fully represents the filepath of where an identifier resolves to inside of a resource pack.
+
+To resolve an FQFI to a file location inside of your resource pack, simply turn an identifier like `<namespace>:<path>` into `assets/<namespace>/<path>`.
+
+Given an FQFI like `firmskyblock:models/item/aspect_of_the_end.json`{fqfi}, the corresponding file is simply `assets/firmskyblock/models/item/aspect_of_the_end.json`.
+
 ## Items by internal id (ExtraAttributes)
 
 Find the internal id of the item. This is usually stored in the ExtraAttributes tag (Check the Power User Config for 

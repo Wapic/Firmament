@@ -4,6 +4,12 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "Firmament",
   description: "Reaching for the sky on HyPixel SkyBlock",
+  cleanUrls: true,
+  markdown: {
+    config: (md) => {
+//      md.use(minecraftHoverPlugin)
+    }
+  },
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [

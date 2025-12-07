@@ -1,6 +1,9 @@
 
 # Custom SkyBlock Items Texture Pack Format
 
+> [!WARNING]
+> This wiki is currently being reworked. Most information should still be correct, but i cant be sure.
+
 Firmament generally tries to emulate the vanilla structure of resourcepacks whenever possible. Because of that it is extremely helpful to know the general structure of vanilla resource packs. The [minecraft wiki](https://minecraft.wiki/w/Resource_pack) is a good starting place to learn, but some basic terms will be explained here as well.
 
 ## Identifiers

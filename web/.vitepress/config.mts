@@ -7,7 +7,7 @@ export default defineConfig({
   cleanUrls: true,
   markdown: {
     config: (md) => {
-//      md.use(minecraftHoverPlugin)
+      //      md.use(minecraftHoverPlugin)
     }
   },
   themeConfig: {
@@ -19,9 +19,10 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: 'Developers',
+        text: 'Resource Packs',
         items: [
-          { text: 'Resource Packs', link: '/developers/texture-packs' },
+          { text: 'Basics', link: '/developers/texture-packs' },
+          { text: 'Item Retexturing', link: '/developers/texture-packs/items' },
         ]
       }
     ],

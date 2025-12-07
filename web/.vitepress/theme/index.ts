@@ -26,7 +26,7 @@ const orEmpty = (str: string | null | undefined, seperator: string = " ") => str
 function inject() {
 	for (const [attr, appl] of attrs) {
 		document.querySelectorAll(`code[${attr}]`).forEach(entry => {
-			const [ns, path] = parseIdent(entry.textContent)
+			const [ns, path] = parseIdent(entry.innerHTML)
 			const attrValue = entry.getAttribute(attr)
 			tippy(entry, {
 				content: appl(ns, path, attrValue),

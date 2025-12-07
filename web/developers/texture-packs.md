@@ -26,7 +26,7 @@ Given an FQFI like `firmskyblock:models/item/aspect_of_the_end.json`{fqfi}, the 
 Find the internal id of the item. This is usually stored in the ExtraAttributes tag (Check the Power User Config for 
 keybinds). Once you found it, create an item model in a resource pack like you would for
 a vanilla item model, but at the coordinate `firmskyblock:<internalid>`. So for an aspect of the end, this would be 
-`firmskyblock:models/item/aspect_of_the_end.json` (or `assets/firmskyblock/models/item/aspect_of_the_end.json`). Then,
+`firmskyblock:aspect_of_the_end`{model=item}. Then,
 just use a normal minecraft item model. See https://github.com/nea89o/BadSkyblockTP/blob/master/assets/firmskyblock/models/item/magma_rod.json
 as an example. The id is first turned to lower case, then gets `:` replaced with `___`, `;` with `__` and all other 
 characters that cannot be used in a minecraft resource location with `__XXXX` where `XXXX` is the 4 digit hex code for 

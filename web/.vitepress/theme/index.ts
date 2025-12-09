@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Linnea Gräf <nea@nea.moe>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 import DefaultTheme from 'vitepress/theme'
 import './minecraft-hover.css'
 import type { Theme } from 'vitepress/client';

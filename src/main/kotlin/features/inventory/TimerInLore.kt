@@ -89,7 +89,9 @@ object TimerInLore {
 		TIMEREMAININGS("Time Remaining:", "Ends at"),
 		COOLDOWN("Cooldown:", "Come back at"),
 		ONCOOLDOWN("On cooldown:", "Available at"),
-		EVENTENDING("Event ends in:", "Ends at");
+		EVENTENDING("Event ends in:", "Ends at"),
+		GREENHOUSE_GROWTH_STAGE("Next Stage:", "Come back at"),
+		;
 	}
 
 	val regex =

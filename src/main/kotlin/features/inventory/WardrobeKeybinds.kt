@@ -31,6 +31,7 @@ object WardrobeKeybinds {
 	fun switchSlot(event: HandledScreenKeyPressedEvent) {
 		if (MC.player == null || MC.world == null || MC.interactionManager == null) return
 		if (event.screen !is AbstractContainerScreen<*>) return
+		if (event.isRepeat) return
 
 		val regex = Regex("Wardrobe \\([0-9]+/[0-9]+\\)")
 		if (!regex.matches(event.screen.title.string)) return

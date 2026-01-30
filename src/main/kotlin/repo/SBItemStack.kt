@@ -388,7 +388,7 @@ data class SBItemStack constructor(
 				enhanceStatsByStars(baseItem, stars, baseStats)
 				return@run baseItem
 			}
-			if (itemStack_ == null)
+			if (itemStack_ == null && !itemStack.isBroken)
 				itemStack_ = itemStack
 			return itemStack
 		}

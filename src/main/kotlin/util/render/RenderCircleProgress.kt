@@ -50,6 +50,7 @@ object RenderCircleProgress {
 			matrices.translate(0F, -1F, 0F)
 			val sections = state.angleRadians.nonNegligibleSubSectionsAlignedWith((τ / 8f).toFloat())
 				.zipWithNext().toList()
+			if (sections.isEmpty()) return
 			val u1 = state.u1
 			val u2 = state.u2
 			val v1 = state.v1

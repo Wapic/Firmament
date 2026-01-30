@@ -8,7 +8,10 @@ import io.github.notenoughupdates.moulconfig.gui.component.ColumnComponent
 import io.github.notenoughupdates.moulconfig.gui.component.PanelComponent
 import io.github.notenoughupdates.moulconfig.gui.component.TextComponent
 import io.github.notenoughupdates.moulconfig.gui.component.TextFieldComponent
+import io.github.notenoughupdates.moulconfig.observer.BaseObservable
 import io.github.notenoughupdates.moulconfig.observer.GetSetter
+import io.github.notenoughupdates.moulconfig.observer.Observable
+import io.github.notenoughupdates.moulconfig.observer.Observer
 import io.github.notenoughupdates.moulconfig.observer.Property
 import java.util.TreeSet
 import me.shedaniel.math.Point
@@ -66,6 +69,7 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 
 		var scroll: Float = 0F
 		var lastRenderedInnerHeight = 0
+		val searchText = Property.of("") // TODO: sync with REI
 
 		fun resetScroll() {
 			if (!StorageOverlay.TConfig.retainScroll) scroll = 0F
@@ -181,7 +185,6 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 		TextComponent(tr("firmament.storage-overlay.edit-pages", "Edit Pages").string),
 		action = ::editPages
 	)
-	val searchText = Property.of("") // TODO: sync with REI
 	val searchField = TextFieldComponent(
 		searchText, 100, GetSetter.constant(true),
 		tr("firmament.storage-overlay.search.suggestion", "Search...").string,
@@ -196,6 +199,9 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 	)
 
 	init {
+		(BaseObservable::class.java.getDeclaredField("observers")
+			.also { it.isAccessible = true }
+			.get(searchText) as MutableCollection<*>).clear()
 		searchText.addObserver { _, _ ->
 			layoutedForEach(StorageOverlay.Data.data ?: StorageData(), { _, _, _ -> })
 			coerceScroll(0F)
@@ -282,10 +288,10 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 	}
 
 	fun drawPages(
-        context: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float,
-        excluding: StoragePageSlot?,
-        slots: List<Slot>?,
-        slotOffset: Point
+		context: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float,
+		excluding: StoragePageSlot?,
+		slots: List<Slot>?,
+		slotOffset: Point
 	) {
 		createScissors(context)
 		val data = StorageOverlay.Data.data ?: StorageData()
@@ -484,15 +490,15 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 	}
 
 	fun drawPage(
-        context: GuiGraphics,
-        x: Int,
-        y: Int,
-        page: StoragePageSlot,
-        inventory: StorageData.StorageInventory,
-        slots: List<Slot>?,
-        slotOffset: Point,
-        mouseX: Int,
-        mouseY: Int,
+		context: GuiGraphics,
+		x: Int,
+		y: Int,
+		page: StoragePageSlot,
+		inventory: StorageData.StorageInventory,
+		slots: List<Slot>?,
+		slotOffset: Point,
+		mouseX: Int,
+		mouseY: Int,
 	): Int {
 		val inv = inventory.inventory
 		if (inv == null) {
@@ -542,13 +548,22 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 				if (StorageOverlay.TConfig.showInactivePageTooltips && !stack.isEmpty &&
 					mouseX >= slotX && mouseY >= slotY &&
 					mouseX <= slotX + 16 && mouseY <= slotY + 16 &&
-					scrollPanel.contains(mouseX, mouseY)) {
+					scrollPanel.contains(mouseX, mouseY)
+				) {
 					try {
 						context.setTooltipForNextFrame(font, stack, mouseX, mouseY)
 					} catch (e: IllegalStateException) {
-						context.setComponentTooltipForNextFrame(font, listOf(Component.nullToEmpty(ChatFormatting.RED.toString() +
-							"Error Getting Tooltip!"), Component.nullToEmpty(ChatFormatting.YELLOW.toString() +
-							"Open page to fix" + ChatFormatting.RESET)), mouseX, mouseY)
+						context.setComponentTooltipForNextFrame(
+							font, listOf(
+								Component.nullToEmpty(
+									ChatFormatting.RED.toString() +
+										"Error Getting Tooltip!"
+								), Component.nullToEmpty(
+									ChatFormatting.YELLOW.toString() +
+										"Open page to fix" + ChatFormatting.RESET
+								)
+							), mouseX, mouseY
+						)
 					}
 				}
 			} else {

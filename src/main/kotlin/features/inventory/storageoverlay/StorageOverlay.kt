@@ -72,7 +72,7 @@ object StorageOverlay {
 				?: (MC.handledScreen?.customGui as? StorageOverlayCustom)?.overview
 				?: return
 		val stack = event.slot.item ?: return
-		val search = storageOverlayScreen.searchText.get().takeIf { it.isNotBlank() } ?: return
+		val search = StorageOverlayScreen.searchText.get().takeIf { it.isNotBlank() } ?: return
 		if (storageOverlayScreen.matchesSearch(stack, search)) {
 			event.context.fill(
 				event.slot.x,

@@ -7,17 +7,16 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.components.toasts.SystemToast
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.DyeColor
-import net.minecraft.world.InteractionHand
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.StringRepresentable
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.item.DyeColor
+import net.minecraft.world.item.ItemStack
 import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HudRenderEvent
 import moe.nea.firmament.events.ProcessChatEvent
 import moe.nea.firmament.events.ProfileSwitchEvent
 import moe.nea.firmament.events.SlotClickEvent
-import moe.nea.firmament.events.UseItemEvent
 import moe.nea.firmament.events.WorldReadyEvent
 import moe.nea.firmament.util.DurabilityBarEvent
 import moe.nea.firmament.util.MC
@@ -33,7 +32,6 @@ import moe.nea.firmament.util.mc.displayNameAccordingToNbt
 import moe.nea.firmament.util.mc.loreAccordingToNbt
 import moe.nea.firmament.util.parseShortNumber
 import moe.nea.firmament.util.parseTimePattern
-import moe.nea.firmament.util.red
 import moe.nea.firmament.util.render.RenderCircleProgress
 import moe.nea.firmament.util.render.lerp
 import moe.nea.firmament.util.skyblock.AbilityUtils
@@ -69,24 +67,9 @@ object PickaxeAbility {
 		val disableInDungeons by toggle("disable-in-dungeons") { true }
 		val showOnTools by choice("show-on-tools") { ShowOnTools.PICKAXES_AND_DRILLS }
 		val cooldownScale by integer("ability-scale", 16, 64) { 16 }
-		val cooldownColour by colour("ability-colour") { ChromaColour.fromStaticRGB(187, 54, 44, 128)  }
+		val cooldownColour by colour("ability-colour") { ChromaColour.fromStaticRGB(187, 54, 44, 128) }
 		val cooldownReadyToast by toggle("ability-cooldown-toast") { false }
 		val drillFuelBar by toggle("fuel-bar") { true }
-		val blockOnPrivateIsland by choice(
-			"block-on-dynamic",
-		) {
-			BlockPickaxeAbility.ONLY_DESTRUCTIVE
-		}
-	}
-
-	enum class BlockPickaxeAbility : StringRepresentable {
-		NEVER,
-		ALWAYS,
-		ONLY_DESTRUCTIVE;
-
-		override fun getSerializedName(): String {
-			return name
-		}
 	}
 
 	var lobbyJoinTime = TimeMark.farPast()
@@ -100,7 +83,6 @@ object PickaxeAbility {
 		"Maniac Miner" to 59.seconds,
 		"Vein Seeker" to 60.seconds
 	)
-	val destructiveAbilities = setOf("Pickobulus")
 	val pickaxeTypes = setOf(ItemType.PICKAXE, ItemType.DRILL, ItemType.GAUNTLET)
 
 	fun getCooldownPercentage(name: String, cooldown: Duration): Double {
@@ -114,30 +96,6 @@ object PickaxeAbility {
 		if (sinceLastUsage < cooldown)
 			return sinceLastUsage / cooldown
 		return 1.0
-	}
-
-	@Subscribe
-	fun onPickaxeRightClick(event: UseItemEvent) {
-		if (TConfig.blockOnPrivateIsland == BlockPickaxeAbility.NEVER) return
-		if (SBData.skyblockLocation != SkyBlockIsland.PRIVATE_ISLAND && SBData.skyblockLocation != SkyBlockIsland.GARDEN) return
-		val itemType = ItemType.fromItemStack(event.item)
-		if (itemType !in pickaxeTypes) return
-		val ability = AbilityUtils.getAbilities(event.item)
-		val shouldBlock = when (TConfig.blockOnPrivateIsland) {
-			BlockPickaxeAbility.NEVER -> false
-			BlockPickaxeAbility.ALWAYS -> ability.any()
-			BlockPickaxeAbility.ONLY_DESTRUCTIVE -> ability.any { it.name in destructiveAbilities }
-		}
-		if (shouldBlock) {
-			MC.sendChat(
-				tr(
-					"firmament.pickaxe.blocked",
-					"Firmament blocked a pickaxe ability from being used on a private island."
-				)
-					.red() // TODO: .clickCommand("firm confignavigate ${TConfig.identifier} block-on-dynamic")
-			)
-			event.cancel()
-		}
 	}
 
 	@Subscribe

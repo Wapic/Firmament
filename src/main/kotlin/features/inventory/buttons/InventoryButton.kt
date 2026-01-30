@@ -85,8 +85,6 @@ data class InventoryButton(
 				if (customItem != null)
 					itemStack = customItem
 			}
-			if (itemStack.item == Items.PAINTING)
-				ErrorUtil.logError("created broken itemstack for inventory button $icon: $itemStack")
 			return itemStack
 		}
 	}

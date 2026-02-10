@@ -99,7 +99,7 @@ object PriceData {
 		}
 		if (bazaarData != null) {
 			it.lines.add(Component.literal(""))
-			it.lines.add(multiplierText)
+			if (stackSize > 1) { it.lines.add(multiplierText) }
 			when (TConfig.bzPriceType) {
 				BazaarPriceType.ORDERPRICES -> {
 					it.lines.add(
@@ -133,7 +133,7 @@ object PriceData {
 
 		} else if (lowestBin != null) {
 			it.lines.add(Component.literal(""))
-			it.lines.add(multiplierText)
+			if (stackSize > 1) { it.lines.add(multiplierText) }
 			it.lines.add(
 				formatPrice(
 					tr("firmament.tooltip.ah.lowestbin", "Lowest BIN"),

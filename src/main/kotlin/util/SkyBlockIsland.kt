@@ -35,6 +35,7 @@ private constructor(
 		val RIFT = forMode("rift")
 		val PRIVATE_ISLAND = forMode("dynamic")
 		val DUNGEON_HUB = forMode("dungeon_hub")
+		val JERRY_WORKSHOP = forMode("winter")
 
 		// Instanced
 		val DUNGEON = forMode("dungeon")
@@ -70,7 +71,7 @@ private constructor(
 		get() = RepoManager.miningData.customMiningAreas[this]?.isSpecialMining ?: false
 	val isModernServer
 		get() = when(this) {
-			GALATEA, HUB, PRIVATE_ISLAND, FARMING_ISLANDS, SPIDER, END, PARK -> true
+			GALATEA, HUB, PRIVATE_ISLAND, FARMING_ISLANDS, SPIDER, END, PARK, JERRY_WORKSHOP, CRIMSON_ISLE -> true
 			else -> false
 		}
 
